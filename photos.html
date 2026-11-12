@@ -28,13 +28,15 @@
 .view .vb input,.view .vb select{font:inherit;font-size:16px;height:44px;border-radius:10px;border:0;padding:0 10px}
 .view .vb input{flex:1 1 220px}
 .bar2{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;color:var(--muted);font-size:14px}
+.baguide{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin:8px 0;padding:12px 14px;border-radius:12px;background:#2a211d;color:#fff;font-size:17px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ph.pick{outline:4px solid #E0952B;outline-offset:-4px}
 </style>
 </head>
 <body class="app">
 <div class="page">
   <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
   <h1 class="t">작업 사진 보관함</h1>
-  <p class="sub">현장별로 시공 전·중·후 사진을 모아 둡니다. 사진은 줄여서 <b>이 기기에만</b> 저장됩니다.</p>
+  <p class="sub">현장별로 시공 전·중·후 사진을 모아 둡니다. 사진은 줄여서 서버 보관함에도 함께 저장되어 다른 기기에서도 보입니다.</p>
   <section class="card up">
     <div class="r">
       <label>① 현장 <select class="sel" id="job"></select></label>
@@ -43,9 +45,11 @@
     <div class="r">
       <label class="btn2 pri" for="cam">③ 사진 찍기</label><input id="cam" type="file" accept="image/*" capture="environment">
       <label class="btn2" for="files">사진 여러 장 고르기</label><a class="btn2" id="toSns" href="sns.html">이 현장 홍보 글 만들기 (인스타·블로그)</a><input id="files" type="file" accept="image/*" multiple>
+      <button class="btn2" type="button" id="baBtn">시공 전·후 비교 사진 만들기</button>
     </div>
     <p class="msg" id="msg" role="status" style="margin:0"></p>
   </section>
+  <div class="baguide" id="baGuide" hidden><b id="baTxt"></b> <button class="btn2" type="button" id="baCancel">그만두기</button></div>
   <div class="chips" id="chips" role="group" aria-label="구분으로 거르기"></div>
   <div class="bar2"><span id="cnt"></span><span id="space"></span></div>
   <div id="gal"></div>
@@ -57,6 +61,7 @@
     <input id="vmemo" placeholder="메모 (예: 거실 우물 마감)" aria-label="메모">
     <button class="btn2 pri" type="button" id="vsave">메모 저장</button>
     <button class="btn2" type="button" id="vdown">내려받기</button>
+    <button class="btn2 pri" type="button" id="vkeep" hidden>보관함에 저장</button>
     <button class="btn2 no" type="button" id="vdel">지우기</button>
     <button class="btn2" type="button" id="vclose">닫기</button>
   </div>
@@ -104,14 +109,40 @@
   }
   $('cam').addEventListener('change', function (e) { addFiles(e.target.files); });
   $('files').addEventListener('change', function (e) { addFiles(e.target.files); });
+  // ── 시공 전·후 비교 사진
+  var BA = null, baBlob = null;
+  function baSay() { $('baGuide').hidden = !BA; if (BA) $('baTxt').textContent = BA.length ? '② 이제 「시공 후」 사진을 누르세요' : '① 먼저 「시공 전」 사진을 누르세요'; }
+  $('baBtn').addEventListener('click', function () { BA = []; baSay(); $('gal').scrollIntoView({ behavior: 'smooth' }); });
+  $('baCancel').addEventListener('click', function () { BA = null; baSay(); document.querySelectorAll('.ph.pick').forEach(function (x) { x.classList.remove('pick'); }); });
+  function img(blob) { return new Promise(function (ok, no) { var u = URL.createObjectURL(blob), i = new Image(); i.onload = function () { ok(i); setTimeout(function () { URL.revokeObjectURL(u); }, 1000); }; i.onerror = no; i.src = u; }); }
+  function makeBA(a, b) { return Promise.all([img(a.blob), img(b.blob)]).then(function (I) {
+    var port = I[0].height >= I[0].width, W = port ? 1600 : 1200, cw = port ? W / 2 : W, ch = port ? W / 2 * 4 / 3 : W * 9 / 16, foot = 90, H = port ? ch + foot : ch * 2 + foot;
+    var c = document.createElement('canvas'); c.width = W; c.height = H; var x = c.getContext('2d'); x.fillStyle = '#1f1814'; x.fillRect(0, 0, W, H);
+    I.forEach(function (im, k) { var dx = port ? k * cw : 0, dy = port ? 0 : k * ch, r = Math.max(cw / im.width, ch / im.height), sw = cw / r, sh = ch / r;
+      x.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, dx, dy, cw, ch);
+      x.fillStyle = k ? '#E0952B' : 'rgba(20,15,12,.82)'; x.fillRect(dx + 18, dy + 18, 230, 64); x.fillStyle = '#fff'; x.font = '800 34px "Noto Sans KR", sans-serif'; x.textBaseline = 'middle'; x.fillText(k ? '시공 후' : '시공 전', dx + 36, dy + 51);
+      x.font = '700 18px "Noto Sans KR", sans-serif'; x.fillText(k ? 'AFTER' : 'BEFORE', dx + 160, dy + 52); });
+    if (port) { x.fillStyle = '#fff'; x.fillRect(cw - 2, 0, 4, ch); } else { x.fillStyle = '#fff'; x.fillRect(0, ch - 2, W, 4); }
+    var s = DECO.settings(); x.fillStyle = '#f3c98a'; x.font = '800 30px "Noto Sans KR", sans-serif'; x.textBaseline = 'middle'; x.fillText(s.company + ' · ' + (s.slogan || '간접조명 · 실링팬'), 28, H - foot / 2);
+    x.fillStyle = '#fff'; x.font = '700 26px "Noto Sans KR", sans-serif'; x.textAlign = 'right'; x.fillText(s.phone || '', W - 28, H - foot / 2);
+    return new Promise(function (ok) { c.toBlob(ok, 'image/jpeg', .9); }); }); }
   var vu = null;
-  $('gal').addEventListener('click', function (e) { var b = e.target.closest('.ph'); if (!b) return; cur = all.filter(function (p) { return p.id === b.dataset.id; })[0]; if (!cur) return;
+  $('gal').addEventListener('click', function (e) { var b = e.target.closest('.ph'); if (!b) return;
+    if (BA) { var p = all.filter(function (x) { return x.id === b.dataset.id; })[0]; if (!p) return; b.classList.add('pick'); BA.push(p); baSay();
+      if (BA.length === 2) { var pr = BA; BA = null; baSay(); say('비교 사진을 만드는 중…');
+        makeBA(pr[0], pr[1]).then(function (bl) { document.querySelectorAll('.ph.pick').forEach(function (x) { x.classList.remove('pick'); }); baBlob = bl; cur = null;
+          if (vu) URL.revokeObjectURL(vu); vu = URL.createObjectURL(bl); $('vimg').src = vu; $('view').hidden = false; $('vstage').hidden = $('vmemo').hidden = $('vsave').hidden = $('vdel').hidden = true; $('vkeep').hidden = false;
+          say('비교 사진을 만들었습니다. 「내려받기」나 「보관함에 저장」을 누르세요.'); }, function () { say('비교 사진을 만들지 못했습니다.', true); }); }
+      return; }
+    cur = all.filter(function (p) { return p.id === b.dataset.id; })[0]; if (!cur) return; baBlob = null; $('vstage').hidden = $('vmemo').hidden = $('vsave').hidden = $('vdel').hidden = false; $('vkeep').hidden = true;
     if (vu) URL.revokeObjectURL(vu); vu = URL.createObjectURL(cur.blob); $('vimg').src = vu; $('vstage').value = cur.stage; $('vmemo').value = cur.memo || ''; $('view').hidden = false; });
   function close() { $('view').hidden = true; cur = null; }
   $('vclose').addEventListener('click', close);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('view').hidden) close(); });
   $('vsave').addEventListener('click', function () { cur.stage = $('vstage').value; cur.memo = $('vmemo').value.trim(); DECO.photoPut(cur).then(function () { close(); say('메모를 저장했습니다.'); load(); }); });
-  $('vdown').addEventListener('click', function () { var a = document.createElement('a'); a.href = vu; a.download = '데코브라이트_' + jobName(cur.job).split(' · ')[0] + '_' + cur.stage.replace('·', '') + '_' + DECO.date(cur.taken || cur.added).replace(/\D+/g, '') + '.jpg'; a.click(); });
+  $('vkeep').addEventListener('click', function () { if (!baBlob) return; var j = $('job').value === '*' ? '' : $('job').value;
+    DECO.photoAdd({ job: j, stage: '시공 후', memo: '전·후 비교', blob: baBlob, taken: Date.now() }).then(function () { close(); say('비교 사진을 「' + jobName(j) + ' · 시공 후」에 저장했습니다.'); load(); }); });
+  $('vdown').addEventListener('click', function () { var a = document.createElement('a'); a.href = vu; if (!cur) { a.download = '데코브라이트_시공전후_' + DECO.today().replace(/-/g, '') + '.jpg'; a.click(); return; } a.download = '데코브라이트_' + jobName(cur.job).split(' · ')[0] + '_' + cur.stage.replace('·', '') + '_' + DECO.date(cur.taken || cur.added).replace(/\D+/g, '') + '.jpg'; a.click(); });
   $('vdel').addEventListener('click', function () { if (!confirm('이 사진을 지울까요?\n지운 사진은 되살릴 수 없습니다.')) return; DECO.photoDel(cur.id).then(function () { close(); say('사진을 지웠습니다.'); load(); }); });
   load();
 })();

@@ -44,10 +44,14 @@ h2.s{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding
 (function () {
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, f = $('f'), ed = null;
   $('trade').innerHTML = DECO.TRADES.map(function (t) { return '<option>' + t + '</option>'; }).join('');
+  function work(p) { var mk = DECO.today().slice(0, 7), n = 0, a = 0, un = 0;
+    DECO.orders().forEach(function (o) { var b = o.trades && o.trades[p.trade]; if (!b || !b.on || b.partner !== p.id) return; var c = +(o.cost || {})[p.trade] || 0;
+      if ((o.workDate || '').slice(0, 7) === mk) { n++; a += c; } if (c && !(o.costPaid || {})[p.trade]) un += c; });
+    return (n ? ' · 이달 ' + n + '곳' + (a ? ' ' + DECO.won(a) : '') : '') + (un ? ' · <b style="color:#b5462f">안 준 돈 ' + DECO.won(un) + '</b>' : ''); }
   function draw() { var A = DECO.partners();
     $('box').innerHTML = DECO.TRADES.map(function (t) { var L = A.filter(function (p) { return p.trade === t; });
       return '<h2 class="s">' + t + ' (' + L.length + ')</h2>' + (L.length ? L.map(function (p) { var tel = String(p.phone).replace(/[^\d+]/g, '');
-        return '<div class="p"><div><b>' + E(p.name) + '</b><small>' + E(p.phone) + (p.memo ? ' · ' + E(p.memo) : '') + '</small></div><div class="a">' +
+        return '<div class="p"><div><b>' + E(p.name) + '</b><small>' + E(p.phone) + (p.memo ? ' · ' + E(p.memo) : '') + work(p) + '</small></div><div class="a">' +
           '<a class="btn2" href="tel:' + tel + '">전화</a><a class="btn2" href="sms:' + tel + '">문자</a><button class="btn2" type="button" data-ed="' + p.id + '">고치기</button><button class="btn2 no" type="button" data-del="' + p.id + '">지우기</button></div></div>'; }).join('')
         : '<div class="empty">' + t + ' 거래처가 없습니다.</div>'); }).join(''); }
   function reset() { ed = null; f.reset(); $('sv').textContent = '거래처 추가'; $('cancel').hidden = true; }
