@@ -274,6 +274,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
         <div class="row">
           <button class="btn btn-line" id="copyPhone" type="button">번호 복사</button>
           <button class="btn btn-line" id="copyQuote" type="button">견적 내용 복사</button>
+          <button class="btn btn-warm" id="smsQuote" type="button">고객에게 견적 문자</button>
         </div>
         <div class="row">
           <button class="btn btn-warm big" id="saveQuote" type="button">견적 저장</button>
@@ -700,7 +701,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   async function copy(text){ try { await navigator.clipboard.writeText(text); toast("복사했습니다. 문자나 카톡에 붙여넣으세요."); }
     catch { toast("자동 복사가 안 되어 번호를 선택해 두었습니다. 길게 눌러 복사하세요.",true); const r=document.createRange(); r.selectNodeContents($("phone")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); } }
   $("copyPhone").addEventListener("click",()=>copy($("phone").textContent.trim()));
-  $("copyQuote").addEventListener("click",()=>{ const t=totals(), p=P(), v=id=>$(id).value.trim(), out=["[데코브라이트 견적]"];
+  function qText(){ const t=totals(), p=P(), v=id=>$(id).value.trim(), out=["[데코브라이트 견적]"];
     [["고객명","custName"],["연락처","custPhone"],["현장주소","custAddr"],["담당자","custStaff"]].forEach(([k,id])=>{ if(v(id)) out.push(`${k}: ${v(id)}`); });
     out.push("", `■ 패키지: ${p.id==="none"?"선택 안함":p.name+" "+won(p.price)}`);
     const ch=QI.filter(i=>i.qty>0); if (ch.length){ out.push("■ 추가 항목"); ch.forEach(i=>out.push(`- ${i.name}${i.opt?" ("+i.opt+")":""} ${won(i.price)} × ${i.qty} = ${won(i.qty*i.price)}`)); }
@@ -709,7 +710,12 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     const color={2700:"전구색",4000:"주백색",6500:"주광색"}[kelvin]; out.push("", `조명 색 ${color}`);
     if (t.dc) out.push(`할인 -${won(t.dc)}`);
     out.push(`공급가액 ${won(t.supply)} / 부가세 ${won(t.vat)}`, `합계금액 ${won(t.total)}`, "※ 실측 후 확정 · 문의 "+$("phone").textContent.trim());
-    copy(out.join("\n")); });
+    return out; }
+  $("copyQuote").addEventListener("click",()=>copy(qText().join("\n")));
+  $("smsQuote").addEventListener("click",()=>{ const tel=$("custPhone").value.replace(/[^\d+]/g,""); if(!tel){ toast("고객 연락처를 먼저 넣어 주세요."); $("custPhone").focus(); return; }
+    doSave(); const nm=$("custName").value.trim(), s=DECO.settings(), out=qText().filter(l=>!/^(고객명|연락처|담당자):/.test(l)); out[0]="["+s.company+"] "+(nm?nm+" 님, ":"")+"요청하신 견적 보내드립니다.";
+    const txt=out.join("\n"); try{ navigator.clipboard&&navigator.clipboard.writeText(txt).catch(()=>{}); }catch(e){}
+    location.href="sms:"+tel+(/iPhone|iPad/.test(navigator.userAgent)?"&":"?")+"body="+encodeURIComponent(txt); });
 
   // ---------- AI auto placement ----------
   let sample=null, canImg=false, busy=false, photoFile=null;

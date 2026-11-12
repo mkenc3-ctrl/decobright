@@ -131,7 +131,7 @@
   $('prev').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); draw(); });
   $('next').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); draw(); });
   $('tod').addEventListener('click', function () { sel = DECO.today(); view = new Date(sel + 'T00:00'); resetForm(); draw(); });
-  resetForm(); if (P.get('cust')) { $('kind').value = '실측 방문'; } draw();
+  resetForm(); if (P.get('cust')) { $('kind').value = P.get('kind') === 'as' ? '하자 보수 방문' : '실측 방문'; } draw();
 })();
 </script>
 </body>
