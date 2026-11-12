@@ -83,6 +83,13 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
 .tiles span{font-size:13px;line-height:1.35}
 @media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tiles span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
 @media (max-width:420px){.hero .engx{display:none}}
+.todo{background:#fff;border:1px solid var(--line);border-top:4px solid var(--pri);border-radius:14px;padding:12px 14px;margin:0 0 12px}
+.todo h2{font-size:17px;margin:0 0 6px}
+.todo ul{list-style:none;margin:0;padding:0}
+.todo li a{display:flex;justify-content:space-between;gap:8px;padding:10px 2px;border-top:1px solid var(--line2,#f1e8da);color:inherit;text-decoration:none;font-size:16px}
+.todo li:first-child a{border-top:0}
+.todo li a span{min-width:0}
+.todo li a b{white-space:nowrap;color:var(--warm,#E0952B)}
 .syncbox{display:block;margin:-4px 0 12px;padding:10px 14px;border-radius:12px;background:#fff;border:1px solid var(--bd,#e6dccd);color:var(--ink,#2b2420);text-decoration:none;font-size:15px}
 .syncbox.due{border-color:#e3b26b;background:#fff7ea;font-weight:700}
 .syncbox.brief{width:100%;text-align:left;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
@@ -103,6 +110,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소로 찾기" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
+  <section class="todo" id="todo" hidden aria-label="오늘 할 일"><h2>✅ 오늘 할 일</h2><ul id="todoL"></ul></section>
   <button type="button" class="syncbox brief" id="brief">🔊 오늘 할 일 듣기 <small id="briefT"></small></button>
   <section class="alert" id="alert" hidden aria-live="polite">
     <div class="h"><span>🔔 다가오는 작업 알림</span><span><button class="btn2 pri" type="button" id="say">🔊 소리로 듣기</button> <button class="btn2" type="button" id="noti">휴대폰 알림 켜기</button></span></div>
@@ -173,6 +181,16 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
       var text = parts.filter(Boolean).join(' ');
       document.getElementById('briefT').textContent = '오늘 시공 ' + O.length + '건 · 일정 ' + V.length + '건' + (call ? ' · 연락 ' + call + '명' : '');
       document.getElementById('brief').onclick = function () { if (!DECO.speak('데코브라이트 오늘 브리핑입니다. ' + text)) alert(text); }; })();
+    (function () { var T = [], td = DECO.today(), tm = new Date(); tm.setDate(tm.getDate() + 1); tm = DECO.ymd(tm), E2 = DECO.esc;
+      DECO.orders().forEach(function (o) { if (o.status === '완료' || o.status === '보류') return;
+        if (o.workDate === td) T.push(['🔨 오늘 시공: ' + (o.name || o.addr || o.no) + (o.workTime ? ' ' + o.workTime : ''), '지시서 ›', 'order.html?id=' + encodeURIComponent(o.id)]); });
+      if (DECO.orders().some(function (o) { return o.workDate === tm && o.status !== '완료' && o.status !== '보류'; })) T.push(['📦 내일 시공 자재 챙기기', '자재 목록 ›', 'mats.html']);
+      L.filter(function (q) { var st = q.status || '상담'; return (st === '상담' || st === '실측') && Date.now() - (q.updated || 0) > 3 * 864e5; }).slice(0, 3).forEach(function (q) {
+        T.push(['☎ 다시 연락: ' + ((q.cust && q.cust.name) || q.no) + ' (' + Math.floor((Date.now() - q.updated) / 864e5) + '일 전 견적)', '견적 ›', 'quote.html?id=' + encodeURIComponent(q.id)]); });
+      L.filter(function (q) { return q.status === '완료' && (q.totals && q.totals.total || 0) - (q.pays || []).reduce(function (a, p) { return a + (+p.amt || 0); }, 0) > 0; }).slice(0, 3).forEach(function (q) {
+        T.push(['💰 시공 끝, 잔금 받기: ' + ((q.cust && q.cust.name) || q.no), '수금 ›', 'stats.html#pay']); });
+      if (!T.length) return; document.getElementById('todo').hidden = false;
+      document.getElementById('todoL').innerHTML = T.slice(0, 7).map(function (t) { return '<li><a href="' + t[2] + '"><span>' + E2(t[0]) + '</span><b>' + t[1] + '</b></a></li>'; }).join(''); })();
     var b = document.getElementById('dueBox'); if (n) { b.hidden = false; b.textContent = '💰 아직 받을 돈 ' + DECO.won(sum) + ' (' + n + '건) · 눌러서 보기 ›'; } })();
   document.getElementById('cname').textContent = s.company;
   document.getElementById('cnt').textContent = L.length ? '저장된 견적 ' + L.length + '건' : '아직 저장한 견적이 없습니다';

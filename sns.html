@@ -104,13 +104,16 @@ h2.s{font-size:20px;margin:24px 0 8px;display:flex;justify-content:space-between
       '[' + c + ' ' + co + '] ' + p + ', ' + f + ' 시공 전후 비교',
       '[' + c + ' ' + co + '] ' + p + ', ' + (i.x.status === '신축' ? '신축 아파트 ' : '') + '간접조명 실링팬 시공후기',
       '[' + c + ' ' + co + '] ' + p + ' ' + z + '거실, 빛으로 바꾼 천장'].map(function (t) { return t.replace(/\s+/g, ' ').replace(/\[\s/, '[').trim(); }); }
-  function insta(i) { var sel = sel2();
+  // 홍보 사용을 허락받은 고객 후기
+  function rv() { var x = q(); if (!x) return null; var o = DECO.orders().filter(function (o) { return o.quoteId === x.id && o.review && o.review.ok && o.review.text; })[0]; return o ? o.review : null; }
+  function insta(i) { var sel = sel2(), R = rv();
     var L = [pick(['DECO BRIGHT PROJECT NOTE ◆ ' + i.place, '[' + i.city + ' ' + S.company + '] ' + i.place], 'i'), '',
       'WORK. ' + i.work.join(', '), ''];
     L = L.concat(pick([['같은 밝기라도 어디에서 빛이 내려오고', '어느 면을 비추는지에 따라', '공간의 인상은 달라집니다.'],
       ['메인 조명 하나 대신', '천장과 벽을 나누어 밝히면', '저녁의 거실이 달라집니다.'],
       ['기존 천장 구조는 살리고', '공간마다 필요한 빛을 나누어', '편안한 분위기를 만들었습니다.']], 'i'));
     if (i.extra) L.push('', i.extra);
+    if (R) L.push('', '💬 “' + R.text + '”', '- 시공 고객님 후기' + (R.star ? ' ' + '★★★★★'.slice(0, R.star) : ''));
     if (sel.length > 1) L.push('', '👉 옆으로 넘겨 시공 전후를 비교해 보세요');
     L.push('', '20년 경력 전기기사가 직접 시공합니다.', '무료 견적 & 실측 상담 ' + S.phone, '');
     var seen = {}; L.push(i.tags.concat((S.tags || '').split(/\s+/)).filter(function (t) { if (!t || t === '#' || seen[t]) return false; seen[t] = 1; return true; }).join(' '));
@@ -133,6 +136,7 @@ h2.s{font-size:20px;margin:24px 0 8px;display:flex;justify-content:space-between
     if (i.has('sw')) L.push('', '무선으로도 조절하실 수 있도록', '', '무선 스위치와 리모컨까지.');
     if (i.has('bath')) L.push('', '', 'BATHROOM', '', '욕실에는 거울장 아래로 간접조명을 시공했습니다.', '', '장 밑으로 생기기 쉬운 그림자를 밝히고', '', '세면대 주변까지 빛이 닿습니다.');
     if (i.has('entr')) L.push('', '', 'ENTRANCE', '', '현관에는 신발장 아래로 간접조명을 넣었습니다.', '', '바닥 가까이에서 퍼지는 빛이', '', '집에 들어서는 자리를 은은하게 밝혀줍니다.');
+    var R = rv(); if (R) L.push('', '', 'REVIEW', '', '시공을 마치고 고객님께서 남겨 주신 한마디입니다.', '', '“' + R.text + '”', '', '- 고객님 후기' + (R.star ? ' ' + '★★★★★'.slice(0, R.star) : ''), '', '◆');
     L.push('', '', '조명은 제품의 개수보다', '', '공간에 맞는 위치와 밝기, 배선 구성이 중요합니다.', '', S.company + '는 20년 전기기사 경력을 바탕으로', '', '목공 형태와 조명 배치, 실링팬 설치 조건을 함께 살핍니다.', '',
       '우리 집에도 가능할지 고민되신다면', '', '현재 천장 사진과 함께 카카오톡 채널로 문의해 주세요.', '', '공간과 예산에 맞는 시공 방향을 안내해 드리겠습니다.', '', '',
       'DECO BRIGHT', '', 'Premium Lighting & Ceiling Fan', '', '◆', '', '무료 견적 & 실측 상담', '', '방문접수 / 출장 / 예약가능', '', S.phone, '', (S.bizName || S.company), (S.addr || ''), '');
