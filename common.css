@@ -2,6 +2,8 @@
 :root{--ink:#221C18;--ink2:#4A403A;--muted:#7A6E66;--line:#E6D9C6;--line2:#F1E8DA;--bd:#CDBBA3;--pri:#3B2F2A;--pri-d:#251D19;--pri-s:#F6EBDD;--paper:#FBF6EE;--acc:#B5541C;--warm:#E0952B;--warm-s:#FCEBD2;--ok:#2E6A4E;--no:#B42318}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+body.app::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(251,246,238,.90),rgba(251,246,238,.97) 40%,var(--paper)),url(img/square-warm.jpg) center top/cover no-repeat}
+@media print{body.app::before{display:none}}
 body.app{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;word-break:keep-all;font-variant-numeric:tabular-nums}
 .page{max-width:960px;margin:0 auto;padding:18px 16px 60px}
 .topnav{display:flex;gap:8px;align-items:center;margin-bottom:6px}

@@ -30,6 +30,7 @@ th{background:#f1eee7;font-weight:500;white-space:nowrap}
 .tot td{font-weight:700}
 .tot.g td{font-size:15px;background:#f1eee7}
 .memo{margin-top:10px;border:1px solid #555;padding:7px 9px;min-height:44px;white-space:pre-wrap}
+.cases{margin-top:10px;break-inside:avoid}.cases>b{display:block;font-size:13px;margin-bottom:4px}.cases>div{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.cases figure{margin:0}.cases img{width:100%;aspect-ratio:4/3;object-fit:cover;border:1px solid #999;display:block}.cases figcaption{font-size:11px;color:#555;text-align:center}
 .pic{margin-top:10px;text-align:center}
 .pic img{max-width:100%;max-height:72mm;border:1px solid #999}
 .pic small{display:block;color:#555}
@@ -45,6 +46,7 @@ th{background:#f1eee7;font-weight:500;white-space:nowrap}
     <button class="btn2 pri" type="button" onclick="print()">인쇄 · PDF 저장</button>
     <a class="btn2" id="editA" href="quote.html">견적 고치기</a>
     <label style="font-size:15px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="picChk" checked style="width:20px;height:20px"> 예상 모습 그림 넣기</label>
+    <label style="font-size:15px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="caseChk" checked style="width:20px;height:20px"> 시공 사례 사진 넣기</label>
     <p>PDF로 받으려면 「인쇄 · PDF 저장」을 누른 뒤 프린터에서 「PDF로 저장」을 고르세요.</p>
   </div>
   <div class="sheet" id="sheet"></div>
@@ -84,8 +86,10 @@ th{background:#f1eee7;font-weight:500;white-space:nowrap}
       '<tr class="tot g"><td colspan="5" class="c">합계금액</td><td class="n">' + W(t.total) + '</td></tr></tbody></table>' +
     '<div class="memo"><b>비고</b>' + (color ? ' · 조명 색 ' + color : '') + '\n' + E(q.memo || '') + '</div>' +
     (q.img ? '<div class="pic" id="pic"><img src="' + q.img + '" alt="시공 후 예상 모습"><small>사진 위에 붙여 본 시공 후 예상 모습 (실제와 다를 수 있음)</small></div>' : '') +
+    '<div class="cases" id="cases"><b>' + E(s.company) + ' 시공 사례</b><div>' + [['round-wide','무몰딩 라운드 우물'],['square-warm','우물 간접조명 · 실링팬'],['curtain-fan','커튼박스 간접조명 · 실링팬']].map(function (c) { return '<figure><img src="img/' + c[0] + '.jpg" alt="' + c[1] + '"><figcaption>' + c[1] + '</figcaption></figure>'; }).join('') + '</div></div>' +
     '<div class="foot">※ ' + E(s.terms) + (s.bank ? '<br>※ 입금 계좌 : ' + E(s.bank) : '') + '</div>';
   var pc = document.getElementById('picChk'), pic = document.getElementById('pic');
+  var cc = document.getElementById('caseChk'), cs = document.getElementById('cases'); if (cs) cc.addEventListener('change', function () { cs.hidden = !cc.checked; });
   if (!pic) pc.parentNode.hidden = true; else pc.addEventListener('change', function () { pic.hidden = !pc.checked; });
 })();
 </script>
