@@ -30,7 +30,7 @@
     Object.keys(old).forEach(function (id) { if (!(id in now)) { q[MAP[k] + '|' + id] = { c: MAP[k], id: id, data: { _del: true }, v: Date.now() }; n++; } });
     snap[k] = nh; wr(SNAP, snap); if (n) { wr(QK, q); later(); }
   }
-  var tm = null; function later() { clearTimeout(tm); tm = setTimeout(flush, 800); }
+  var tm = null; function later() { clearTimeout(tm); tm = setTimeout(function () { flush().then(flushPhotos); }, 800); }
 
   // 대기열 → 서버
   function flush() {
@@ -55,6 +55,7 @@
         var rows = r.data || []; if (!rows.length) return got;
         var q = rd(QK, {}), snap = rd(SNAP, {}), cache = {};
         rows.forEach(function (row) {
+          if (row.coll === 'photos') { PIN.push(row); got++; return; }
           var k = REV[row.coll]; if (!k || q[row.coll + '|' + row.id]) return;
           if (!cache[k]) cache[k] = rd(k, OBJ[k] ? null : []);
           var del = row.data && row.data._del, sn = snap[k] = snap[k] || {};
@@ -74,13 +75,63 @@
     return page(last);
   }
 
+  // ---------- 현장 사진 (IndexedDB ↔ 서버 보관함 photos) ----------
+  var PQ = 'deco-sync-pq', PS = 'deco-sync-psnap', PIN = [], O = null;
+  function meta(p) { var m = {}; Object.keys(p).forEach(function (k) { if (k !== 'blob') m[k] = p[k]; }); m.path = 'p/' + p.id + '.jpg'; return m; }
+  function pq(id, op) { var q = rd(PQ, {}); if (q[id] && q[id].op === 'up' && op === 'meta') return; q[id] = { op: op, v: Date.now() }; wr(PQ, q); later(); }
+  function hookPhotos() {
+    var D = window.DECO; if (!D || !D.photoAdd || O) return;
+    O = { add: D.photoAdd, put: D.photoPut, del: D.photoDel, all: D.photoAll };
+    D.photoAdd = function (p) { return O.add(p).then(function (r) { pq(r.id, 'up'); return r; }); };
+    D.photoPut = function (p) { return O.put(p).then(function (r) { pq(p.id, 'meta'); return r; }); };
+    D.photoDel = function (id) { return O.del(id).then(function (r) { pq(id, 'del'); return r; }); };
+  }
+  // 서버에서 받은 사진 기록 → 이 기기에 합치기 (없는 사진은 내려받기)
+  function applyPhotos() {
+    if (!O || !PIN.length) return Promise.resolve(0);
+    var rows = PIN.splice(0), q = rd(PQ, {}), ps = rd(PS, {}), n = 0;
+    return O.all().then(function (all) {
+      var have = {}; all.forEach(function (p) { have[p.id] = p; });
+      return rows.reduce(function (pr, row) { return pr.then(function () {
+        if (q[row.id]) return; var d = row.data || {};
+        if (d._del) { delete ps[row.id]; if (have[row.id]) { n++; return O.del(row.id); } return; }
+        ps[row.id] = 1;
+        if (have[row.id]) { var p = have[row.id], ch = false; Object.keys(d).forEach(function (k) { if (k !== 'path' && JSON.stringify(p[k]) !== JSON.stringify(d[k])) { p[k] = d[k]; ch = true; } }); if (ch) { n++; return O.put(p); } return; }
+        return S.client.storage.from('photos').download(d.path).then(function (r) {
+          if (r.error || !r.data) return; var p = {}; Object.keys(d).forEach(function (k) { if (k !== 'path') p[k] = d[k]; }); p.blob = r.data; n++; return O.put(p);
+        });
+      }); }, Promise.resolve()).then(function () { wr(PS, ps); return n; });
+    });
+  }
+  // 이 기기 사진 → 서버 (올리기·고치기·지우기)
+  function flushPhotos() {
+    if (!O || !S.client || !S.user || S.member === false) return Promise.resolve();
+    return O.all().then(function (all) {
+      var q = rd(PQ, {}), ps = rd(PS, {}), have = {};
+      all.forEach(function (p) { have[p.id] = p; if (!ps[p.id] && !q[p.id]) q[p.id] = { op: 'up', v: Date.now() }; });
+      wr(PQ, q); var ids = Object.keys(q); if (!ids.length) return;
+      S.photoLeft = ids.length; emit();
+      return ids.reduce(function (pr, id) { return pr.then(function () {
+        var it = q[id], p = have[id], bucket = S.client.storage.from('photos'), done;
+        if (it.op === 'del' || !p) done = bucket.remove(['p/' + id + '.jpg']).then(function () { return S.client.from('records').upsert({ coll: 'photos', id: id, data: { _del: true } }, { onConflict: 'coll,id' }); });
+        else if (it.op === 'up' || !ps[id]) done = bucket.upload('p/' + id + '.jpg', p.blob, { upsert: true, contentType: p.blob.type || 'image/jpeg' }).then(function (r) { if (r.error) throw r.error; return S.client.from('records').upsert({ coll: 'photos', id: id, data: meta(p) }, { onConflict: 'coll,id' }); });
+        else done = S.client.from('records').upsert({ coll: 'photos', id: id, data: meta(p) }, { onConflict: 'coll,id' });
+        return done.then(function (r) {
+          if (r && r.error) throw r.error;
+          var q2 = rd(PQ, {}), ps2 = rd(PS, {}); if (q2[id] && q2[id].v === it.v) delete q2[id];
+          if (it.op === 'del' || !p) delete ps2[id]; else ps2[id] = 1; wr(PQ, q2); wr(PS, ps2); S.photoLeft = Object.keys(q2).length; emit();
+        }, function (e) { S.err = '사진을 보내지 못했습니다: ' + (e && e.message || e); emit(); throw e; });
+      }); }, Promise.resolve());
+    }).catch(function () {});
+  }
+
   function sync(first) {
     if (S.busy) return Promise.resolve(); S.busy = true; emit();
     return pull().then(function (n) {
       S.pulled = n || 0;
       // 처음 연결: 이 기기에만 있던 자료를 대기열에 올림
       if (first || !localStorage.getItem(SNAP)) Object.keys(MAP).forEach(function (k) { var v = rd(k, null); if (v != null) changed(k, v); });
-      return flush().then(function () { return n; });
+      return applyPhotos().then(function (pn) { n = (n || 0) + (pn || 0); S.photoIn = pn; return flush(); }).then(flushPhotos).then(function () { return n; });
     }).then(function (n) {
       S.busy = false; if (!S.err) S.lastOk = Date.now(); emit();
       if (n) arrived();
@@ -102,12 +153,13 @@
     else if (!S.user) t = '☁ <b>로그인하면</b> 동업자와 같은 자료를 봅니다 ›';
     else if (S.member === false) t = '⚠ ' + S.user.email + ' 은(는) 팀원 명단에 없습니다 ›';
     else if (S.err) t = '⚠ ' + S.err + ' ›';
-    else { var q = Object.keys(rd(QK, {})).length; t = '☁ 같이 쓰는 중' + (S.user.id === 'open' ? '' : ' · ' + S.user.email) + (S.busy ? ' · 맞추는 중…' : q ? ' · 보낼 것 ' + q + '건' : ' · 모두 맞춤'); }
+    else { var q = Object.keys(rd(QK, {})).length; t = '☁ 같이 쓰는 중' + (S.user.id === 'open' ? '' : ' · ' + S.user.email) + (S.busy ? ' · 맞추는 중…' : q ? ' · 보낼 것 ' + q + '건' : S.photoLeft ? ' · 사진 보내는 중 ' + S.photoLeft + '장' : ' · 모두 맞춤'); }
     el.innerHTML = t; el.classList.toggle('on', !!(S.user && S.member && !S.err));
-    var inst = document.querySelector('.inst'); if (inst && S.user && S.member) inst.innerHTML = '※ 견적·고객·지시서·일정·거래처·메모·가격표·회사 정보는 <b>서버에 함께 저장</b>됩니다. 현장 사진은 아직 기기마다 따로 저장됩니다.';
+    var inst = document.querySelector('.inst'); if (inst && S.user && S.member) inst.innerHTML = '※ 견적·고객·지시서·일정·거래처·메모·가격표·회사 정보·현장 사진이 <b>서버에 함께 저장</b>됩니다.';
   }
 
   function start() {
+    hookPhotos();
     if (!window.supabase || !window.supabase.createClient) { S.state = '불러오기 실패'; emit(); return; }
     S.client = window.supabase.createClient(URL, KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'deco-auth' } });
     S.client.auth.onAuthStateChange(function (ev, session) {
@@ -131,10 +183,11 @@
       var to = location.href.replace(/[^\/]*([?#].*)?$/, '') + 'index.html';
       return S.client.auth.signInWithOtp({ email: email, options: { emailRedirectTo: to, shouldCreateUser: true } });
     },
-    logout: function () { return S.client.auth.signOut().then(function () { [SNAP, QK, LAST].forEach(function (k) { localStorage.removeItem(k); }); }); },
+    logout: function () { return S.client.auth.signOut().then(function () { [SNAP, QK, LAST, PQ, PS].forEach(function (k) { localStorage.removeItem(k); }); }); },
     pending: function () { return Object.keys(rd(QK, {})).length; }
   };
   var s = document.createElement('script'); s.src = LIB; s.onload = start; s.onerror = function () { S.state = '불러오기 실패'; S.err = '인터넷 연결을 확인해 주세요. 자료는 이 기기에 저장되고 있습니다.'; emit(); };
   document.head.appendChild(s);
+  hookPhotos();
   if (document.readyState !== 'loading') paint(); else document.addEventListener('DOMContentLoaded', paint);
 })();
