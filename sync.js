@@ -8,6 +8,8 @@
   var URL = 'https://dypvqgaayumrhaiphatu.supabase.co', KEY = 'sb_publishable_5-LUZwZQ3VwBxDKDA_nJpw_ddF6QKdE';
   var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js';
   var MAP = { 'deco-quotes': 'quotes', 'deco-customers': 'customers', 'deco-orders': 'orders', 'deco-events': 'events', 'deco-partners': 'partners', 'deco-memos': 'memos', 'deco-settings': 'settings', 'deco-prices': 'prices' };
+  // 임시(2026-11-12): 로그인 없이 같이 쓰기. 나중에 팀 코드로 바꿀 때 false 로
+  var OPEN = true;
   var OBJ = { 'deco-settings': 1, 'deco-prices': 1 }, REV = {};
   Object.keys(MAP).forEach(function (k) { REV[MAP[k]] = k; });
   var SNAP = 'deco-sync-snap', QK = 'deco-sync-q', LAST = 'deco-sync-last';
@@ -23,7 +25,7 @@
 
   // 기기에서 고친 것 → 대기열
   function changed(k, v) {
-    if (!MAP[k] || !localStorage.getItem('deco-auth')) return; var snap = rd(SNAP, {}), old = snap[k] || {}, now = toMap(k, v), q = rd(QK, {}), nh = {}, n = 0;
+    if (!MAP[k] || !(OPEN || localStorage.getItem('deco-auth'))) return; var snap = rd(SNAP, {}), old = snap[k] || {}, now = toMap(k, v), q = rd(QK, {}), nh = {}, n = 0;
     Object.keys(now).forEach(function (id) { var h = hash(JSON.stringify(now[id])); nh[id] = h; if (old[id] !== h) { q[MAP[k] + '|' + id] = { c: MAP[k], id: id, data: now[id], v: Date.now() }; n++; } });
     Object.keys(old).forEach(function (id) { if (!(id in now)) { q[MAP[k] + '|' + id] = { c: MAP[k], id: id, data: { _del: true }, v: Date.now() }; n++; } });
     snap[k] = nh; wr(SNAP, snap); if (n) { wr(QK, q); later(); }
@@ -100,7 +102,7 @@
     else if (!S.user) t = '☁ <b>로그인하면</b> 동업자와 같은 자료를 봅니다 ›';
     else if (S.member === false) t = '⚠ ' + S.user.email + ' 은(는) 팀원 명단에 없습니다 ›';
     else if (S.err) t = '⚠ ' + S.err + ' ›';
-    else { var q = Object.keys(rd(QK, {})).length; t = '☁ 같이 쓰는 중 · ' + S.user.email + (S.busy ? ' · 맞추는 중…' : q ? ' · 보낼 것 ' + q + '건' : ' · 모두 맞춤'); }
+    else { var q = Object.keys(rd(QK, {})).length; t = '☁ 같이 쓰는 중' + (S.user.id === 'open' ? '' : ' · ' + S.user.email) + (S.busy ? ' · 맞추는 중…' : q ? ' · 보낼 것 ' + q + '건' : ' · 모두 맞춤'); }
     el.innerHTML = t; el.classList.toggle('on', !!(S.user && S.member && !S.err));
     var inst = document.querySelector('.inst'); if (inst && S.user && S.member) inst.innerHTML = '※ 견적·고객·지시서·일정·거래처·메모·가격표·회사 정보는 <b>서버에 함께 저장</b>됩니다. 현장 사진은 아직 기기마다 따로 저장됩니다.';
   }
@@ -109,8 +111,8 @@
     if (!window.supabase || !window.supabase.createClient) { S.state = '불러오기 실패'; emit(); return; }
     S.client = window.supabase.createClient(URL, KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'deco-auth' } });
     S.client.auth.onAuthStateChange(function (ev, session) {
-      var u = session && session.user; var was = S.user && S.user.id; S.user = u || null;
-      if (!u) { S.member = null; emit(); return; }
+      var u = session && session.user; var was = S.user && S.user.id; if (u || !OPEN) S.user = u || null;
+      if (!u) { if (OPEN) { if (S.user && S.user.id === 'open') return; S.user = { id: 'open', email: '로그인 없이' }; S.member = true; emit(); sync(!localStorage.getItem(LAST)); } else { S.member = null; emit(); } return; }
       if (was === u.id && S.member != null) return;
       S.client.from('members').select('email').eq('email', u.email).then(function (r) {
         S.member = !!(r.data && r.data.length); emit();

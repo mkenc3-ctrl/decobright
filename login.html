@@ -59,7 +59,8 @@ ol.how{padding-left:22px;font-size:16px;line-height:1.8}
     if (S.member === false) { st.className = 'st bad'; st.textContent = u.email + ' 은(는) 팀원 명단에 없습니다. 사장님께 등록을 부탁하세요.'; return; }
     if (S.err) { st.className = 'st bad'; st.textContent = S.err; return; }
     var q = DECO_SYNC.pending();
-    st.className = 'st ok'; st.textContent = '로그인됨 · ' + u.email + (S.busy ? ' · 맞추는 중…' : q ? ' · 보낼 것 ' + q + '건' : ' · 서버와 모두 맞췄습니다');
+    if (u.id === 'open') { $('inBox').hidden = false; $('f').hidden = true; $('out').hidden = true; }
+    st.className = 'st ok'; st.textContent = (u.id === 'open' ? '로그인 없이 같이 쓰는 중' : '로그인됨 · ' + u.email) + (S.busy ? ' · 맞추는 중…' : q ? ' · 보낼 것 ' + q + '건' : ' · 서버와 모두 맞췄습니다');
   }
   DECO_SYNC.on(show);
   $('f').addEventListener('submit', function (e) {
