@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>자재 준비 목록 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.rng{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.ml{list-style:none;margin:0;padding:0}
+.ml li{display:flex;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--bd);font-size:17px}
+.ml li input{width:24px;height:24px;flex:none}
+.ml li span{flex:1;min-width:0}
+.ml li b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ml li small{display:block;font-size:13px;color:var(--mut,#7a6d5c)}
+.ml li.ok span,.ml li.ok b{text-decoration:line-through;color:#9a8f80}
+h3.tr{font-size:17px;margin:14px 0 4px}
+.sites a{display:block;padding:8px 2px;border-bottom:1px solid var(--bd);color:inherit;text-decoration:none;font-size:15px}
+@media print{.topnav,.rng,.acts,.sub{display:none}.ml li input{display:none}}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:760px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">자재 준비 목록</h1>
+  <p class="sub">① 기간을 고르면 ② 그동안 시공할 작업 지시서의 「준비 자재」를 모아 더해 줍니다. ③ 챙긴 것은 눌러서 지워 가세요. (완료·보류 지시서는 빠집니다)</p>
+  <div class="rng" id="rng">
+    <button class="btn2 pri" type="button" data-d="7">오늘부터 7일</button>
+    <button class="btn2" type="button" data-d="3">오늘부터 3일</button>
+    <button class="btn2" type="button" data-d="1">내일 하루</button>
+    <button class="btn2" type="button" data-d="30">한 달</button>
+  </div>
+  <div class="card">
+    <div id="list"></div>
+    <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn2 pri" type="button" id="cp">목록 복사 (문자·카톡에 붙여넣기)</button>
+      <button class="btn2" type="button" id="pr">인쇄</button>
+      <button class="btn2" type="button" id="clr">체크 모두 풀기</button>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+  </div>
+  <h2 class="grp">이 기간 현장</h2>
+  <div class="card sites" id="sites"></div>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, D = 7, KC = 'deco-matchk', TXT = '';
+  function ck() { try { return JSON.parse(localStorage.getItem(KC) || '{}'); } catch (e) { return {}; } }
+  function setCk(o) { try { localStorage.setItem(KC, JSON.stringify(o)); } catch (e) {} }
+  function range() { var s = new Date(), e; if (D === 1) { s.setDate(s.getDate() + 1); e = new Date(s); } else { e = new Date(); e.setDate(e.getDate() + D - 1); } return [DECO.ymd(s), DECO.ymd(e)]; }
+  function draw() {
+    var r = range(), O = DECO.orders().filter(function (o) { return o.workDate >= r[0] && o.workDate <= r[1] && o.status !== '완료' && o.status !== '보류'; })
+      .sort(function (a, b) { return a.workDate.localeCompare(b.workDate); });
+    var G = {}, C = ck();
+    O.forEach(function (o) { Object.keys(o.trades || {}).forEach(function (t) { var b = o.trades[t]; if (!b || !b.on || !b.mats) return; G[t] = G[t] || {};
+      String(b.mats).split(/\n|,/).forEach(function (l) { l = l.trim(); if (!l) return; var m = l.match(/^(.*?)\s*[×x\*]\s*(\d+(?:\.\d+)?)\s*([^\d\s]*)$/), k = m ? m[1].trim() : l, n = m ? +m[2] : 0, u = m ? m[3] : '';
+        var g = G[t][k] = G[t][k] || { n: 0, u: u, free: !m, at: [] }; g.n += n; if (g.at.indexOf(o.name || o.addr || o.no) < 0) g.at.push(o.name || o.addr || o.no); }); }); });
+    var T = Object.keys(G), L = ['[자재 준비] ' + r[0] + (r[1] !== r[0] ? ' ~ ' + r[1] : '')];
+    $('list').innerHTML = T.length ? T.map(function (t) { L.push('', '■ ' + t);
+      return '<h3 class="tr">' + E(t) + '</h3><ul class="ml">' + Object.keys(G[t]).map(function (k) { var g = G[t][k], id = t + '|' + k, q = g.free ? '' : (Math.round(g.n * 100) / 100) + (g.u || '개');
+        L.push('- ' + k + (q ? ' ' + q : ''));
+        return '<li class="' + (C[id] ? 'ok' : '') + '"><input type="checkbox" data-k="' + E(id) + '"' + (C[id] ? ' checked' : '') + ' aria-label="' + E(k) + ' 챙김"><span>' + E(k) + '<small>' + E(g.at.join(', ')) + '</small></span><b>' + E(q) + '</b></li>'; }).join('') + '</ul>'; }).join('')
+      : '<p class="sub">' + (O.length ? '이 기간 지시서에 「준비 자재」가 적혀 있지 않습니다. 지시서의 공종별 「준비 자재·장비」 칸에 적어 주세요.' : '이 기간에 잡힌 시공이 없습니다.') + '</p>';
+    TXT = L.join('\n');
+    $('sites').innerHTML = O.length ? O.map(function (o) { return '<a href="order.html?id=' + encodeURIComponent(o.id) + '"><b>' + E(o.workDate) + '</b> · ' + E(o.name || '') + ' ' + E(o.addr || '') + ' <small>(' + E(o.no) + ')</small></a>'; }).join('') : '<p class="sub">없음</p>';
+  }
+  $('rng').addEventListener('click', function (e) { var b = e.target.closest('[data-d]'); if (!b) return; D = +b.dataset.d;
+    [].forEach.call(this.children, function (x) { x.classList.toggle('pri', x === b); }); draw(); });
+  $('list').addEventListener('change', function (e) { var k = e.target.dataset.k; if (!k) return; var c = ck(); if (e.target.checked) c[k] = 1; else delete c[k]; setCk(c); e.target.closest('li').classList.toggle('ok', e.target.checked); });
+  $('clr').onclick = function () { setCk({}); draw(); };
+  $('pr').onclick = function () { window.print(); };
+  $('cp').onclick = function () { var m = $('msg');
+    function fb() { var t = document.createElement('textarea'); t.value = TXT; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); m.textContent = '복사했습니다. 문자나 카톡에 붙여넣으세요.'; } catch (e) { m.textContent = '복사하지 못했습니다.'; } t.remove(); }
+    if (navigator.clipboard) navigator.clipboard.writeText(TXT).then(function () { m.textContent = '복사했습니다. 문자나 카톡에 붙여넣으세요.'; }, fb); else fb(); };
+  draw();
+})();
+</script>
+</body>
+</html>
