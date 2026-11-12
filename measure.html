@@ -55,7 +55,7 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc;
   var id = new URLSearchParams(location.search).get('id'), q = id ? DECO.getQuote(id) : null;
-  if (!q) { $('who').textContent = '견적을 찾을 수 없습니다. 견적 목록에서 「실측 기록」을 눌러 주세요.'; return; }
+  if (!q) { $('who').textContent = '견적을 찾을 수 없습니다. 견적 목록에서 「실측 기록」을 눌러 주세요.'; document.querySelectorAll('.card,.grp,.add,.sub+.sub').forEach(function (x) { x.hidden = true; }); return; }
   var c = q.cust || {}, m = q.measure || { rooms: [] };
   $('who').textContent = (c.name ? c.name + ' 님 · ' : '') + (c.addr || '') + ' · ' + (q.no || '');
   $('toQ').href = 'quote.html?id=' + encodeURIComponent(q.id); $('toPh').href = 'photos.html?job=' + encodeURIComponent(q.id);

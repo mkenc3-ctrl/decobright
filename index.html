@@ -50,7 +50,7 @@
 .mc .ft{display:none;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}
 .mc.big .ft{display:flex}
 body.home{background:#f4ede3}
-body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(251,246,238,.80),rgba(251,246,238,.93) 45%,rgba(251,246,238,.97)),url(img/round-wide.jpg) center top/cover no-repeat}
+body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(251,246,238,.86),rgba(251,246,238,.97) 22%,var(--paper,#FBF6EE) 34%),url(img/round-wide.jpg) center top/100% auto no-repeat}
 .hero .bgv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 @media (prefers-reduced-motion:reduce){.hero .bgv{display:none}}
 .hero.photo{position:relative;min-height:220px;display:flex;flex-direction:column;justify-content:flex-end;padding:20px;background:#2a211d url(img/hero.jpg) center/cover;overflow:hidden}
@@ -76,6 +76,13 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
 .sres a small{display:block;font-size:13px;color:var(--mut,#7a6d5c)}
 .sres em{font-style:normal;font-size:12px;font-weight:700;padding:1px 6px;border-radius:6px;background:#f3e6d2;margin-right:6px}
 .sres p{margin:0;padding:10px 14px;color:var(--mut,#7a6d5c)}
+.tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tiles a,.tiles button{border-left:1px solid var(--line);border-top:4px solid var(--warm);border-radius:14px;padding:14px 12px;gap:3px;align-items:flex-start}
+.tiles i{font-style:normal;font-size:28px;line-height:1;margin-bottom:4px}
+.tiles b{font-size:18px}
+.tiles span{font-size:13px;line-height:1.35}
+@media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tiles span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
+@media (max-width:420px){.hero .engx{display:none}}
 .syncbox{display:block;margin:-4px 0 12px;padding:10px 14px;border-radius:12px;background:#fff;border:1px solid var(--bd,#e6dccd);color:var(--ink,#2b2420);text-decoration:none;font-size:15px}
 .syncbox.due{border-color:#e3b26b;background:#fff7ea;font-weight:700}
 .syncbox.brief{width:100%;text-align:left;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
@@ -87,13 +94,13 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
 <div class="page">
   <div class="hero photo">
     <video class="bgv" autoplay muted loop playsinline preload="auto" poster="img/hero.jpg" aria-hidden="true"><source src="img/hero.mp4" type="video/mp4"></video>
-    <div class="eng">DECO BRIGHT · Premium Lighting &amp; Ceiling Fan</div>
+    <div class="eng">DECO BRIGHT<span class="engx"> · Premium Lighting &amp; Ceiling Fan</span></div>
     <div class="brandline" id="cname">데코브라이트</div>
     <h1 class="t">간접 조명 · 실링팬 업무</h1>
     <div class="area">창원 · 김해 · 부산 · 경남</div>
   </div>
   <a class="syncbox" id="syncBox" href="login.html">☁ 같이 쓰기 준비 중…</a>
-  <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소·번호로 찾기 (고객·견적·지시서·메모)" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
+  <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소로 찾기" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
   <button type="button" class="syncbox brief" id="brief">🔊 오늘 할 일 듣기 <small id="briefT"></small></button>
@@ -112,28 +119,28 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
     <a href="list.html"><b>견적 목록</b><span id="cnt">이 기기에 저장한 견적</span></a>
   </nav>
   <h2 class="grp">고객·일정</h2>
-  <nav class="menu" aria-label="고객·일정">
-    <a href="customers.html"><b>고객 관리</b><span id="ccnt">상담 기록·견적·시공 내역</span></a>
-    <a href="calendar.html"><b>시공 달력</b><span>시공·실측·상담 일정</span></a>
+  <nav class="menu tiles" aria-label="고객·일정">
+    <a href="customers.html"><i aria-hidden="true">👥</i><b>고객 관리</b><span id="ccnt">상담 기록·견적·시공 내역</span></a>
+    <a href="calendar.html"><i aria-hidden="true">📅</i><b>시공 달력</b><span>시공·실측·상담 일정</span></a>
   </nav>
   <h2 class="grp">현장 작업</h2>
-  <nav class="menu" aria-label="현장 작업">
-    <a href="orders.html"><b>작업 지시서</b><span id="ocnt">목수·전기·도배 거래처 지시·연락처, 문자 보내기</span></a>
-    <a href="mats.html"><b>자재 준비 목록</b><span>이번 주 시공 자재를 모아 더하고 챙긴 것 체크</span></a>
-    <a href="photos.html"><b>작업 사진 보관함</b><span>현장별 시공 전·중·후 사진</span></a>
-    <a href="sns.html"><b>홍보 글 만들기</b><span>사진으로 인스타그램·블로그 글 자동 작성</span></a>
+  <nav class="menu tiles" aria-label="현장 작업">
+    <a href="orders.html"><i aria-hidden="true">📋</i><b>작업 지시서</b><span id="ocnt">목수·전기·도배 거래처 지시·연락처, 문자 보내기</span></a>
+    <a href="mats.html"><i aria-hidden="true">📦</i><b>자재 준비 목록</b><span>이번 주 시공 자재를 모아 더하고 챙긴 것 체크</span></a>
+    <a href="photos.html"><i aria-hidden="true">📷</i><b>작업 사진 보관함</b><span>현장별 시공 전·중·후 사진</span></a>
+    <a href="sns.html"><i aria-hidden="true">✍️</i><b>홍보 글 만들기</b><span>사진으로 인스타그램·블로그 글 자동 작성</span></a>
+  </nav>
+  <h2 class="grp">기타</h2>
+  <nav class="menu tiles" aria-label="기타">
+    <a href="stats.html"><i aria-hidden="true">📊</i><b>매출·계약 현황</b><span>월별 매출, 받을 돈(수금), 자료 백업·엑셀</span></a>
+    <a href="memo.html"><i aria-hidden="true">📝</i><b>메모장</b><span>할 일·자재·전화 내용</span></a>
+    <a href="prices.html"><i aria-hidden="true">🏷️</i><b>가격표 관리</b><span>패키지·항목 단가 고치기, 새 항목 추가</span></a>
+    <a href="settings.html"><i aria-hidden="true">⚙️</i><b>회사 정보 설정</b><span>상호·연락처·계좌·계약 안내 문구</span></a>
+    <button type="button" id="installBtn"><i aria-hidden="true">📲</i><b>휴대폰에 설치</b><span id="instTxt">홈 화면에 아이콘 만들기</span></button>
   </nav>
   <h2 class="grp">우리 시공 사례 <small>눌러서 크게</small></h2>
   <div class="cases" id="cases"></div>
   <div class="lb" id="lb" hidden><button type="button" class="x" aria-label="닫기">✕</button><img id="lbi" alt=""><p id="lbt"></p></div>
-  <h2 class="grp">기타</h2>
-  <nav class="menu" aria-label="기타">
-    <a href="stats.html"><b>매출·계약 현황</b><span>월별 매출, 받을 돈(수금), 자료 백업·엑셀</span></a>
-    <a href="memo.html"><b>메모장</b><span>할 일·자재·전화 내용</span></a>
-    <a href="prices.html"><b>가격표 관리</b><span>패키지·항목 단가 고치기, 새 항목 추가</span></a>
-    <a href="settings.html"><b>회사 정보 설정</b><span>상호·연락처·계좌·계약 안내 문구</span></a>
-    <button type="button" id="installBtn"><b>휴대폰에 설치</b><span id="instTxt">홈 화면에 아이콘 만들기</span></button>
-  </nav>
   <section class="recent" id="recentBox" hidden>
     <h2>최근 견적</h2>
     <div id="recent"></div>
