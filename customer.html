@@ -44,7 +44,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
       <label class="fl" style="grid-column:1/-1">주소<input name="addr" placeholder="예: 창원시 성산구 ○○아파트 101동 1001호"></label>
       <label class="fl">알게 된 경로<select name="source"><option value="">고르기</option></select></label>
       <label class="fl">평형·구조<input name="size" placeholder="예: 34평, 우물 천장"></label>
-      <label class="fl" style="grid-column:1/-1">메모<textarea name="memo" rows="2" placeholder="예: 오전 통화 선호, 반려견 있음"></textarea></label>
+      <label class="fl" style="grid-column:1/-1">메모<textarea name="memo" data-mic rows="2" placeholder="예: 오전 통화 선호, 반려견 있음"></textarea></label>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
       <button class="btn2 pri" type="submit">저장</button>
@@ -55,7 +55,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
   <div id="more" hidden>
     <h2 class="s">상담 기록 <small>통화·방문 내용을 짧게 남기세요</small></h2>
     <div id="logs"></div>
-    <div class="addlog"><input type="date" id="ld" aria-label="날짜"><input type="text" id="lt" placeholder="예: 실측 방문 약속, 실링팬 우드 원함" aria-label="상담 내용"><button class="btn2 pri" type="button" id="la">기록 추가</button></div>
+    <div class="addlog"><input type="date" id="ld" aria-label="날짜"><input type="text" id="lt" data-mic placeholder="예: 실측 방문 약속, 실링팬 우드 원함" aria-label="상담 내용"><button class="btn2 pri" type="button" id="la">기록 추가</button></div>
     <h2 class="s">견적 <small id="qsum"></small></h2>
     <div id="qs"></div>
     <h2 class="s">작업 지시서·일정</h2>

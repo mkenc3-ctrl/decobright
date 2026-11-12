@@ -78,6 +78,8 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
 .sres p{margin:0;padding:10px 14px;color:var(--mut,#7a6d5c)}
 .syncbox{display:block;margin:-4px 0 12px;padding:10px 14px;border-radius:12px;background:#fff;border:1px solid var(--bd,#e6dccd);color:var(--ink,#2b2420);text-decoration:none;font-size:15px}
 .syncbox.due{border-color:#e3b26b;background:#fff7ea;font-weight:700}
+.syncbox.brief{width:100%;text-align:left;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.syncbox.brief small{font-weight:400;color:var(--mut,#7a6d5c);margin-left:4px}
 .syncbox.on{border-color:#9cc9a4;background:#f1f8f1}
 </style>
 </head>
@@ -94,6 +96,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소·번호로 찾기 (고객·견적·지시서·메모)" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
+  <button type="button" class="syncbox brief" id="brief">🔊 오늘 할 일 듣기 <small id="briefT"></small></button>
   <section class="alert" id="alert" hidden aria-live="polite">
     <div class="h"><span>🔔 다가오는 작업 알림</span><span><button class="btn2 pri" type="button" id="say">🔊 소리로 듣기</button> <button class="btn2" type="button" id="noti">휴대폰 알림 켜기</button></span></div>
     <ul id="alist"></ul>
@@ -152,6 +155,17 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
   (function () { var n = 0, sum = 0; L.forEach(function (q) { if (['계약', '시공', '완료'].indexOf(q.status) < 0) return; var r = (q.totals && q.totals.total || 0) - (q.pays || []).reduce(function (a, p) { return a + (+p.amt || 0); }, 0); if (r > 0) { n++; sum += r; } });
     try { var lb = +localStorage.getItem('deco-lastbk') || 0, first = L.reduce(function (m, q) { return Math.min(m, q.created || q.updated || Date.now()); }, Date.now()), bb = document.getElementById('bkBox');
       if (L.length && Date.now() - (lb || first) > 30 * 864e5) { bb.hidden = false; bb.textContent = '📦 ' + (lb ? '마지막 백업 후 한 달이 지났습니다.' : '아직 자료 백업을 받은 적이 없습니다.') + ' 백업 파일을 받아 두세요 ›'; } } catch (e) {}
+    (function () { var td = DECO.today(), d = new Date(), I = DECO.dayItems(td), O = I.filter(function (x) { return x.k === 0; }), V = I.filter(function (x) { return x.k !== 0 && !x.done; }), due = 0, call = 0;
+      L.forEach(function (q) { var st = q.status || '상담'; if (['계약', '시공', '완료'].indexOf(st) >= 0) due += Math.max(0, (q.totals && q.totals.total || 0) - (q.pays || []).reduce(function (a, p) { return a + (+p.amt || 0); }, 0));
+        else if ((st === '상담' || st === '실측') && Date.now() - (q.updated || 0) > 3 * 864e5) call++; });
+      var won = function (n) { return n >= 10000 ? Math.round(n / 10000) + '만 원' : n + '원'; };
+      var parts = [(d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + '일월화수목금토'[d.getDay()] + '요일입니다.',
+        O.length ? '오늘 시공 ' + O.length + '건, ' + O.map(function (x) { return x.t.replace(/^시공\s*/, '') + ' 님'; }).join(', ') + '.' : '오늘 시공은 없습니다.',
+        V.length ? '그 밖의 일정 ' + V.length + '건, ' + V.map(function (x) { return (x.time ? x.time.replace(':', '시 ') + '분 ' : '') + x.t; }).join(', ') + '.' : '',
+        call ? '다시 연락할 견적 고객이 ' + call + '명 있습니다.' : '', due ? '아직 받을 돈은 ' + won(due) + '입니다.' : ''];
+      var text = parts.filter(Boolean).join(' ');
+      document.getElementById('briefT').textContent = '오늘 시공 ' + O.length + '건 · 일정 ' + V.length + '건' + (call ? ' · 연락 ' + call + '명' : '');
+      document.getElementById('brief').onclick = function () { if (!DECO.speak('데코브라이트 오늘 브리핑입니다. ' + text)) alert(text); }; })();
     var b = document.getElementById('dueBox'); if (n) { b.hidden = false; b.textContent = '💰 아직 받을 돈 ' + DECO.won(sum) + ' (' + n + '건) · 눌러서 보기 ›'; } })();
   document.getElementById('cname').textContent = s.company;
   document.getElementById('cnt').textContent = L.length ? '저장된 견적 ' + L.length + '건' : '아직 저장한 견적이 없습니다';

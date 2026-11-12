@@ -175,6 +175,20 @@
   D.today = function () { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
 
   window.DECO = D;
+  // 말로 입력: data-mic 가 붙은 칸 옆에 🎤 버튼 (안드로이드 크롬·삼성 인터넷 등 지원 브라우저만)
+  function micInit() { var SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return;
+    if (!document.getElementById('micCss')) { var st = document.createElement('style'); st.id = 'micCss'; st.textContent = '.micb{margin-top:6px;border:1px solid #d9c9b0;background:#fff;border-radius:10px;padding:8px 14px;font-size:16px;cursor:pointer;font-family:inherit}.micb.on{background:#b5462f;color:#fff;border-color:#b5462f}'; document.head.appendChild(st); }
+    document.querySelectorAll('[data-mic]:not([data-micok])').forEach(function (el) { el.setAttribute('data-micok', '1');
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'micb'; b.textContent = '🎤 말로 입력'; b.setAttribute('aria-label', '말로 입력');
+      el.insertAdjacentElement('afterend', b);
+      b.addEventListener('click', function () { if (b.rec) { b.rec.stop(); return; }
+        var r = new SR(); r.lang = 'ko-KR'; r.interimResults = false; r.continuous = false; b.rec = r; b.classList.add('on'); b.textContent = '● 듣는 중… (다시 누르면 멈춤)';
+        r.onresult = function (e) { var t = ''; for (var i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript; t = t.trim(); if (!t) return;
+          el.value = el.value ? el.value.replace(/\s*$/, '') + (el.tagName === 'TEXTAREA' ? '\n' : ' ') + t : t; el.dispatchEvent(new Event('input', { bubbles: true })); };
+        r.onend = r.onerror = function () { b.rec = null; b.classList.remove('on'); b.textContent = '🎤 말로 입력'; };
+        try { r.start(); } catch (e) { r.onend(); } }); }); }
+  D.micInit = micInit;
+  document.addEventListener('DOMContentLoaded', micInit);
   // 휴대폰 설치(홈 화면에 추가)용 — 인터넷 주소(https)나 내 컴퓨터(localhost)에서만 동작
   if ('serviceWorker' in navigator && /^(https:|http:\/\/localhost)/.test(location.href)) {
     window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
