@@ -187,6 +187,13 @@
           el.value = el.value ? el.value.replace(/\s*$/, '') + (el.tagName === 'TEXTAREA' ? '\n' : ' ') + t : t; el.dispatchEvent(new Event('input', { bubbles: true })); };
         r.onend = r.onerror = function () { b.rec = null; b.classList.remove('on'); b.textContent = '🎤 말로 입력'; };
         try { r.start(); } catch (e) { r.onend(); } }); }); }
+  // 인터넷 끊김 안내 띠
+  function netBar() { var b = document.getElementById('netBar');
+    if (navigator.onLine !== false) { if (b) b.remove(); return; }
+    if (b || !document.body) return; b = document.createElement('div'); b.id = 'netBar'; b.setAttribute('role', 'status');
+    b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:60;background:#3B2F2A;color:#fff;font-size:15px;line-height:1.4;padding:10px max(16px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px));text-align:center';
+    b.textContent = '📶 인터넷이 끊겼습니다. 입력한 자료는 이 기기에 저장되고, 다시 연결되면 자동으로 서버에 보냅니다.'; document.body.appendChild(b); }
+  window.addEventListener('online', netBar); window.addEventListener('offline', netBar); document.addEventListener('DOMContentLoaded', netBar);
   D.micInit = micInit;
   // 실측 기록 → 줄글 (지시서·문자용)
   D.measureText = function (q) { var m = q && q.measure; if (!m) return []; var L = [], h = [];
