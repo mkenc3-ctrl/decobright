@@ -68,6 +68,14 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
 .lb p{color:#fff;font-size:17px;font-weight:700;margin:12px 0 0;text-align:center}
 .lb .x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:14px;background:#fff;border:0;border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer}
 @media (min-width:700px){.cases button{flex-basis:30%}}
+.srch{position:relative;margin:0 0 12px}
+.srch input{width:100%;box-sizing:border-box;font-size:18px;padding:12px 14px;border:1px solid var(--bd,#e6dccd);border-radius:12px;background:#fff}
+.sres{margin-top:6px;background:#fff;border:1px solid var(--bd,#e6dccd);border-radius:12px;overflow:hidden}
+.sres a{display:block;padding:10px 14px;border-top:1px solid var(--bd,#e6dccd);color:inherit;text-decoration:none;font-size:16px}
+.sres a:first-child{border-top:0}
+.sres a small{display:block;font-size:13px;color:var(--mut,#7a6d5c)}
+.sres em{font-style:normal;font-size:12px;font-weight:700;padding:1px 6px;border-radius:6px;background:#f3e6d2;margin-right:6px}
+.sres p{margin:0;padding:10px 14px;color:var(--mut,#7a6d5c)}
 .syncbox{display:block;margin:-4px 0 12px;padding:10px 14px;border-radius:12px;background:#fff;border:1px solid var(--bd,#e6dccd);color:var(--ink,#2b2420);text-decoration:none;font-size:15px}
 .syncbox.due{border-color:#e3b26b;background:#fff7ea;font-weight:700}
 .syncbox.on{border-color:#9cc9a4;background:#f1f8f1}
@@ -83,6 +91,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
     <div class="area">창원 · 김해 · 부산 · 경남</div>
   </div>
   <a class="syncbox" id="syncBox" href="login.html">☁ 같이 쓰기 준비 중…</a>
+  <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소·번호로 찾기 (고객·견적·지시서·메모)" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <section class="alert" id="alert" hidden aria-live="polite">
     <div class="h"><span>🔔 다가오는 작업 알림</span><span><button class="btn2 pri" type="button" id="say">🔊 소리로 듣기</button> <button class="btn2" type="button" id="noti">휴대폰 알림 켜기</button></span></div>
@@ -205,6 +214,23 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
       else try { new Notification(t, { body: b }); } catch (e) {} }); }
   nb.addEventListener('click', function (e) { e.stopPropagation(); Notification.requestPermission().then(function (p) { if (p === 'granted') { nb.hidden = true; pop(); } }); });
   if (fresh()) pop();
+})();
+</script>
+<script>
+(function () {
+  var q = document.getElementById('q'), box = document.getElementById('sres'), E = DECO.esc;
+  function dg(s) { return String(s || '').replace(/\D/g, ''); }
+  function hit(t, w, d) { t = String(t || '').toLowerCase(); return t.indexOf(w) >= 0 || (d.length >= 3 && dg(t).indexOf(d) >= 0); }
+  q.addEventListener('input', function () {
+    var w = q.value.trim().toLowerCase(), d = dg(w); if (w.length < 1) { box.hidden = true; return; }
+    var R = [];
+    DECO.customers().forEach(function (c) { if (hit([c.name, c.phone, c.addr, c.memo].join(' '), w, d)) R.push(['고객', c.name || '이름 없음', [c.phone, c.addr].filter(Boolean).join(' · '), 'customer.html?id=' + encodeURIComponent(c.id)]); });
+    DECO.list().forEach(function (x) { var c = x.cust || {}; if (hit([x.no, c.name, c.phone, c.addr, x.pkgName].join(' '), w, d)) R.push(['견적', (c.name || '') + ' ' + (x.no || ''), (x.status || '상담') + ' · ' + DECO.won(x.totals && x.totals.total) + (c.addr ? ' · ' + c.addr : ''), 'quote.html?id=' + encodeURIComponent(x.id)]); });
+    DECO.orders().forEach(function (o) { if (hit([o.no, o.name, o.phone, o.addr].join(' '), w, d)) R.push(['지시서', (o.name || '') + ' ' + (o.no || ''), (o.workDate || '') + ' · ' + (o.status || '예정') + (o.addr ? ' · ' + o.addr : ''), 'order.html?id=' + encodeURIComponent(o.id)]); });
+    DECO.memos().forEach(function (m) { if (hit([m.title, m.body].join(' '), w, d)) R.push(['메모', m.title || String(m.body || '').slice(0, 20), String(m.body || '').slice(0, 40), 'memo.html']); });
+    box.hidden = false;
+    box.innerHTML = R.length ? R.slice(0, 30).map(function (r) { return '<a href="' + r[3] + '"><em>' + r[0] + '</em>' + E(r[1]) + '<small>' + E(r[2]) + '</small></a>'; }).join('') + (R.length > 30 ? '<p>' + R.length + '건 중 30건만 보입니다. 더 자세히 넣어 주세요.</p>' : '') : '<p>찾는 자료가 없습니다.</p>';
+  });
 })();
 </script>
 </body>

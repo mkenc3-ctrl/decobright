@@ -52,7 +52,7 @@
       var c = q.cust || {}, id = encodeURIComponent(q.id);
       return '<div class="q">' + (q.img ? '<img src="' + q.img + '" alt="시공 후 예상 모습">' : '<div class="noimg"></div>') +
         '<div><h3>' + E(c.name || '이름 없음') + ' 님</h3>' +
-        '<div class="meta">' + E(q.no) + ' · ' + DECO.date(q.updated) + (c.addr ? ' · ' + E(c.addr) : '') + (c.phone ? ' · ' + E(c.phone) : '') + '</div>' +
+        '<div class="meta">' + E(q.no) + ' · ' + DECO.date(q.updated) + (c.addr ? ' · ' + E(c.addr) : '') + (c.phone ? ' · ' + E(c.phone) : '') + (function () { var st = q.status || '상담'; if (st !== '상담' && st !== '실측') return ''; var vd = +DECO.settings().validDays || 30, end = (q.created || q.updated) + vd * 864e5, left = Math.ceil((end - Date.now()) / 864e5); return left < 0 ? ' · <b style="color:#b5462f">유효기간 지남 (' + DECO.date(end) + ')</b>' : left <= 5 ? ' · <b style="color:#a86a12">유효기간 ' + left + '일 남음</b>' : ''; })() + '</div>' +
         '<div class="meta">' + E(q.pkg === 'none' ? '패키지 없음' : q.pkgName) + (q.items && q.items.length ? ' + 추가 ' + q.items.length + '건' : '') + '</div>' +
         '<div class="sum">' + DECO.won(q.totals && q.totals.total) + ' <small style="font-size:13px;font-weight:400;color:var(--muted)">부가세 포함</small></div>' +
         '<div class="acts"><select class="st" data-st="' + E(q.id) + '" aria-label="진행 상태">' + DECO.STATUS.map(function (s) { return '<option' + ((q.status || '상담') === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +

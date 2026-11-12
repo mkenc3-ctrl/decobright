@@ -43,6 +43,12 @@ h2.s{font-size:19px;margin:20px 0 8px}
 .prev{color:var(--muted);font-size:15px;margin:18px 0 0;text-align:center}
 .lay{margin-top:10px;border:1px solid #bbb;padding:8px;break-inside:avoid}.lay img{display:block;width:100%;height:auto;margin:6px 0}.lay ul{margin:4px 0 0;padding-left:18px}
 @media print{body.app{background:#fff}.page{padding:0;max-width:none}.form,.topnav,.prev{display:none!important}.sheet{border:0;padding:0;margin:0;max-width:none}.sheet+.sheet{break-before:page;margin-top:0}.sheet.np{display:none}}
+.cost{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.cost label{display:flex;flex-direction:column;gap:4px;font-size:15px}
+.cost input[type=number]{font-size:17px;padding:8px;width:100%;box-sizing:border-box}
+.cost .pd{flex-direction:row;align-items:center;gap:6px;font-size:14px}
+.cost .sum{grid-column:1/-1;font-size:16px;font-weight:700}
+@media print{.cost{display:none}}
 </style>
 </head>
 <body class="app">
@@ -50,7 +56,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
   <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a><a class="home" href="orders.html">지시서 목록</a></div>
   <div class="form">
     <h1 class="t">작업 지시서</h1>
-    <p class="sub" id="sub">① 현장·시공일을 넣고 ② 목수·전기·도배 거래처별 작업을 확인한 뒤 ③ 「문자로 보내기」나 「인쇄」를 누르세요. 거래처용이라 금액은 넣지 않습니다.</p>
+    <p class="sub" id="sub">① 현장·시공일을 넣고 ② 목수·전기·도배 거래처별 작업을 확인한 뒤 ③ 「문자로 보내기」나 「인쇄」를 누르세요. 금액은 아래 「내부 정산」에만 적고 거래처에게는 나가지 않습니다.</p>
     <form class="card" id="f" autocomplete="off">
       <div class="grid2">
         <label class="fl"><span class="need">고객명</span><input name="name" required></label>
@@ -67,6 +73,8 @@ h2.s{font-size:19px;margin:20px 0 8px}
       <label class="fl"><textarea name="notes" rows="3" placeholder="예: 엘리베이터 사용 예약, 오후 6시 이전 마감, 반려견 있음"></textarea></label>
       <h2 class="s">현장 점검표</h2>
       <div class="chk" id="chk"></div>
+      <h2 class="s">내부 정산 <small style="font-weight:400;font-size:14px">(거래처 문자·인쇄에는 안 나갑니다)</small></h2>
+      <div class="cost" id="cost"></div>
       <h2 class="s">완료 메모</h2>
       <label class="fl"><textarea name="done" rows="2" placeholder="작업을 마친 뒤 남길 내용 (추가 작업, 하자 등)"></textarea></label>
       <div class="acts">
@@ -118,11 +126,18 @@ h2.s{font-size:19px;margin:20px 0 8px}
       '<label class="fl">들어오는 시각<input type="time" class="tm" value="' + E(b.time || '') + '"></label>' +
       '<label class="fl w">작업 내용 (한 줄에 하나씩)<textarea class="tk" rows="5">' + E(b.tasks) + '</textarea></label>' +
       '<label class="fl w">준비 자재·장비<textarea class="mt" rows="2" placeholder="예: 다운라이트 3인치 12개, 사다리">' + E(b.mats) + '</textarea></label></div></div>'; }).join('');
+  var CN = TR.map(function (t) { return [t, t + ' 인건비']; }).concat([['자재', '자재비'], ['기타', '기타 비용 (운반·주차 등)']]);
+  function costDraw() { var c = o.cost || {}, p = o.costPaid || {};
+    $('cost').innerHTML = CN.map(function (x) { return '<label>' + x[1] + '<input type="number" inputmode="numeric" min="0" step="10000" data-c="' + x[0] + '" value="' + (c[x[0]] || '') + '" placeholder="0"><span class="pd"><input type="checkbox" data-p="' + x[0] + '"' + (p[x[0]] ? ' checked' : '') + '> 지급함</span></label>'; }).join('') + '<div class="sum" id="csum"></div>'; costSum(); }
+  function costSum() { var t = 0; $('cost').querySelectorAll('[data-c]').forEach(function (i) { t += +i.value || 0; }); var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, sup = q && q.totals ? (q.totals.supply || 0) : 0;
+    $('csum').textContent = '비용 합계 ' + DECO.won(t) + (sup ? ' · 견적 공급가 ' + DECO.won(sup) + ' · 남는 돈 ' + DECO.won(sup - t) : ''); }
+  costDraw(); $('cost').addEventListener('input', costSum);
   $('chk').innerHTML = CK.map(function (c, i) { return '<label><input type="checkbox" data-i="' + i + '"' + (o.checks && o.checks[i] ? ' checked' : '') + '> ' + c + '</label>'; }).join('');
   Array.prototype.forEach.call(f.elements, function (el) { if (el.name && o[el.name] != null) el.value = o[el.name]; });
   if (o.id) { $('del').hidden = false; $('sub').textContent = o.no + ' · 고친 뒤 「저장」을 누르세요. 거래처용이라 금액은 넣지 않습니다.'; }
   if (o.quoteId) $('toPh').href = 'photos.html?job=' + encodeURIComponent(o.quoteId);
   function read() { Array.prototype.forEach.call(f.elements, function (el) { if (el.name) o[el.name] = el.value.trim(); });
+    o.cost = {}; o.costPaid = {}; $('cost').querySelectorAll('[data-c]').forEach(function (i) { var v = Math.round(+i.value || 0); if (v) o.cost[i.dataset.c] = v; }); $('cost').querySelectorAll('[data-p]').forEach(function (i) { if (i.checked) o.costPaid[i.dataset.p] = true; });
     o.checks = {}; $('chk').querySelectorAll('input').forEach(function (c) { if (c.checked) o.checks[c.dataset.i] = true; });
     document.querySelectorAll('.tr').forEach(function (d) { var b = o.trades[d.dataset.t]; var pn = d.querySelector('.pn'), pp = d.querySelector('.pp');
       if (pn.value.trim() && pp.value.trim() && save.busy) { var np = DECO.savePartner({ trade: d.dataset.t, name: pn.value.trim(), phone: pp.value.trim(), memo: '' });
