@@ -28,6 +28,17 @@ table.tb{width:100%;border-collapse:collapse;font-size:15px}
 table.tb th,table.tb td{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:left}
 table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
 .lg{display:flex;gap:14px;font-size:13px;color:var(--mut,#7a6d5c);margin-bottom:6px}
+.pr{border-top:1px solid var(--bd);padding:10px 0}
+.pr:first-child{border-top:0}
+.pr .h{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.pr .h b{font-size:17px}
+.pr .m{font-size:15px;color:var(--mut,#7a6d5c);font-variant-numeric:tabular-nums}
+.pr .m em{font-style:normal;font-weight:800;color:#b5462f}
+.pr .m em.ok{color:#2f7a3d}
+.pr ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.pr ul button{border:0;background:none;color:#b5462f;font-size:14px;cursor:pointer;padding:0 4px}
+.pf{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:8px;align-items:end}
+.pf input,.pf select{font-size:16px;padding:8px;width:100%;box-sizing:border-box}
 .lg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
 </style>
 </head>
@@ -47,6 +58,12 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card"><table class="tb" id="st"></table></div>
   <h2 class="grp">고객을 알게 된 경로 (전체)</h2>
   <div class="card"><table class="tb" id="src"></table></div>
+  <h2 class="grp" id="pay">받을 돈 (수금 관리)</h2>
+  <div class="card">
+    <p class="sub" style="margin-top:0" id="paySum"></p>
+    <div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn2 pri" type="button" data-pv="due">아직 받을 돈</button><button class="btn2" type="button" data-pv="all">완납 포함 전체</button></div>
+    <div id="payList"></div>
+  </div>
   <h2 class="grp" id="backup">자료 백업 · 엑셀 내려받기</h2>
   <div class="card">
     <p class="sub" style="margin-top:0">① 「전체 자료 백업」을 눌러 파일을 받아 두면 ② 휴대폰을 바꾸거나 자료가 지워져도 ③ 「백업 파일 되살리기」로 다시 넣을 수 있습니다. 사진은 서버 보관함에 따로 저장됩니다.</p>
@@ -67,6 +84,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   var $ = function (id) { return document.getElementById(id); }, W = DECO.won, E = DECO.esc;
   var DONE = { '계약': 1, '시공': 1, '완료': 1 }, now = new Date(), Y = now.getFullYear(), M = now.getMonth();
   var Q = DECO.list();
+  function paid(q) { return (q.pays || []).reduce(function (s, p) { return s + (+p.amt || 0); }, 0); }
   function amt(q) { return (q.totals && q.totals.total) || q.total || 0; }
   function ym(t) { var d = new Date(t || 0); return d.getFullYear() * 12 + d.getMonth(); }
   function man(n) { return n >= 10000 ? Math.round(n / 10000).toLocaleString('ko-KR') + '만원' : W(n); }
@@ -101,6 +119,33 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   $('prev').onclick = function () { M--; if (M < 0) { M = 11; Y--; } draw(); };
   $('next').onclick = function () { M++; if (M > 11) { M = 0; Y++; } draw(); };
   draw();
+  // ── 수금
+  var PV = 'due', OPEN = null, ST = DECO.settings();
+  function payDraw() {
+    var C = Q.filter(function (q) { return DONE[q.status]; }), due = 0, mon = 0, k = now.getFullYear() * 12 + now.getMonth();
+    C.forEach(function (q) { due += Math.max(0, amt(q) - paid(q)); });
+    Q.forEach(function (q) { (q.pays || []).forEach(function (p) { if (ym(p.d + 'T00:00') === k) mon += +p.amt || 0; }); });
+    $('paySum').innerHTML = '이번 달 들어온 돈 <b>' + W(mon) + '</b> · 아직 받을 돈 <b>' + W(due) + '</b> (계약·시공·완료 견적 기준)';
+    var L = C.filter(function (q) { return PV === 'all' || amt(q) - paid(q) > 0; }).sort(function (a, b) { return (amt(b) - paid(b)) - (amt(a) - paid(a)); });
+    $('payList').innerHTML = L.length ? L.map(function (q) { var c = q.cust || {}, rem = amt(q) - paid(q);
+      return '<div class="pr" data-id="' + E(q.id) + '"><div class="h"><b>' + E(c.name || '이름 없음') + ' <small style="font-weight:400;font-size:14px">' + E(q.no || '') + ' · ' + E(q.status) + '</small></b><button class="btn2" type="button" data-open>입금 기록</button></div>' +
+        '<div class="m">합계 ' + W(amt(q)) + ' · 받은 돈 ' + W(paid(q)) + ' · 남은 돈 <em class="' + (rem > 0 ? '' : 'ok') + '">' + (rem > 0 ? W(rem) : '완납') + '</em></div>' +
+        ((q.pays || []).length ? '<ul>' + q.pays.map(function (p, i) { return '<li>' + E(p.d) + ' ' + E(p.kind) + ' ' + W(p.amt) + (p.memo ? ' · ' + E(p.memo) : '') + ' <button type="button" data-del="' + i + '" aria-label="이 입금 기록 지우기">지우기</button></li>'; }).join('') + '</ul>' : '') +
+        (OPEN === q.id ? '<div class="pf"><label class="fl">입금 날짜<input type="date" data-f="d" value="' + DECO.today() + '"></label><label class="fl">종류<select data-f="kind">' + ['계약금', '중도금', '잔금', '기타'].map(function (x) { return '<option' + (x === (paid(q) ? '잔금' : '계약금') ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label>' +
+          '<label class="fl">금액(원)<input type="number" inputmode="numeric" data-f="amt" value="' + (paid(q) ? Math.max(0, rem) : Math.min(+ST.deposit || rem, rem)) + '"></label><label class="fl">메모<input data-f="memo" placeholder="예: 현금, 계좌이체"></label>' +
+          '<button class="btn2 pri" type="button" data-save>저장</button></div>' : '') + '</div>'; }).join('') : '<p class="sub">' + (PV === 'due' ? '받을 돈이 남은 계약이 없습니다.' : '계약된 견적이 없습니다. 견적 목록에서 상태를 「계약」으로 바꾸면 여기에 나옵니다.') + '</p>';
+  }
+  document.querySelectorAll('[data-pv]').forEach(function (b) { b.onclick = function () { PV = b.dataset.pv; document.querySelectorAll('[data-pv]').forEach(function (x) { x.classList.toggle('pri', x === b); }); payDraw(); }; });
+  $('payList').addEventListener('click', function (e) { var row = e.target.closest('.pr'); if (!row) return; var q = DECO.getQuote(row.dataset.id); if (!q) return;
+    if (e.target.closest('[data-open]')) { OPEN = OPEN === q.id ? null : q.id; payDraw(); return; }
+    var d = e.target.closest('[data-del]');
+    if (d) { var p = q.pays[+d.dataset.del]; if (!confirm(p.d + ' ' + p.kind + ' ' + W(p.amt) + ' 기록을 지울까요?')) return; q.pays.splice(+d.dataset.del, 1); }
+    else if (e.target.closest('[data-save]')) { var v = {}; row.querySelectorAll('[data-f]').forEach(function (x) { v[x.dataset.f] = x.value.trim(); });
+      v.amt = Math.round(+v.amt || 0); if (!v.amt || !v.d) { alert('입금 날짜와 금액을 넣어 주세요.'); return; }
+      q.pays = q.pays || []; q.pays.push(v); q.pays.sort(function (a, b) { return a.d.localeCompare(b.d); }); OPEN = null; }
+    else return;
+    DECO.saveQuote(q); Q = DECO.list(); draw(); payDraw(); });
+  payDraw();
   // ── 백업·엑셀
   var KEYS = ['deco-quotes', 'deco-customers', 'deco-orders', 'deco-events', 'deco-partners', 'deco-memos', 'deco-settings', 'deco-prices'];
   function rd(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
@@ -113,8 +158,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   $('bk').onclick = function () { var o = { app: 'decobright', ver: 1, at: new Date().toISOString(), data: {} }, n = 0;
     KEYS.forEach(function (k) { var v = rd(k); if (v != null) { o.data[k] = v; if (Array.isArray(v)) n += v.length; } });
     save('데코브라이트_백업_' + stamp() + '.json', JSON.stringify(o), 'application/json'); msg('백업 파일을 받았습니다 (자료 ' + n + '건). 메일이나 카카오톡 「나에게 보내기」로 보관해 두세요.'); };
-  $('csvQ').onclick = function () { var r = [['견적번호', '만든 날', '고객', '전화', '주소', '상태', '패키지', '공급가', '부가세', '합계']];
-    Q.forEach(function (q) { var c = q.cust || {}, t = q.totals || {}; r.push([q.no, dt(q.created), c.name, c.phone, c.addr, q.status || '상담', q.pkgName, t.supply, t.vat, amt(q)]); });
+  $('csvQ').onclick = function () { var r = [['견적번호', '만든 날', '고객', '전화', '주소', '상태', '패키지', '공급가', '부가세', '합계', '받은 돈', '남은 돈']];
+    Q.forEach(function (q) { var c = q.cust || {}, t = q.totals || {}; r.push([q.no, dt(q.created), c.name, c.phone, c.addr, q.status || '상담', q.pkgName, t.supply, t.vat, amt(q), paid(q), amt(q) - paid(q)]); });
     save('견적목록_' + stamp() + '.csv', csv(r), 'text/csv'); msg('견적 ' + Q.length + '건을 엑셀 파일로 받았습니다.'); };
   $('csvC').onclick = function () { var C = DECO.customers(), r = [['이름', '전화', '주소', '알게 된 경로', '견적 수', '계약 금액', '메모', '등록일']];
     C.forEach(function (c) { var qs = Q.filter(function (q) { return q.custId === c.id; }); r.push([c.name, c.phone, c.addr, c.source, qs.length, qs.filter(function (q) { return DONE[q.status]; }).reduce(function (s, q) { return s + amt(q); }, 0), c.memo, dt(c.created)]); });

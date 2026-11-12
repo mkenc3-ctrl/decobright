@@ -134,6 +134,9 @@
     function left(ds) { return Math.round((new Date(ds + 'T00:00').getTime() - t0) / 864e5); }
     D.orders().forEach(function (o) { if (!o.workDate || o.status === '완료' || o.status === '보류') return; var n = left(o.workDate);
       if (n === 7 || n === 3 || n === 1 || n === 0) out.push({ key: o.id + '@' + n, n: n, date: o.workDate, time: o.workTime || '', what: (o.name ? o.name + ' 님 ' : '') + '현장 시공', where: o.addr || '', href: 'order.html?id=' + encodeURIComponent(o.id) }); });
+    // 시공 1년 뒤 무상 점검 연락 (일주일 전·당일)
+    D.orders().forEach(function (o) { if (!o.workDate || o.status === '보류') return; var y = (+o.workDate.slice(0, 4) + 1) + o.workDate.slice(4), n = left(y);
+      if (n === 7 || n === 0) out.push({ key: o.id + '@as' + n, n: n, date: y, time: '', what: (o.name ? o.name + ' 님 ' : '') + '시공 1년 무상 점검 연락', where: o.addr || '', href: 'order.html?id=' + encodeURIComponent(o.id) }); });
     D.events().forEach(function (e) { if (e.done) return; var n = left(e.date);
       if (n === 1 || n === 0) out.push({ key: e.id + '@' + n, n: n, date: e.date, time: e.time || '', what: e.kind, where: e.title || '', href: 'calendar.html?d=' + e.date }); });
     return out.sort(function (a, b) { return a.n - b.n; }); };
