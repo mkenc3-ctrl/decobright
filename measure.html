@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>현장 실측 기록 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.rm{border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px;background:#fff}
+.rm .h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.rm .h input{font-size:18px;font-weight:700;border:0;border-bottom:1px solid var(--bd);padding:4px 2px;flex:1;min-width:0}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.g label{display:flex;flex-direction:column;gap:3px;font-size:14px}
+.g input,.g select{font-size:17px;padding:8px;width:100%;box-sizing:border-box}
+.ck{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0;font-size:15px}
+.ck label{display:flex;align-items:center;gap:6px}
+.ck input{width:22px;height:22px}
+.rm textarea{width:100%;box-sizing:border-box;font-size:16px;padding:8px;margin-top:6px}
+.add{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:760px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">현장 실측 기록</h1>
+  <p class="sub" id="who"></p>
+  <p class="sub">① 공간을 고르고 ② 치수(cm)를 적고 ③ 해당되는 것을 체크합니다. 「저장」하면 이 견적과 작업 지시서에 함께 보입니다.</p>
+  <div class="card">
+    <div class="g">
+      <label>실측 날짜<input type="date" id="md"></label>
+      <label>천장 높이(cm)<input type="number" id="ch" inputmode="decimal" placeholder="예: 230"></label>
+      <label>천장 재질<select id="mat"><option></option><option>석고보드</option><option>합판+석고</option><option>콘크리트</option><option>모름</option></select></label>
+      <label>분전함 위치<input id="pan" placeholder="예: 현관 신발장 위"></label>
+    </div>
+  </div>
+  <h2 class="grp">공간별 치수</h2>
+  <div class="add" id="add"></div>
+  <div id="rooms"></div>
+  <div class="card">
+    <label class="fl">전체 메모<textarea id="memo" data-mic rows="3" placeholder="예: 엘리베이터 작음, 주차 1대 가능, 기존 등 철거 필요"></textarea></label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn2 pri" type="button" id="save">저장</button>
+      <a class="btn2" id="toQ" href="#">견적 화면으로</a>
+      <a class="btn2" id="toPh" href="#">현장 사진 찍기</a>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+  </div>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc;
+  var id = new URLSearchParams(location.search).get('id'), q = id ? DECO.getQuote(id) : null;
+  if (!q) { $('who').textContent = '견적을 찾을 수 없습니다. 견적 목록에서 「실측 기록」을 눌러 주세요.'; return; }
+  var c = q.cust || {}, m = q.measure || { rooms: [] };
+  $('who').textContent = (c.name ? c.name + ' 님 · ' : '') + (c.addr || '') + ' · ' + (q.no || '');
+  $('toQ').href = 'quote.html?id=' + encodeURIComponent(q.id); $('toPh').href = 'photos.html?job=' + encodeURIComponent(q.id);
+  $('md').value = m.date || DECO.today(); $('ch').value = m.ch || ''; $('mat').value = m.mat || ''; $('pan').value = m.pan || ''; $('memo').value = m.memo || '';
+  var SP = ['거실', '안방', '작은방1', '작은방2', '주방·식당', '현관', '복도', '기타'], CK = ['우물 있음', '커튼박스 있음', '실링팬 자리', '천장 보강 필요', '기존 등 철거', '스위치 추가', '전원선 있음'];
+  $('add').innerHTML = SP.map(function (s) { return '<button class="btn2" type="button" data-sp="' + s + '">+ ' + s + '</button>'; }).join('');
+  function room(r) { return '<div class="rm"><div class="h"><input value="' + E(r.name) + '" data-k="name" aria-label="공간 이름"><button class="btn2 no" type="button" data-rm>빼기</button></div>' +
+    '<div class="g">' + [['w', '가로'], ['l', '세로'], ['ww', '우물 가로'], ['wl', '우물 세로'], ['wd', '우물 깊이']].map(function (x) { return '<label>' + x[1] + '(cm)<input type="number" inputmode="decimal" data-k="' + x[0] + '" value="' + E(r[x[0]] || '') + '"></label>'; }).join('') + '</div>' +
+    '<div class="ck">' + CK.map(function (k) { return '<label><input type="checkbox" data-c="' + k + '"' + ((r.ck || []).indexOf(k) >= 0 ? ' checked' : '') + '>' + k + '</label>'; }).join('') + '</div>' +
+    '<textarea rows="2" data-k="note" data-mic placeholder="이 공간 메모 (예: 우물 한쪽 보 있음)">' + E(r.note || '') + '</textarea></div>'; }
+  function read() { return [].map.call(document.querySelectorAll('.rm'), function (d) { var r = { ck: [] };
+    d.querySelectorAll('[data-k]').forEach(function (i) { var v = i.value.trim(); if (v) r[i.dataset.k] = v; });
+    d.querySelectorAll('[data-c]').forEach(function (i) { if (i.checked) r.ck.push(i.dataset.c); }); return r; }); }
+  function draw(R) { $('rooms').innerHTML = R.length ? R.map(room).join('') : '<p class="sub">위에서 공간을 눌러 추가하세요.</p>'; DECO.micInit(); }
+  draw(m.rooms || []);
+  $('add').addEventListener('click', function (e) { var b = e.target.closest('[data-sp]'); if (!b) return; var R = read(); R.push({ name: b.dataset.sp, ck: [] }); draw(R); });
+  $('rooms').addEventListener('click', function (e) { var b = e.target.closest('[data-rm]'); if (!b) return; var R = read(), i = [].indexOf.call(document.querySelectorAll('.rm'), b.closest('.rm')); R.splice(i, 1); draw(R); });
+  $('save').onclick = function () { var all = DECO.getQuote(q.id); all.measure = { date: $('md').value, ch: $('ch').value.trim(), mat: $('mat').value, pan: $('pan').value.trim(), memo: $('memo').value.trim(), rooms: read() };
+    if ((all.status || '상담') === '상담') all.status = '실측';
+    var r = DECO.saveQuote(all); $('msg').className = 'msg' + (r ? '' : ' bad'); $('msg').textContent = r ? '실측 기록을 저장했습니다.' + ((q.status || '상담') === '상담' ? ' 견적 상태를 「실측」으로 바꿨습니다.' : '') : '저장하지 못했습니다.'; if (r) q = r; };
+})();
+</script>
+</body>
+</html>

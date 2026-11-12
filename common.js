@@ -188,6 +188,13 @@
         r.onend = r.onerror = function () { b.rec = null; b.classList.remove('on'); b.textContent = '🎤 말로 입력'; };
         try { r.start(); } catch (e) { r.onend(); } }); }); }
   D.micInit = micInit;
+  // 실측 기록 → 줄글 (지시서·문자용)
+  D.measureText = function (q) { var m = q && q.measure; if (!m) return []; var L = [], h = [];
+    if (m.ch) h.push('천장 높이 ' + m.ch + 'cm'); if (m.mat) h.push('천장 ' + m.mat); if (m.pan) h.push('분전함 ' + m.pan); if (h.length) L.push(h.join(' · '));
+    (m.rooms || []).forEach(function (r) { var t = [];
+      if (r.w || r.l) t.push((r.w || '?') + '×' + (r.l || '?')); if (r.ww || r.wl) t.push('우물 ' + (r.ww || '?') + '×' + (r.wl || '?') + (r.wd ? ' 깊이 ' + r.wd : ''));
+      if (r.ck && r.ck.length) t.push(r.ck.join(', ')); if (r.note) t.push(r.note); L.push('- ' + (r.name || '공간') + ': ' + (t.join(' · ') || '기록 없음')); });
+    if (m.memo) L.push('메모: ' + m.memo); return L; };
   // 주소 → 길찾기 링크 (카카오맵·네이버지도)
   D.mapLinks = function (addr) { addr = String(addr || '').trim(); if (!addr) return ''; var a = encodeURIComponent(addr);
     return '<a class="btn2" href="https://map.kakao.com/link/search/' + a + '" target="_blank" rel="noopener">카카오맵 길찾기</a><a class="btn2" href="https://map.naver.com/p/search/' + a + '" target="_blank" rel="noopener">네이버지도</a>'; };

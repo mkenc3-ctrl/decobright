@@ -69,6 +69,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
       </div>
       <h2 class="s">거래처별 작업 <small style="font-weight:400;color:var(--muted);font-size:14px">하루 순서: 목수 → 전기 → 도배 · <a href="partners.html">거래처 목록 고치기</a></small></h2>
       <div id="trs"></div>
+      <div id="msBox" hidden><h2 class="s">현장 실측 기록 <small style="font-weight:400;font-size:14px">(단위 cm)</small></h2><pre id="ms" style="white-space:pre-wrap;font:inherit;font-size:15px;background:#fffaf1;border:1px solid var(--bd);border-radius:10px;padding:10px;margin:0"></pre></div>
       <h2 class="s">공통 주의사항·고객 요청</h2>
       <label class="fl"><textarea name="notes" data-mic rows="3" placeholder="예: 엘리베이터 사용 예약, 오후 6시 이전 마감, 반려견 있음"></textarea></label>
       <h2 class="s">현장 점검표</h2>
@@ -156,16 +157,17 @@ h2.s{font-size:19px;margin:20px 0 8px}
       '<tr><th>시공일</th><td>' + dstr() + ' ' + E(b.time) + ' 도착</td><th>조명 색</th><td>' + E(o.color) + '</td></tr>' +
       '<tr><th>같은 날 작업</th><td colspan="3">' + TR.filter(function (x) { return o.trades[x].on; }).map(function (x) { return x + ' ' + E(o.trades[x].time || ''); }).join(' → ') + '</td></tr></table>' +
       '<table><tr><th>작업 내용</th><td>' + (tasks.length ? '<ol>' + tasks.map(function (x) { return '<li>' + E(x) + '</li>'; }).join('') + '</ol>' : '') + '</td></tr>' +
-      '<tr><th>준비 자재</th><td class="bx">' + E(b.mats) + '</td></tr><tr><th>주의사항</th><td class="bx">' + E(o.notes) + '</td></tr>' +
+      '<tr><th>준비 자재</th><td class="bx">' + E(b.mats) + '</td></tr><tr><th>주의사항</th><td class="bx">' + E(o.notes) + '</td></tr>' + (MS.length ? '<tr><th>실측</th><td class="bx" style="white-space:pre-wrap">' + E(MS.join('\n')) + '</td></tr>' : '') +
       '<tr><th>완료 메모</th><td class="bx" style="height:50px"></td></tr></table>' + lay(t) +
       '<div class="sign"><div>' + t + ' 작업자 (서명)</div><div>작업 끝난 시각</div><div>현장 책임 확인</div></div></div>'; }
+  var MS = DECO.measureText(o.quoteId ? DECO.getQuote(o.quoteId) : null); if (MS.length) { $('msBox').hidden = false; $('ms').textContent = MS.join('\n'); }
   function sheet() { read(); var on = TR.filter(function (t) { return o.trades[t].on; });
     $('sheets').innerHTML = on.length ? on.map(one).join('') : '<div class="empty">위에서 공종(목수·전기·도배)을 하나 이상 켜 주세요.</div>'; }
   function smsText(t) { var b = o.trades[t], L = ['[' + s.company + ' 작업 지시 · ' + t + ']', '날짜 : ' + dstr() + ' ' + (b.time || '') + ' 도착', '현장 : ' + o.addr];
     if (o.lead) L.push('현장 책임 : ' + o.lead);
     L.push('', '■ 작업 내용'); b.tasks.split('\n').filter(Boolean).forEach(function (x, i) { L.push((i + 1) + '. ' + x); });
     if (o.layout && (t === '전기' || t === '목수')) { L.push('', '■ 조명 배치'); (o.layout.list || []).forEach(function (x) { L.push('· ' + x); }); L.push('(배치도 그림은 인쇄본·사진으로 따로 보냅니다)'); }
-    if (b.mats) L.push('', '■ 준비 자재', b.mats); if (o.notes) L.push('', '■ 주의사항', o.notes);
+    if (b.mats) L.push('', '■ 준비 자재', b.mats); if (MS.length) L.push('', '■ 실측 (cm)', MS.join('\n')); if (o.notes) L.push('', '■ 주의사항', o.notes);
     L.push('', '같은 날 : ' + TR.filter(function (x) { return o.trades[x].on; }).map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → '), '문의 ' + s.phone); return L.join('\n'); }
   f.addEventListener('input', sheet); f.addEventListener('change', sheet);
   f.addEventListener('submit', function (e) { e.preventDefault(); save(); });
