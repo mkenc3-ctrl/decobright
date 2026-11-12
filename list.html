@@ -57,7 +57,7 @@
         '<div class="sum">' + DECO.won(q.totals && q.totals.total) + ' <small style="font-size:13px;font-weight:400;color:var(--muted)">부가세 포함</small></div>' +
         '<div class="acts"><select class="st" data-st="' + E(q.id) + '" aria-label="진행 상태">' + DECO.STATUS.map(function (s) { return '<option' + ((q.status || '상담') === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
         '<a class="btn2" href="quote.html?id=' + id + '">열어서 고치기</a><a class="btn2" href="print.html?id=' + id + '">견적서 인쇄</a>' +
-        '<a class="btn2" href="contract.html?id=' + id + '">계약 안내 문자</a><a class="btn2" href="order.html?quote=' + id + '">작업 지시서</a><a class="btn2" href="photos.html?job=' + id + '">현장 사진</a>' +
+        '<a class="btn2" href="contract.html?id=' + id + '">계약 안내 문자</a><a class="btn2" href="sign.html?id=' + id + '">계약서·서명' + (q.sign && q.sign.cust ? ' ✔' : '') + '</a><a class="btn2" href="order.html?quote=' + id + '">작업 지시서</a><a class="btn2" href="photos.html?job=' + id + '">현장 사진</a>' +
         '<button class="btn2" type="button" data-copy="' + E(q.id) + '">복사해서 새 견적</button>' +
         '<button class="btn2 no" type="button" data-del="' + E(q.id) + '">지우기</button></div></div></div>';
     }).join('');
@@ -72,7 +72,7 @@
   box.addEventListener('change', function (e) { var s = e.target.closest('[data-st]'); if (!s) return; DECO.setQuoteStatus(s.dataset.st, s.value);
     var old = document.getElementById('nextStep'); if (old) old.remove(); if (s.value !== '계약') return;
     var id = encodeURIComponent(s.dataset.st), d = document.createElement('div'); d.id = 'nextStep'; d.className = 'next';
-    d.innerHTML = '<b>계약으로 바꿨습니다. 다음 할 일:</b><div><a class="btn2 pri" href="stats.html#pay">① 계약금 입금 기록</a><a class="btn2" href="contract.html?id=' + id + '">② 계약 안내 문자</a><a class="btn2" href="order.html?quote=' + id + '">③ 시공 날짜·작업 지시서</a></div>';
+    d.innerHTML = '<b>계약으로 바꿨습니다. 다음 할 일:</b><div><a class="btn2 pri" href="stats.html#pay">① 계약금 입금 기록</a><a class="btn2" href="contract.html?id=' + id + '">② 계약 안내 문자</a><a class="btn2" href="sign.html?id=' + id + '">계약서·고객 서명</a><a class="btn2" href="order.html?quote=' + id + '">③ 시공 날짜·작업 지시서</a></div>';
     s.parentNode.insertAdjacentElement('afterend', d); });
   var fs = document.getElementById('fst');
   fs.innerHTML = '<option value="">전체 상태</option>' + DECO.STATUS.map(function (s) { return '<option>' + s + '</option>'; }).join('');
