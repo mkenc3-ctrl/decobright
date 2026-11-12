@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>e모델하우스 · 데코브라이트</title>
+<meta name="description" content="집에 가지 않아도 간접조명·실링팬 시공 후 모습을 미리 켜 보는 온라인 모델하우스">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.hero{background:#1d1714;color:#fbf2e4;border-radius:14px;padding:18px 18px 14px;margin-bottom:14px}
+.hero h1{margin:0 0 4px;font-size:26px;font-weight:800;letter-spacing:-.01em}
+.hero h1 em{font-style:normal;color:#f0b05a}
+.hero p{margin:0;color:#d9c9b4;font-size:15px}
+.stage{position:relative;background:#0e0b09;border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(30,20,10,.25)}
+.stage svg{display:block;width:100%;height:auto}
+.tag{position:absolute;left:12px;top:10px;background:rgba(0,0,0,.55);color:#fff;font-size:13px;padding:4px 9px;border-radius:999px}
+.ctl{display:grid;gap:12px;margin-top:14px}
+.row{display:grid;grid-template-columns:118px minmax(0,1fr);gap:8px;align-items:center}
+.row>b{font-size:16px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-size:16px;min-height:44px;padding:0 14px;border:1px solid var(--bd);background:#fff;color:var(--ink);border-radius:10px;cursor:pointer}
+.seg button.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700}
+@media (max-width:520px){.row{grid-template-columns:1fr}.row>b{font-size:15px}}
+.est{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--warm-s);border:1px solid #f0cf9e;border-radius:12px;padding:14px;margin-top:14px}
+.est small{display:block;color:var(--muted);font-size:13px}
+.est .nm{font-size:18px;font-weight:800}
+.est .pr{font-size:24px;font-weight:800;color:var(--acc);font-variant-numeric:tabular-nums;text-align:right}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pk{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.pk button{font:inherit;text-align:left;background:#fff;border:1px solid var(--line);border-left:6px solid var(--warm);border-radius:12px;padding:12px 14px;cursor:pointer;color:var(--ink)}
+.pk button b{display:block;font-size:17px}
+.pk button i{font-style:normal;color:var(--acc);font-weight:800}
+.pk button span{display:block;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.gal button{border:0;padding:0;border-radius:10px;overflow:hidden;position:relative;aspect-ratio:4/5;cursor:pointer;background:#2a211d}
+.gal img{width:100%;height:100%;object-fit:cover;display:block}
+.gal span{position:absolute;left:0;right:0;bottom:0;padding:20px 8px 7px;color:#fff;font-size:13px;font-weight:700;text-align:left;background:linear-gradient(180deg,transparent,rgba(0,0,0,.75))}
+.ba{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:1/1;max-width:560px;background:#222;user-select:none;touch-action:pan-y}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ba .af{clip-path:inset(0 0 0 50%)}
+.ba .ln{position:absolute;top:0;bottom:0;left:50%;width:3px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.5)}
+.ba .lb{position:absolute;top:8px;background:rgba(0,0,0,.6);color:#fff;font-size:13px;padding:3px 8px;border-radius:6px}
+.ba input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;padding:16px;gap:10px}
+#lb img{max-width:100%;max-height:80vh;border-radius:8px}
+#lb p{color:#fff;margin:0;font-size:16px}
+body.cust .owner{display:none!important}
+.cbar{display:none}
+body.cust .cbar{display:flex;gap:8px;position:sticky;bottom:0;background:var(--paper);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);margin-top:16px}
+body.cust .cbar a{flex:1}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:860px">
+  <div class="topnav owner"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <div class="hero">
+    <h1><em>e</em>모델하우스</h1>
+    <p>집에 가지 않아도 시공 후 모습을 미리 켜 봅니다. 아래 단추를 눌러 조명을 켜고 끄고, 빛 색을 바꿔 보세요.</p>
+  </div>
+
+  <div class="stage"><svg id="room" viewBox="0 0 800 500" role="img" aria-label="가상 거실 미리보기"></svg><span class="tag" id="tag">밤 · 전구색</span></div>
+
+  <div class="ctl" id="ctl"></div>
+
+  <div class="est" aria-live="polite">
+    <div><small>이 구성에 맞는 패키지</small><div class="nm" id="eNm"></div><small id="eDs"></small></div>
+    <div><div class="pr" id="ePr"></div><small style="text-align:right">공급가 · 부가세 별도</small></div>
+  </div>
+  <div class="acts">
+    <a class="btn2 pri owner" id="toQ" href="quote.html">이 구성으로 견적서 만들기</a>
+    <button class="btn2 owner" type="button" id="share">고객에게 보낼 링크 복사</button>
+  </div>
+  <p class="msg owner" id="msg" role="status"></p>
+
+  <h2 class="grp">패키지 전시관</h2>
+  <p class="sub">패키지를 누르면 위 거실에 바로 켜집니다.</p>
+  <div class="pk" id="pk"></div>
+
+  <h2 class="grp">실제 시공 전·후</h2>
+  <p class="sub">가운데 선을 좌우로 밀어 보세요. 왼쪽이 시공 전, 오른쪽이 시공 후입니다.</p>
+  <div class="ba" id="ba"><img id="bB" alt="시공 전"><img class="af" id="bA" alt="시공 후"><span class="ln" id="bL"></span><span class="lb" style="left:8px">시공 전</span><span class="lb" style="right:8px">시공 후</span><input type="range" min="0" max="100" value="50" id="bR" aria-label="시공 전후 비교"></div>
+
+  <h2 class="grp">실제 시공 사례</h2>
+  <div class="gal" id="gal"></div>
+  <p class="sub" style="margin-top:14px">※ 위 거실 그림은 이해를 돕기 위한 예시입니다. 실제 모양·밝기·금액은 현장 실측 후 정해집니다.</p>
+
+  <div class="cbar"><a class="btn2 pri" id="cTel" href="#">전화 상담</a><a class="btn2" id="cSms" href="#">문자로 문의</a></div>
+</div>
+<div id="lb" hidden><img id="lbi" alt=""><p id="lbt"></p></div>
+<script src="common.js"></script>
+<script src="prices-default.js"></script>
+<script src="real-photos.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, W = DECO.won, S = DECO.settings();
+  var cust = new URLSearchParams(location.search).get('c') === '1'; if (cust) document.body.classList.add('cust');
+  var st = { shape: 'round', cove: 1, inN: 8, tvN: 6, curtain: 1, fan: 1, k: 3000, night: 1 };
+  var KC = { 3000: ['#ffb357', '전구색'], 4000: ['#ffe2a8', '주백색'], 6500: ['#e3efff', '주광색'] };
+  var CT = [
+    ['shape', '우물 모양', [['square', '사각'], ['round', '라운드']]],
+    ['cove', '우물 간접등', [[0, '끔'], [1, '한 줄'], [2, '두 줄']]],
+    ['inN', '우물 다운라이트', [[0, '끔'], [8, '8개'], [12, '12개']]],
+    ['tvN', 'TV·소파 다운라이트', [[0, '끔'], [6, '6개']]],
+    ['curtain', '커튼박스 간접등', [[0, '끔'], [1, '켬']]],
+    ['fan', '실링팬', [[0, '없음'], [1, '있음']]],
+    ['k', '빛 색', [[3000, '전구색'], [4000, '주백색'], [6500, '주광색']]],
+    ['night', '시간', [[1, '밤'], [0, '낮']]]];
+  $('ctl').innerHTML = CT.map(function (c) { return '<div class="row"><b>' + c[1] + '</b><div class="seg" data-k="' + c[0] + '">' + c[2].map(function (o) { return '<button type="button" data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div></div>'; }).join('');
+  $('ctl').addEventListener('click', function (e) { var b = e.target.closest('[data-v]'); if (!b) return; var k = b.parentNode.dataset.k, v = b.dataset.v; st[k] = isNaN(+v) ? v : +v; pin = null; draw(); });
+
+  // ── 가상 거실 그리기 (한 점 투시) ──
+  function draw() {
+    [].forEach.call(document.querySelectorAll('.seg'), function (g) { [].forEach.call(g.children, function (b) { b.classList.toggle('on', String(st[g.dataset.k]) === b.dataset.v); }); });
+    var n = st.night, L = KC[st.k][0], on = function (x) { return x ? 1 : 0; };
+    var wall = n ? '#2a2420' : '#efe7da', wallS = n ? '#211c19' : '#e4dacb', ceil = n ? '#1e1a17' : '#f6f1e8', floor = n ? '#2b2119' : '#b98d62', sky = n ? '#14203a' : '#bfe0f5';
+    var anyL = st.cove || st.inN || st.tvN || st.curtain, lift = n && anyL ? .12 + .05 * (on(st.cove) + on(st.curtain)) + .03 * (on(st.inN) + on(st.tvN)) : 0;
+    var h = [];
+    h.push('<defs>',
+      '<filter id="bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>',
+      '<filter id="bl2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>',
+      '<linearGradient id="cw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + L + '" stop-opacity=".85"/><stop offset="1" stop-color="' + L + '" stop-opacity="0"/></linearGradient>',
+      '<linearGradient id="cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + L + '" stop-opacity=".55"/><stop offset="1" stop-color="' + L + '" stop-opacity="0"/></linearGradient>',
+      '<radialGradient id="pool"><stop offset="0" stop-color="' + L + '" stop-opacity=".55"/><stop offset="1" stop-color="' + L + '" stop-opacity="0"/></radialGradient>',
+      '<radialGradient id="amb" cx=".5" cy=".2" r=".8"><stop offset="0" stop-color="' + L + '" stop-opacity="' + lift + '"/><stop offset="1" stop-color="' + L + '" stop-opacity="0"/></radialGradient>',
+      '</defs>');
+    // 면: 천장, 왼벽, 오른벽, 바닥, 뒷벽
+    h.push('<polygon points="0,0 800,0 640,130 160,130" fill="' + ceil + '"/>',
+      '<polygon points="0,0 160,130 160,370 0,500" fill="' + wallS + '"/>',
+      '<polygon points="800,0 640,130 640,370 800,500" fill="' + wallS + '"/>',
+      '<polygon points="0,500 160,370 640,370 800,500" fill="' + floor + '"/>',
+      '<rect x="160" y="130" width="480" height="240" fill="' + wall + '"/>');
+    // 바닥 마루 줄
+    for (var i = 1; i < 8; i++) { var x = 160 + i * 60, xb = i * 100; h.push('<line x1="' + x + '" y1="370" x2="' + xb + '" y2="500" stroke="#000" stroke-opacity=".08"/>'); }
+    // 창문 + 커튼
+    h.push('<rect x="250" y="160" width="300" height="180" fill="' + sky + '"/>',
+      '<line x1="400" y1="160" x2="400" y2="340" stroke="' + (n ? '#3a3a3a' : '#fff') + '" stroke-width="4"/>',
+      n ? '<circle cx="500" cy="190" r="10" fill="#f4f1d6" opacity=".8"/>' : '',
+      '<path d="M236 142 q12 100 0 214 h46 q-14 -110 0 -214z" fill="' + (n ? '#4a3f37' : '#d9cbb6') + '"/>',
+      '<path d="M564 142 q-12 100 0 214 h-46 q14 -110 0 -214z" fill="' + (n ? '#4a3f37' : '#d9cbb6') + '"/>',
+      '<rect x="220" y="132" width="360" height="9" fill="' + (n ? '#151210' : '#e6ddcf') + '"/>');
+    // 커튼박스 간접등 (뒷벽 위를 아래로 씻는 빛)
+    if (st.curtain) h.push('<rect x="220" y="132" width="360" height="' + (n ? 150 : 60) + '" fill="url(#cw)" opacity="' + (n ? 1 : .35) + '"/>', '<line x1="222" y1="134" x2="578" y2="134" stroke="' + L + '" stroke-width="4" filter="url(#bl2)"/>');
+    // TV (왼벽) · 소파 (오른쪽 바닥)
+    h.push('<polygon points="40,190 120,212 120,300 40,316" fill="#0b0b0c" stroke="#333" stroke-width="2"/>',
+      n && st.night ? '<polygon points="44,196 116,216 116,296 44,310" fill="#18324a" opacity=".55"/>' : '',
+      '<polygon points="30,330 130,312 130,322 30,342" fill="' + (n ? '#3b2f28' : '#8a6a50') + '"/>',
+      '<polygon points="560,352 760,352 790,440 530,440" fill="' + (n ? '#3c342f' : '#8f8579') + '"/>',
+      '<polygon points="575,310 745,310 760,360 560,360" fill="' + (n ? '#4a413b' : '#a49a8d') + '"/>');
+    if (st.tvN) { [[60, 22], [100, 30], [140, 38]].forEach(function (p) { h.push('<polygon points="' + (p[0] - 6) + ',' + p[1] + ' ' + (p[0] + 6) + ',' + p[1] + ' ' + (p[0] + 34) + ',250 ' + (p[0] - 20) + ',250" fill="url(#cone)" opacity="' + (n ? .5 : .15) + '"/><circle cx="' + p[0] + '" cy="' + p[1] + '" r="4" fill="' + L + '"/>'); });
+      [[650, 22], [700, 30], [745, 38]].forEach(function (p) { h.push('<polygon points="' + (p[0] - 6) + ',' + p[1] + ' ' + (p[0] + 6) + ',' + p[1] + ' ' + (p[0] + 26) + ',330 ' + (p[0] - 26) + ',330" fill="url(#cone)" opacity="' + (n ? .45 : .12) + '"/><circle cx="' + p[0] + '" cy="' + p[1] + '" r="4" fill="' + L + '"/>'); }); }
+    // 우물 (천장 가운데 움푹한 곳)
+    var cx = 400, cy = 62, rx = 170, ry = 34, shp;
+    if (st.shape === 'round') shp = function (d, a) { return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + (rx - d) + '" ry="' + (ry - d * .2) + '" ' + a + '/>'; };
+    else shp = function (d, a) { var t = cy - ry + d * .2, b = cy + ry - d * .2, w1 = rx - d - 26, w2 = rx - d; return '<polygon points="' + (cx - w1) + ',' + t + ' ' + (cx + w1) + ',' + t + ' ' + (cx + w2) + ',' + b + ' ' + (cx - w2) + ',' + b + '" ' + a + '/>'; };
+    h.push(shp(0, 'fill="' + (n ? '#171412' : '#ece5d9') + '" stroke="' + (n ? '#2d2723' : '#d6ccbd') + '" stroke-width="3"'));
+    if (st.cove) { h.push(shp(-6, 'fill="none" stroke="' + L + '" stroke-width="16" opacity="' + (n ? .75 : .3) + '" filter="url(#bl)"'), shp(0, 'fill="none" stroke="' + L + '" stroke-width="3"'));
+      if (st.cove > 1) h.push(shp(22, 'fill="none" stroke="' + L + '" stroke-width="12" opacity="' + (n ? .6 : .25) + '" filter="url(#bl)"'), shp(22, 'fill="none" stroke="' + L + '" stroke-width="2.5"'));
+      if (n) h.push(shp(-30, 'fill="' + L + '" opacity=".08" filter="url(#bl)"')); }
+    // 우물 다운라이트 + 바닥 빛 웅덩이
+    if (st.inN) { for (var j = 0; j < st.inN; j++) { var a = Math.PI * 2 * j / st.inN, px = cx + Math.cos(a) * (rx - 40), py = cy + Math.sin(a) * (ry - 9);
+        h.push('<polygon points="' + (px - 4) + ',' + py + ' ' + (px + 4) + ',' + py + ' ' + (px + (px - 400) * .5 + 22) + ',' + (380 + (py - 62) * 2.4) + ' ' + (px + (px - 400) * .5 - 22) + ',' + (380 + (py - 62) * 2.4) + '" fill="url(#cone)" opacity="' + (n ? .17 : .06) + '"/>',
+          '<circle cx="' + px + '" cy="' + py + '" r="3.6" fill="' + L + '"/><circle cx="' + px + '" cy="' + py + '" r="8" fill="' + L + '" opacity=".35" filter="url(#bl2)"/>'); }
+      if (n) h.push('<ellipse cx="400" cy="430" rx="260" ry="44" fill="url(#pool)"/>'); }
+    // 전체 은은한 밝기
+    if (lift) h.push('<rect width="800" height="500" fill="url(#amb)"/>');
+    // 실링팬
+    if (st.fan) { var fc = n ? '#5a4c42' : '#8a7663';
+      h.push('<line x1="400" y1="' + cy + '" x2="400" y2="112" stroke="' + fc + '" stroke-width="4"/>',
+        '<g transform="translate(400 116) scale(1 .22)"><g><animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="2.4s" repeatCount="indefinite"/>' +
+        [0, 72, 144, 216, 288].map(function (r) { return '<path transform="rotate(' + r + ')" d="M0 -10 C40 -26 120 -24 150 -8 C120 6 40 8 0 10z" fill="' + fc + '"/>'; }).join('') + '</g></g>',
+        '<ellipse cx="400" cy="117" rx="16" ry="7" fill="' + (n ? '#6b5c50' : '#9c8875') + '"/>',
+        '<ellipse cx="400" cy="124" rx="10" ry="5" fill="' + L + '" opacity="' + (anyL ? .9 : .4) + '"/>'); }
+    $('room').innerHTML = h.join('');
+    $('tag').textContent = (n ? '밤' : '낮') + ' · ' + KC[st.k][1] + (st.shape === 'round' ? ' · 라운드 우물' : ' · 사각 우물');
+    est();
+  }
+
+  // ── 패키지 맞추기 ──
+  var P = DECO.pkgs().filter(function (p) { return p.id !== 'none' && p.f; }).sort(function (a, b) { return a.price - b.price; }), best = null, pin = null;
+  function est() { best = P.filter(function (p) { var f = p.f; return f.inN >= st.inN && f.tvN >= st.tvN && f.cove >= st.cove && (!st.curtain || f.curtain) && (!st.fan || f.fan); })[0] || null; if (pin) best = pin;
+    var none = !st.cove && !st.inN && !st.tvN && !st.curtain && !st.fan;
+    $('eNm').textContent = none ? '조명을 하나 이상 켜 보세요' : best ? best.name : '맞춤 견적';
+    $('eDs').textContent = none ? '' : best ? best.desc : '현장에 맞춰 따로 견적을 드립니다.';
+    $('ePr').textContent = !none && best ? W(best.price) : '—';
+    $('toQ').href = 'quote.html' + (best ? '?pkg=' + best.id : '');
+    var t = '[e모델하우스 문의] ' + (best ? best.name + ' (' + W(best.price) + ')' : '맞춤 견적') + ' · ' + (st.shape === 'round' ? '라운드' : '사각') + ' 우물, ' + KC[st.k][1] + (st.fan ? ', 실링팬' : '') + ' 구성으로 상담 받고 싶습니다.';
+    var tel = String(S.phone || '').replace(/[^\d]/g, ''), ios = /iPhone|iPad/.test(navigator.userAgent);
+    $('cTel').href = 'tel:' + tel; $('cSms').href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(t); }
+  $('pk').innerHTML = P.map(function (p) { return '<button type="button" data-p="' + E(p.id) + '"><b>' + E(p.name) + '</b><i>' + W(p.price) + '</i><span>' + E(p.desc) + '</span></button>'; }).join('');
+  $('pk').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b) return; var p = P.filter(function (x) { return x.id === b.dataset.p; })[0], f = p.f;
+    st.inN = f.inN >= 12 ? 12 : f.inN ? 8 : 0; st.tvN = f.tvN ? 6 : 0; st.cove = Math.min(2, f.cove || 0); st.curtain = f.curtain ? 1 : 0; st.fan = f.fan ? 1 : 0; st.night = 1; draw(); pin = p; est();
+    $('room').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+  $('share').onclick = function () { var u = 'https://mkenc3-ctrl.github.io/decobright/emodel.html?c=1', m = $('msg'), t = '[' + S.company + '] 시공 후 모습을 미리 켜 보세요 (e모델하우스)\n' + u;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { m.className = 'msg'; m.textContent = '복사했습니다. 고객에게 문자·카톡으로 붙여넣으세요.'; }, function () { m.className = 'msg'; m.textContent = t; }); };
+
+  // ── 시공 전·후 ──
+  if (window.REAL_B && window.REAL_A) { $('bB').src = REAL_B; $('bA').src = REAL_A;
+    $('bR').oninput = function () { var v = this.value; $('bA').style.clipPath = 'inset(0 0 0 ' + v + '%)'; $('bL').style.left = v + '%'; }; } else $('ba').hidden = true;
+  // ── 사례 사진 ──
+  var CASES = [['round-wide', '무몰딩 라운드 우물 · 간접조명'], ['square-warm', '사각 우물 간접조명 · 실링팬'], ['round-fan', '라운드 우물 · 화이트 실링팬'], ['curtain-fan', '커튼박스 간접조명 · 실링팬'], ['living-cove', '거실 우물 간접조명'], ['cove-kitchen', '우물 간접조명 · 주방 매립등'], ['room-fan', '방 커튼박스 · 실링팬'], ['line', '마그네틱 라인조명'], ['bath', '욕실 거울장 간접조명']];
+  $('gal').innerHTML = CASES.map(function (c) { return '<button type="button" data-n="' + c[0] + '" data-t="' + c[1] + '"><img src="img/' + c[0] + '.jpg" alt="' + c[1] + '" loading="lazy"><span>' + c[1] + '</span></button>'; }).join('');
+  $('gal').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; $('lbi').src = 'img/' + b.dataset.n + '.jpg'; $('lbt').textContent = b.dataset.t; $('lb').hidden = false; });
+  $('lb').onclick = function () { this.hidden = true; };
+  draw();
+})();
+</script>
+</body>
+</html>

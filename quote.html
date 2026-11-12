@@ -316,7 +316,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 
   let bg = {kind:"demo", img:null, old:[]};
   let items = [], uid = 0, tool = "select", selId = null, pending = null;
-  let pkg = "p3";
+  let pkg = (()=>{ const p=new URLSearchParams(location.search).get("pkg")||""; return /^p[1-9]$/.test(p)?p:"p3"; })();
   let kelvin = 2700, shape = "round", fanColor = "white";
   const P = () => PKGS.find(p => p.id === pkg);
   const isPlan = () => bg.kind === "plan";
