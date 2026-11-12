@@ -184,7 +184,8 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       <div class="drop">
         <label class="btn btn-warm" for="photo">사진 올리기</label>
         <input id="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
-        <button class="btn btn-ghost" id="planBtn" type="button">사진 없이 거실 평면도로 배치</button>
+        <button class="btn btn-ghost" id="plan34Btn" type="button">34평형 평면도로 배치</button>
+        <button class="btn btn-ghost" id="planBtn" type="button">거실만 크게 배치</button>
         <button class="btn btn-ghost" id="demoBtn" type="button">실제 시공 사진 보기</button>
         <button class="btn btn-ghost" id="aiBtn" type="button" hidden>자동 배치</button>
         <button class="btn btn-ghost" id="clearBtn" type="button">붙인 항목 모두 지우기</button>
@@ -407,6 +408,43 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     return {canvas:c, ceil, cove, curtain:[n(R.x+40,R.y+40),n(R.x+R.w-40,R.y+40)], fan:centroid(cove)};
   }
 
+  // 34평형(전용 84㎡) 4베이 예시 평면도 — 집 전체, 조명은 거실에 먼저 놓음
+  function makePlan34(){
+    const w=1600,h=1000,c=document.createElement("canvas"); c.width=w; c.height=h; const g=c.getContext("2d");
+    g.fillStyle="#f3efe8"; g.fillRect(0,0,w,h);
+    const F="'Noto Sans KR', sans-serif";
+    const room=(x,y,rw,rh,fill)=>{ g.fillStyle=fill; g.fillRect(x,y,rw,rh); };
+    // 발코니
+    g.fillStyle="#e7ece9"; g.fillRect(80,70,1440,70); g.setLineDash([12,8]); g.strokeStyle="#9aa59f"; g.lineWidth=3; g.strokeRect(80,70,1440,70); g.setLineDash([]);
+    room(80,140,300,420,"#ece6db"); room(380,140,300,420,"#ece6db"); room(680,140,480,420,"#e6dfd2"); room(1160,140,360,420,"#ece6db");
+    room(80,560,400,80,"#efe9df"); room(80,640,200,260,"#e2ddd4"); room(280,640,200,260,"#dde6ea");
+    room(480,560,680,340,"#ebe4d8"); room(1160,560,180,340,"#dde6ea"); room(1340,560,180,340,"#e9e2d6");
+    // 벽
+    g.strokeStyle="#3B2F2A"; g.lineWidth=14; g.strokeRect(80,140,1440,760);
+    g.lineWidth=8; const L=(a,b,c2,d)=>{ g.beginPath(); g.moveTo(a,b); g.lineTo(c2,d); g.stroke(); };
+    L(380,140,380,560); L(680,140,680,520); L(1160,140,1160,900); L(80,560,680,560); L(280,640,280,900); L(480,640,480,900); L(80,640,480,640); L(1160,560,1520,560); L(1340,560,1340,900);
+    // 창
+    g.fillStyle="#cfe0ec"; [[110,240],[410,240],[700,440],[1190,300]].forEach(([x,ww])=>g.fillRect(x,134,ww,12));
+    // 문 열림 표시
+    g.strokeStyle="#8a7b66"; g.lineWidth=2; const door=(x,y,r,a0,a1)=>{ g.beginPath(); g.moveTo(x,y); g.arc(x,y,r,a0,a1); g.closePath(); g.stroke(); };
+    door(300,560,60,-Math.PI/2,0); door(600,560,60,Math.PI,Math.PI*1.5); door(1160,600,60,Math.PI*1.5,Math.PI*2); door(200,900,70,Math.PI,Math.PI*1.5);
+    // 주방 조리대
+    g.fillStyle="#cdbfa9"; g.fillRect(500,840,640,40); g.fillRect(760,700,260,60);
+    // 글자
+    g.fillStyle="#3B2F2A"; g.textAlign="center"; g.font="700 30px "+F;
+    [["방3",230,360],["방2",530,360],["거실",920,540],["안방",1340,360],["주방 · 식당",820,660],["현관",180,780],["욕실",380,780],["안방 욕실",1250,740],["드레스룸",1430,740],["발코니",800,113]].forEach(([t,x,y])=>g.fillText(t,x,y));
+    g.font="500 20px "+F; g.fillStyle="#7a6d5c"; g.fillText("복도",280,608); g.fillText("커튼박스",920,184); g.fillText("아일랜드",890,736);
+    g.font="700 24px "+F; g.textAlign="left"; g.fillStyle="#3B2F2A"; g.fillText("34평형 (전용 84㎡) 4베이 예시 평면",80,950);
+    g.font="400 18px "+F; g.fillStyle="#7a6d5c"; g.fillText("단지마다 구조가 다릅니다. 대략 위치를 잡는 용도입니다.",80,978);
+    // 거실 천장: 커튼박스·우물 자리
+    g.setLineDash([14,10]); g.strokeStyle="#8a7b66"; g.lineWidth=3; g.strokeRect(696,156,448,40);
+    const cv={x:760,y:230,w:320,h:250}; g.strokeStyle="rgba(90,80,65,.5)"; g.strokeRect(cv.x,cv.y,cv.w,cv.h); g.setLineDash([]);
+    const n=(x,y)=>({x:x/w,y:y/h});
+    const ceil=[n(680,140),n(1160,140),n(1160,560),n(680,560)];
+    const cove=[n(cv.x,cv.y),n(cv.x+cv.w,cv.y),n(cv.x+cv.w,cv.y+cv.h),n(cv.x,cv.y+cv.h)];
+    return {canvas:c, ceil, cove, curtain:[n(700,176),n(1140,176)], fan:centroid(cove), tag:"34평형 평면도 · 위에서 내려다본 천장 배치"};
+  }
+
   // ---------- drawing ----------
   function sizeTo(w,h){ const m=1800, k=Math.min(1,m/Math.max(w,h)); cv.width=after.width=Math.round(w*k); cv.height=after.height=Math.round(h*k); }
   function avgRing(g,cx,cy,rx,ry){ let r=0,gg=0,b=0,n=0;
@@ -614,7 +652,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   function useBg(kind, img, extra){
     bg={kind, img, lit:extra&&extra.lit, old:(extra&&extra.old)||[], ceil:extra&&extra.ceil}; sizeTo(img.width,img.height); selId=null; pending=null;
     items = extra && extra.layout ? packageLayout(extra.ceil, extra.cove, extra.curtain, extra.fan) : [];
-    $("demoTag").hidden = kind==="photo"; $("demoTag").textContent = kind==="plan" ? "거실 평면도 · 위에서 내려다본 천장 배치" : "실제 시공 사진 · 우리 집 사진을 올려 보세요";
+    $("demoTag").hidden = kind==="photo"; $("demoTag").textContent = kind==="plan" ? ((extra&&extra.tag)||"거실 평면도 · 위에서 내려다본 천장 배치") : "실제 시공 사진 · 우리 집 사진을 올려 보세요";
     $("persp").closest("label").hidden = kind==="plan"; $("aiBtn").hidden = !(sample&&canImg&&photoFile&&kind==="photo");
     updateSel(); render(); }
   $("split").addEventListener("input",render); $("persp").addEventListener("input",render);
@@ -626,6 +664,8 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     img.onerror=()=>toast("사진을 열 수 없습니다. JPG나 PNG 파일로 다시 올려 주세요.",true); img.src=URL.createObjectURL(f); });
   $("planBtn").addEventListener("click",()=>{ const pl=makePlan(); photoFile=null; useBg("plan",pl.canvas,{...pl, layout:true}); setTool("select");
     $("toolHint").textContent="사진이 없을 때 쓰는 거실 평면도입니다. 조명을 끌어서 대략 위치를 잡거나 위에서 항목을 골라 더 붙이세요."; });
+  $("plan34Btn").addEventListener("click",()=>{ const pl=makePlan34(); photoFile=null; useBg("plan",pl.canvas,{...pl, layout:true}); setTool("select");
+    $("toolHint").textContent="34평형(전용 84㎡) 예시 평면도입니다. 거실에 먼저 놓았고, 위에서 다운라이트 등을 골라 방·주방·현관에도 붙이세요."; });
   let realImgs=null;
   function showReal(){ const go=()=>{ photoFile=null; useBg("real",realImgs.b,{lit:realImgs.a}); setTool("select");
       $("toolHint").textContent="실제 시공 사진입니다. 가운데 선을 좌우로 밀어 시공 전·후를 비교하고, 조명 색을 바꿔 보세요."; };
