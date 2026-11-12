@@ -93,6 +93,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
   <a class="syncbox" id="syncBox" href="login.html">☁ 같이 쓰기 준비 중…</a>
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소·번호로 찾기 (고객·견적·지시서·메모)" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
+  <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
   <section class="alert" id="alert" hidden aria-live="polite">
     <div class="h"><span>🔔 다가오는 작업 알림</span><span><button class="btn2 pri" type="button" id="say">🔊 소리로 듣기</button> <button class="btn2" type="button" id="noti">휴대폰 알림 켜기</button></span></div>
     <ul id="alist"></ul>
@@ -149,6 +150,8 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
 (function () {
   var s = DECO.settings(), L = DECO.list();
   (function () { var n = 0, sum = 0; L.forEach(function (q) { if (['계약', '시공', '완료'].indexOf(q.status) < 0) return; var r = (q.totals && q.totals.total || 0) - (q.pays || []).reduce(function (a, p) { return a + (+p.amt || 0); }, 0); if (r > 0) { n++; sum += r; } });
+    try { var lb = +localStorage.getItem('deco-lastbk') || 0, first = L.reduce(function (m, q) { return Math.min(m, q.created || q.updated || Date.now()); }, Date.now()), bb = document.getElementById('bkBox');
+      if (L.length && Date.now() - (lb || first) > 30 * 864e5) { bb.hidden = false; bb.textContent = '📦 ' + (lb ? '마지막 백업 후 한 달이 지났습니다.' : '아직 자료 백업을 받은 적이 없습니다.') + ' 백업 파일을 받아 두세요 ›'; } } catch (e) {}
     var b = document.getElementById('dueBox'); if (n) { b.hidden = false; b.textContent = '💰 아직 받을 돈 ' + DECO.won(sum) + ' (' + n + '건) · 눌러서 보기 ›'; } })();
   document.getElementById('cname').textContent = s.company;
   document.getElementById('cnt').textContent = L.length ? '저장된 견적 ' + L.length + '건' : '아직 저장한 견적이 없습니다';

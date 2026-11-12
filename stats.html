@@ -173,7 +173,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   function dt(t) { return t ? DECO.ymd(new Date(t)) : ''; }
   $('bk').onclick = function () { var o = { app: 'decobright', ver: 1, at: new Date().toISOString(), data: {} }, n = 0;
     KEYS.forEach(function (k) { var v = rd(k); if (v != null) { o.data[k] = v; if (Array.isArray(v)) n += v.length; } });
-    save('데코브라이트_백업_' + stamp() + '.json', JSON.stringify(o), 'application/json'); msg('백업 파일을 받았습니다 (자료 ' + n + '건). 메일이나 카카오톡 「나에게 보내기」로 보관해 두세요.'); };
+    save('데코브라이트_백업_' + stamp() + '.json', JSON.stringify(o), 'application/json'); try { localStorage.setItem('deco-lastbk', String(Date.now())); } catch (e) {} msg('백업 파일을 받았습니다 (자료 ' + n + '건). 메일이나 카카오톡 「나에게 보내기」로 보관해 두세요.'); };
   $('csvQ').onclick = function () { var r = [['견적번호', '만든 날', '고객', '전화', '주소', '상태', '패키지', '공급가', '부가세', '합계', '받은 돈', '남은 돈']];
     Q.forEach(function (q) { var c = q.cust || {}, t = q.totals || {}; r.push([q.no, dt(q.created), c.name, c.phone, c.addr, q.status || '상담', q.pkgName, t.supply, t.vat, amt(q), paid(q), amt(q) - paid(q)]); });
     save('견적목록_' + stamp() + '.csv', csv(r), 'text/csv'); msg('견적 ' + Q.length + '건을 엑셀 파일로 받았습니다.'); };

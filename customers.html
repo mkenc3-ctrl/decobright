@@ -46,20 +46,23 @@
   var C = DECO.customers().map(function (c) {
     var Q = DECO.custQuotes(c), st = Q.length ? (Q[0].status || '상담') : '견적 전';
     var won = Q.filter(function (q) { return ['계약', '시공', '완료'].indexOf(q.status) >= 0; }).reduce(function (s, q) { return s + ((q.totals && q.totals.total) || 0); }, 0);
-    return { c: c, n: Q.length, st: st, won: won };
+    var due = Q.filter(function (q) { return ['계약', '시공', '완료'].indexOf(q.status) >= 0; }).reduce(function (s, q) { return s + Math.max(0, ((q.totals && q.totals.total) || 0) - (q.pays || []).reduce(function (a, p) { return a + (+p.amt || 0); }, 0)); }, 0);
+    var last = Math.max(c.touched || 0, c.updated || 0, Q.length ? Q[0].updated || 0 : 0, c.logs && c.logs.length ? new Date(c.logs[c.logs.length - 1].date + 'T12:00').getTime() || 0 : 0);
+    return { c: c, n: Q.length, st: st, won: won, due: due, ago: last ? Math.floor((Date.now() - last) / 864e5) : 999 };
   });
-  fs.innerHTML = '<option value="">전체 상태</option>' + ['견적 전'].concat(DECO.STATUS).map(function (s) { return '<option>' + s + '</option>'; }).join('');
+  fs.innerHTML = '<option value="">전체 상태</option><option value="_call">☎ 연락할 고객 (상담·실측, 3일 넘게 연락 없음)</option><option value="_due">💰 받을 돈 남은 고객</option>' + ['견적 전'].concat(DECO.STATUS).map(function (s) { return '<option>' + s + '</option>'; }).join('');
   var cnt = function (s) { return C.filter(function (x) { return x.st === s; }).length; };
   document.getElementById('sum').innerHTML = '<div>전체 고객<b>' + C.length + '명</b></div><div>상담·실측 중<b>' + (cnt('상담') + cnt('실측') + cnt('견적 전')) + '명</b></div><div>계약·시공<b>' + (cnt('계약') + cnt('시공')) + '명</b></div><div>완료<b>' + cnt('완료') + '명</b></div>';
   function draw() {
     var k = qs.value.trim(), kd = k.replace(/\D/g, '');
-    var L = C.filter(function (x) { var c = x.c; if (fs.value && x.st !== fs.value) return false; if (!k) return true;
+    var L = C.filter(function (x) { var c = x.c; if (fs.value === '_call') { if (!((x.st === '상담' || x.st === '실측' || x.st === '견적 전') && x.ago >= 3)) return false; } else if (fs.value === '_due') { if (!x.due) return false; } else if (fs.value && x.st !== fs.value) return false; if (!k) return true;
       return [c.name, c.addr].join(' ').indexOf(k) >= 0 || (kd.length >= 3 && String(c.phone).replace(/\D/g, '').indexOf(kd) >= 0); });
+    if (fs.value === '_call') L.sort(function (a, b) { return a.ago - b.ago; }); if (fs.value === '_due') L.sort(function (a, b) { return b.due - a.due; });
     if (!L.length) { box.innerHTML = '<div class="empty">' + (k || fs.value ? '찾는 고객이 없습니다.' : '아직 고객이 없습니다. 견적을 저장하거나 「+ 고객 등록」을 누르세요.') + '</div>'; return; }
     box.innerHTML = L.map(function (x) { var c = x.c;
       return '<a class="c" href="customer.html?id=' + encodeURIComponent(c.id) + '"><div><h3>' + E(c.name || '이름 없음') + ' 님<span class="tag">' + E(x.st) + '</span></h3>' +
         '<div class="m">' + E(c.phone || '전화 없음') + (c.addr ? ' · ' + E(c.addr) : '') + '</div>' +
-        '<div class="m">견적 ' + x.n + '건' + (c.source ? ' · ' + E(c.source) : '') + (c.logs && c.logs.length ? ' · 최근 상담 ' + E(c.logs[c.logs.length - 1].date) : '') + '</div></div>' +
+        '<div class="m">견적 ' + x.n + '건' + (c.source ? ' · ' + E(c.source) : '') + (c.logs && c.logs.length ? ' · 최근 상담 ' + E(c.logs[c.logs.length - 1].date) : '') + (x.ago < 999 ? ' · ' + (x.ago ? x.ago + '일 전 연락' : '오늘 연락') : '') + (x.due ? ' · <b style="color:#b5462f">받을 돈 ' + DECO.won(x.due) + '</b>' : '') + '</div></div>' +
         '<div class="r">' + (x.won ? '<b>' + DECO.won(x.won) + '</b><span class="m">계약 금액</span>' : '') + '</div></a>';
     }).join('');
   }
