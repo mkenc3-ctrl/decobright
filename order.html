@@ -41,6 +41,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
 .sign{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
 .sign div{border:1px solid #555;height:60px;padding:4px 8px;font-size:12.5px}
 .prev{color:var(--muted);font-size:15px;margin:18px 0 0;text-align:center}
+.lay{margin-top:10px;border:1px solid #bbb;padding:8px;break-inside:avoid}.lay img{display:block;width:100%;height:auto;margin:6px 0}.lay ul{margin:4px 0 0;padding-left:18px}
 @media print{body.app{background:#fff}.page{padding:0;max-width:none}.form,.topnav,.prev{display:none!important}.sheet{border:0;padding:0;margin:0;max-width:none}.sheet+.sheet{break-before:page;margin-top:0}.sheet.np{display:none}}
 </style>
 </head>
@@ -104,6 +105,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
       if (o.trades['목수'].on || /타공|우물/.test(all)) add('도배', '조명 타공·목공 부위 도배 마감');
     }
   }
+  if (o.quoteId) { var qL = DECO.getQuote(o.quoteId); if (qL && qL.layout) { var first = !o.layout; o.layout = qL.layout; if (first && !o.id) { o.trades['전기'].on = true; o.trades['전기'].tasks += (o.trades['전기'].tasks ? '\n' : '') + '조명 배치도대로 설치 (아래 배치도 참고)'; } } }
   o.trades = o.trades || {}; TR.forEach(function (t) { o.trades[t] = o.trades[t] || { on: false, partner: '', time: TIME[t], tasks: '', mats: '' }; });
   $('trs').innerHTML = TR.map(function (t) { var b = o.trades[t], opts = PT.filter(function (p) { return p.trade === t; });
     return '<div class="tr' + (b.on ? '' : ' off') + '" data-t="' + t + '"><div class="hd"><label><input type="checkbox" class="on"' + (b.on ? ' checked' : '') + '> ' + t + '</label>' +
@@ -128,6 +130,8 @@ h2.s{font-size:19px;margin:20px 0 8px}
     return o; }
   function ptn(id) { return PT.filter(function (p) { return p.id === id; })[0] || null; }
   function dstr() { var d = o.workDate ? new Date(o.workDate + 'T00:00') : null; return d ? d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '. (' + '일월화수목금토'[d.getDay()] + ')' : ''; }
+  function lay(t) { if (!o.layout || (t !== '전기' && t !== '목수')) return '';
+    return '<div class="lay"><b>조명 배치도</b>' + (o.layout.img ? '<img src="' + o.layout.img + '" alt="조명 배치도">' : '') + '<ul>' + (o.layout.list || []).map(function (x) { return '<li>' + E(x) + '</li>'; }).join('') + '</ul></div>'; }
   function one(t) { var b = o.trades[t], p = ptn(b.partner), tasks = b.tasks.split('\n').filter(Boolean);
     return '<div class="sheet" data-t="' + t + '"><h1>작업 지시서</h1><div class="no">[' + t + '] ' + E(o.no || '(저장 전)') + ' · ' + E(s.company) + ' · ' + E(s.phone) + '</div>' +
       '<table><tr><th>받는 곳</th><td>' + t + (p ? ' · ' + E(p.name) + ' (' + E(p.phone) + ')' : '') + '</td><th>현장 책임</th><td>' + E(o.lead) + '</td></tr>' +
@@ -136,13 +140,14 @@ h2.s{font-size:19px;margin:20px 0 8px}
       '<tr><th>같은 날 작업</th><td colspan="3">' + TR.filter(function (x) { return o.trades[x].on; }).map(function (x) { return x + ' ' + E(o.trades[x].time || ''); }).join(' → ') + '</td></tr></table>' +
       '<table><tr><th>작업 내용</th><td>' + (tasks.length ? '<ol>' + tasks.map(function (x) { return '<li>' + E(x) + '</li>'; }).join('') + '</ol>' : '') + '</td></tr>' +
       '<tr><th>준비 자재</th><td class="bx">' + E(b.mats) + '</td></tr><tr><th>주의사항</th><td class="bx">' + E(o.notes) + '</td></tr>' +
-      '<tr><th>완료 메모</th><td class="bx" style="height:50px"></td></tr></table>' +
+      '<tr><th>완료 메모</th><td class="bx" style="height:50px"></td></tr></table>' + lay(t) +
       '<div class="sign"><div>' + t + ' 작업자 (서명)</div><div>작업 끝난 시각</div><div>현장 책임 확인</div></div></div>'; }
   function sheet() { read(); var on = TR.filter(function (t) { return o.trades[t].on; });
     $('sheets').innerHTML = on.length ? on.map(one).join('') : '<div class="empty">위에서 공종(목수·전기·도배)을 하나 이상 켜 주세요.</div>'; }
   function smsText(t) { var b = o.trades[t], L = ['[' + s.company + ' 작업 지시 · ' + t + ']', '날짜 : ' + dstr() + ' ' + (b.time || '') + ' 도착', '현장 : ' + o.addr];
     if (o.lead) L.push('현장 책임 : ' + o.lead);
     L.push('', '■ 작업 내용'); b.tasks.split('\n').filter(Boolean).forEach(function (x, i) { L.push((i + 1) + '. ' + x); });
+    if (o.layout && (t === '전기' || t === '목수')) { L.push('', '■ 조명 배치'); (o.layout.list || []).forEach(function (x) { L.push('· ' + x); }); L.push('(배치도 그림은 인쇄본·사진으로 따로 보냅니다)'); }
     if (b.mats) L.push('', '■ 준비 자재', b.mats); if (o.notes) L.push('', '■ 주의사항', o.notes);
     L.push('', '같은 날 : ' + TR.filter(function (x) { return o.trades[x].on; }).map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → '), '문의 ' + s.phone); return L.join('\n'); }
   f.addEventListener('input', sheet); f.addEventListener('change', sheet);

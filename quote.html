@@ -157,6 +157,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
         <button type="button" class="tool" data-tool="down" aria-pressed="false"><b>다운라이트</b><span>누를 때마다 1개</span></button>
         <button type="button" class="tool" data-tool="wall" aria-pressed="false"><b>벽비춤 다운라이트</b><span>벽에 빛자국</span></button>
         <button type="button" class="tool" data-tool="curtain" aria-pressed="false"><b>커튼박스 조명</b><span>끝에서 끝까지 끌기</span></button>
+        <button type="button" class="tool" data-tool="line" aria-pressed="false"><b>라인조명</b><span>시작에서 끝까지 끌기</span></button>
         <button type="button" class="tool" data-tool="cove" aria-pressed="false"><b>우물 조명</b><span>모서리 4곳 누르기</span></button>
         <button type="button" class="tool" data-tool="select" aria-pressed="true"><b>옮기기</b><span>끌어서 위치 조정</span></button>
       </div>
@@ -168,6 +169,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
           <button type="button" data-v="1" aria-pressed="true">1줄</button>
           <button type="button" data-v="2" aria-pressed="false">2줄</button>
         </div>
+        <div class="seg" role="group" aria-label="이 조명 색" id="segIK"><button type="button" data-v="0" aria-pressed="true">전체 색 따름</button><button type="button" data-v="2700" aria-pressed="false">전구색</button><button type="button" data-v="4000" aria-pressed="false">주백색</button><button type="button" data-v="6500" aria-pressed="false">주광색</button></div>
         <button class="btn btn-ghost" id="delSel" type="button">이 항목 지우기</button>
       </div>
       <div class="canvas-box" id="box">
@@ -188,6 +190,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
         <button class="btn btn-ghost" id="planBtn" type="button">거실만 크게 배치</button>
         <button class="btn btn-ghost" id="demoBtn" type="button">실제 시공 사진 보기</button>
         <button class="btn btn-ghost" id="aiBtn" type="button" hidden>자동 배치</button>
+        <button class="btn btn-ghost" id="undoBtn" type="button" disabled>↶ 되돌리기</button>
         <button class="btn btn-ghost" id="clearBtn" type="button">붙인 항목 모두 지우기</button>
         <button class="btn btn-ghost" id="saveBtn" type="button" hidden>이미지 저장</button>
       </div>
@@ -324,7 +327,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   const KC = {2700:[255,174,88], 4000:[255,232,204], 6500:[214,230,255]};
   const kc = a => `rgba(${KC[kelvin].join(",")},${a})`;
   const kcore = () => kelvin === 6500 ? "#f4f8ff" : kelvin === 4000 ? "#fffaf2" : "#ffe4bd";
-  const NAMES = {fan:"실링팬", down:"다운라이트", wall:"벽비춤 다운라이트", curtain:"커튼박스 조명", cove:"우물 조명"};
+  const NAMES = {line:"라인조명", fan:"실링팬", down:"다운라이트", wall:"벽비춤 다운라이트", curtain:"커튼박스 조명", cove:"우물 조명"};
 
   // ---------- small geometry helpers (normalized 0..1) ----------
   const L = (a,b,t) => ({x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t});
@@ -442,7 +445,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     const n=(x,y)=>({x:x/w,y:y/h});
     const ceil=[n(680,140),n(1160,140),n(1160,560),n(680,560)];
     const cove=[n(cv.x,cv.y),n(cv.x+cv.w,cv.y),n(cv.x+cv.w,cv.y+cv.h),n(cv.x,cv.y+cv.h)];
-    return {canvas:c, ceil, cove, curtain:[n(700,176),n(1140,176)], fan:centroid(cove), tag:"34평형 평면도 · 위에서 내려다본 천장 배치"};
+    return {canvas:c, ceil, cove, curtain:[n(700,176),n(1140,176)], fan:centroid(cove), ppm:100, tag:"34평형 평면도 · 위에서 내려다본 천장 배치"};
   }
 
   // ---------- drawing ----------
@@ -509,22 +512,28 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     const hub=g.createRadialGradient(-.05,-.05,.02,0,0,.22); hub.addColorStop(0,"#ffffff"); hub.addColorStop(1,"#c6c0b5"); g.fillStyle=hub; g.beginPath(); g.arc(0,0,.2,0,Math.PI*2); g.fill();
     g.globalCompositeOperation="screen"; const lk=g.createRadialGradient(0,0,0,0,0,.45); lk.addColorStop(0,kc(.95)); lk.addColorStop(.3,kc(.32)); lk.addColorStop(1,kc(0));
     g.fillStyle=lk; g.beginPath(); g.arc(0,0,.45,0,Math.PI*2); g.fill(); g.restore(); }
+  function drawLine(g,it){ const a=px(it.a), b=px(it.b), m=M(), k=(it.size||100)/100, seg=()=>{ g.beginPath(); g.moveTo(a.x,a.y); g.lineTo(b.x,b.y); g.stroke(); };
+    g.save(); g.globalCompositeOperation="screen"; g.lineCap="round";
+    for (let i=6;i>=1;i--){ g.strokeStyle=kc(.3/i); g.lineWidth=m*.007*i*k; seg(); }
+    g.strokeStyle=kcore(); g.lineWidth=Math.max(2,m*.004*k); seg(); g.restore(); }
   function buildAfter(){
     const g=actx; g.globalCompositeOperation="source-over"; g.clearRect(0,0,W(),H()); g.drawImage(isReal()?realLit():bg.img,0,0,W(),H());
     if (items.some(i=>i.type==="fan"||i.type==="cove")) patchOld(g);
     if (items.length && !isReal()){ g.save(); g.fillStyle = isPlan() ? "rgba(14,16,24,.42)" : "rgba(14,16,24,.34)"; g.fillRect(0,0,W(),H());
       g.globalCompositeOperation="soft-light"; g.fillStyle=kc(.2); g.fillRect(0,0,W(),H()); g.restore(); }
-    items.filter(i=>i.type==="cove").forEach(i=>drawCove(g,i));
-    items.filter(i=>i.type==="curtain").forEach(i=>drawCurtain(g,i));
-    items.filter(i=>i.type==="down"||i.type==="wall").forEach(i=>drawDown(g,i));
-    items.filter(i=>i.type==="fan").forEach(i=>drawFan(g,i));
+    const K=(f)=>i=>{ const k0=kelvin; if(i.k) kelvin=i.k; f(g,i); kelvin=k0; };
+    items.filter(i=>i.type==="cove").forEach(K(drawCove));
+    items.filter(i=>i.type==="curtain").forEach(K(drawCurtain));
+    items.filter(i=>i.type==="line").forEach(K(drawLine));
+    items.filter(i=>i.type==="down"||i.type==="wall").forEach(K(drawDown));
+    items.filter(i=>i.type==="fan").forEach(K(drawFan));
   }
   // handles: [{id, key, p}]
   function handles(){
     const hs=[];
     items.forEach(it=>{
       if (it.type==="cove"){ it.pts.forEach((p,i)=>hs.push({id:it.id,key:"pt"+i,p,c:"#e9a23b"})); hs.push({id:it.id,key:"move",p:centroid(it.pts),c:"#e9a23b",ring:true}); }
-      else if (it.type==="curtain"){ hs.push({id:it.id,key:"a",p:it.a,c:"#50bee6"},{id:it.id,key:"b",p:it.b,c:"#50bee6"},{id:it.id,key:"move",p:L(it.a,it.b,.5),c:"#50bee6",ring:true}); }
+      else if (it.type==="curtain"||it.type==="line"){ hs.push({id:it.id,key:"a",p:it.a,c:"#50bee6"},{id:it.id,key:"b",p:it.b,c:"#50bee6"},{id:it.id,key:"move",p:L(it.a,it.b,.5),c:"#50bee6",ring:true}); }
       else hs.push({id:it.id,key:"move",p:{x:it.x,y:it.y},c: it.type==="fan"?"#f07f6e": it.type==="wall"?"#b6e3ff":"#ffd99a"});
     }); return hs; }
   function render(){
@@ -549,7 +558,8 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   // ---------- selection bar ----------
   function updateSel(){
     const s=items.find(i=>i.id===selId); $("selbar").hidden=!s; if(!s) return;
-    $("selName").textContent=NAMES[s.type]; const sized = s.type==="fan"||s.type==="down"||s.type==="wall";
+    $("selName").textContent=NAMES[s.type]; const sized = s.type==="fan"||s.type==="down"||s.type==="wall"||s.type==="line";
+    $("segIK").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", String(Number(b.dataset.v)===(s.k||0))));
     $("sizeWrap").hidden=!sized; if (sized) $("selSize").value=s.size; $("segLines").hidden = s.type!=="cove";
     if (s.type==="cove") $("segLines").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", String(Number(b.dataset.v)===s.lines)));
   }
@@ -557,14 +567,18 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     fan:"사진에서 실링팬을 달 자리를 누르세요.", down:"다운라이트를 달 자리를 누를 때마다 1개씩 붙습니다.",
     wall:"벽 가까운 천장을 누르면 아래 벽에 빛자국이 생기는 다운라이트가 붙습니다.",
     curtain:"커튼박스의 한쪽 끝을 누른 채 반대쪽 끝까지 끌어 주세요. (두 번 눌러도 됩니다)",
-    cove:"우물 테두리의 모서리 4곳을 차례로 누르세요."};
+    cove:"우물 테두리의 모서리 4곳을 차례로 누르세요.",
+    line:"라인조명 시작점을 누른 채 끝점까지 끌어 주세요. (두 번 눌러도 됩니다)"};
   function setTool(t){ tool=t; pending=null; document.querySelectorAll(".tool").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.tool===t)));
     $("toolHint").textContent=HINT[t]; cv.style.cursor = t==="select" ? "default" : "crosshair"; if (t!=="select") { selId=null; updateSel(); } render(); }
   document.querySelectorAll(".tool").forEach(b=>b.addEventListener("click",()=>setTool(b.dataset.tool)));
   $("selSize").addEventListener("input",e=>{ const s=items.find(i=>i.id===selId); if(s){ s.size=Number(e.target.value); render(); } });
-  $("segLines").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ const s=items.find(i=>i.id===selId); if(s){ s.lines=Number(b.dataset.v); updateSel(); render(); } }));
-  $("delSel").addEventListener("click",()=>{ items=items.filter(i=>i.id!==selId); selId=null; updateSel(); render(); });
-  $("clearBtn").addEventListener("click",()=>{ items=[]; selId=null; pending=null; updateSel(); render(); $("toolHint").textContent="모두 지웠습니다. 위에서 항목을 골라 다시 붙여 보세요."; });
+  $("segLines").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ const s=items.find(i=>i.id===selId); if(s){ hist(); s.lines=Number(b.dataset.v); updateSel(); render(); } }));
+  let H0=[]; function hist(){ H0.push(JSON.stringify(items)); if(H0.length>60) H0.shift(); $("undoBtn").disabled=false; }
+  $("undoBtn").addEventListener("click",()=>{ if(!H0.length) return; items=JSON.parse(H0.pop()); uid=items.reduce((m,i)=>Math.max(m,i.id),uid); selId=null; pending=null; $("undoBtn").disabled=!H0.length; updateSel(); render(); $("toolHint").textContent="한 단계 되돌렸습니다."; });
+  $("segIK").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ const s=items.find(i=>i.id===selId); if(s){ hist(); s.k=Number(b.dataset.v)||0; updateSel(); render(); } }));
+  $("delSel").addEventListener("click",()=>{ hist(); items=items.filter(i=>i.id!==selId); selId=null; updateSel(); render(); });
+  $("clearBtn").addEventListener("click",()=>{ if(items.length) hist(); items=[]; selId=null; pending=null; updateSel(); render(); $("toolHint").textContent="모두 지웠습니다. 위에서 항목을 골라 다시 붙여 보세요."; });
 
   // ---------- pointer ----------
   const pt=e=>{ const r=cv.getBoundingClientRect(); return {x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)), y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}; };
@@ -572,33 +586,33 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   let drag=null;
   cv.addEventListener("pointerdown",e=>{
     const p=pt(e);
-    if (tool==="fan"||tool==="down"||tool==="wall"){ const it=mk(tool,{x:p.x,y:p.y}); items.push(it); selId=it.id;
+    if (tool==="fan"||tool==="down"||tool==="wall"){ hist(); const it=mk(tool,{x:p.x,y:p.y}); items.push(it); selId=it.id;
       if (tool==="fan") setTool("select"); updateSel(); render(); return; }
-    if (tool==="curtain"){ if (pending && pending.pts.length===1){ items.push(mk("curtain",{a:pending.pts[0],b:p})); pending=null; selId=items[items.length-1].id; setTool("select"); updateSel(); return; }
+    if ((tool==="curtain"||tool==="line")){ if (pending && pending.pts.length===1){ hist(); items.push(mk(tool,{a:pending.pts[0],b:p})); pending=null; selId=items[items.length-1].id; setTool("select"); updateSel(); return; }
       pending={pts:[p],hover:p,dragging:true}; cv.setPointerCapture(e.pointerId); render(); return; }
     if (tool==="cove"){ if(!pending) pending={pts:[]}; pending.pts.push(p);
-      if (pending.pts.length===4){ const q=pending.pts; items.push(mk("cove",{pts:q, lines:Math.max(1,P().f.cove||1)})); pending=null; selId=items[items.length-1].id; setTool("select"); updateSel(); return; }
+      if (pending.pts.length===4){ const q=pending.pts; hist(); items.push(mk("cove",{pts:q, lines:Math.max(1,P().f.cove||1)})); pending=null; selId=items[items.length-1].id; setTool("select"); updateSel(); return; }
       $("toolHint").textContent=`우물 모서리 ${pending.pts.length}/4 — 다음 모서리를 누르세요.`; render(); return; }
     // select
     let best=null,bd=1e9; const w=cv.width,h=cv.height;
     handles().forEach(hd=>{ const d=Math.hypot((hd.p.x-p.x)*w,(hd.p.y-p.y)*h); if(d<bd){bd=d;best=hd;} });
     const lim=Math.max(20,Math.min(w,h)*.03)*(scaleK()>1.5?1.5:1);
-    if (best && bd<lim){ selId=best.id; drag={...best, start:p, orig:JSON.parse(JSON.stringify(items.find(i=>i.id===best.id)))}; cv.setPointerCapture(e.pointerId); cv.style.cursor="grabbing"; }
+    if (best && bd<lim){ hist(); selId=best.id; drag={...best, start:p, orig:JSON.parse(JSON.stringify(items.find(i=>i.id===best.id)))}; cv.setPointerCapture(e.pointerId); cv.style.cursor="grabbing"; }
     else selId=null;
     updateSel(); render();
   });
   cv.addEventListener("pointermove",e=>{ const p=pt(e);
-    if (pending && tool==="curtain" && pending.dragging){ pending.hover=p; render(); return; }
+    if (pending && (tool==="curtain"||tool==="line") && pending.dragging){ pending.hover=p; render(); return; }
     if (pending && tool==="cove"){ pending.hover=p; render(); return; }
     if (!drag) return; const it=items.find(i=>i.id===drag.id), o=drag.orig, dx=p.x-drag.start.x, dy=p.y-drag.start.y;
     if (it.type==="cove"){ if (drag.key==="move") it.pts=o.pts.map(q=>({x:q.x+dx,y:q.y+dy})); else it.pts[Number(drag.key.slice(2))]=p; }
-    else if (it.type==="curtain"){ if (drag.key==="move"){ it.a={x:o.a.x+dx,y:o.a.y+dy}; it.b={x:o.b.x+dx,y:o.b.y+dy}; } else it[drag.key]=p; }
+    else if (it.type==="curtain"||it.type==="line"){ if (drag.key==="move"){ it.a={x:o.a.x+dx,y:o.a.y+dy}; it.b={x:o.b.x+dx,y:o.b.y+dy}; } else it[drag.key]=p; }
     else { it.x=p.x; it.y=p.y; }
     render(); });
   cv.addEventListener("pointerup",e=>{ const p=pt(e);
-    if (pending && tool==="curtain" && pending.dragging){ const a=pending.pts[0], d=Math.hypot((p.x-a.x)*cv.width,(p.y-a.y)*cv.height);
-      if (d>Math.min(cv.width,cv.height)*.04){ items.push(mk("curtain",{a,b:p})); pending=null; selId=items[items.length-1].id; setTool("select"); updateSel(); return; }
-      pending.dragging=false; $("toolHint").textContent="커튼박스 반대쪽 끝을 누르세요."; render(); return; }
+    if (pending && (tool==="curtain"||tool==="line") && pending.dragging){ const a=pending.pts[0], d=Math.hypot((p.x-a.x)*cv.width,(p.y-a.y)*cv.height);
+      if (d>Math.min(cv.width,cv.height)*.04){ hist(); items.push(mk(tool,{a,b:p})); pending=null; selId=items[items.length-1].id; setTool("select"); updateSel(); return; }
+      pending.dragging=false; $("toolHint").textContent=(tool==="line"?"라인조명":"커튼박스")+" 반대쪽 끝을 누르세요."; render(); return; }
     drag=null; cv.style.cursor = tool==="select" ? "default" : "crosshair"; });
   cv.addEventListener("pointercancel",()=>{ drag=null; });
 
@@ -641,7 +655,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   $("syncQty").addEventListener("click",()=>{ const f=P().f, cnt=k=>items.filter(i=>i.type===k).length, set=(id,n)=>{ QI.find(x=>x.id===id).qty=Math.max(0,n); };
     if (!items.length){ toast("사진에 붙인 조명이 없습니다. 위에서 조명을 먼저 붙여 주세요.",true); return; }
     const fans=cnt("fan")-(f.fan?1:0); set("i1", cnt("down")+cnt("wall")-(f.inN+f.tvN)); set("i3", cnt("curtain")-(f.curtain?1:0));
-    set("i6",fans); set("i7",fans); set("i8",fans); if (items.some(i=>i.type==="cove"&&i.lines>1) && f.cove<2) set("i4",1);
+    set("i6",fans); set("i7",fans); set("i8",fans); const lm=lineMeters(); if (lm) set("i15", Math.max(1,Math.ceil(lm-0.05))); if (items.some(i=>i.type==="cove"&&i.lines>1) && f.cove<2) set("i4",1);
     renderItems(); totals(); toast("패키지에 포함된 수를 빼고 추가 수량을 넣었습니다."); });
   function totals(){ const p=P(), pa=p.price, ia=QI.reduce((s,i)=>s+i.qty*i.price,0), ea=etcRows.reduce((s,r)=>s+(r.amount||0),0), dc=Math.max(0,parseInt($("discount").value)||0), supply=Math.max(0,pa+ia+ea-dc), vat=Math.round(supply*.1);
     $("sumPkg").textContent=won(pa); $("sumItems").textContent=won(ia); $("sumEtc").textContent=won(ea); $("sumSupply").textContent=won(supply); $("sumVat").textContent=won(vat); $("sumTotal").textContent=won(supply+vat);
@@ -650,7 +664,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 
   // ---------- backgrounds & controls ----------
   function useBg(kind, img, extra){
-    bg={kind, img, lit:extra&&extra.lit, old:(extra&&extra.old)||[], ceil:extra&&extra.ceil}; sizeTo(img.width,img.height); selId=null; pending=null;
+    H0=[]; $("undoBtn").disabled=true; bg={kind, img, ppm:extra&&extra.ppm, lit:extra&&extra.lit, old:(extra&&extra.old)||[], ceil:extra&&extra.ceil}; sizeTo(img.width,img.height); selId=null; pending=null;
     items = extra && extra.layout ? packageLayout(extra.ceil, extra.cove, extra.curtain, extra.fan) : [];
     $("demoTag").hidden = kind==="photo"; $("demoTag").textContent = kind==="plan" ? ((extra&&extra.tag)||"거실 평면도 · 위에서 내려다본 천장 배치") : "실제 시공 사진 · 우리 집 사진을 올려 보세요";
     $("persp").closest("label").hidden = kind==="plan"; $("aiBtn").hidden = !(sample&&canImg&&photoFile&&kind==="photo");
@@ -662,10 +676,10 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     const img=new Image(); img.onload=()=>{ $("aiNote").hidden=true; useBg("photo",img,null); setTool("fan");
       $("toolHint").textContent="사진을 올렸습니다. 위에서 실링팬, 다운라이트, 커튼박스 조명, 우물 조명을 하나씩 골라 사진 위에 붙이세요."; };
     img.onerror=()=>toast("사진을 열 수 없습니다. JPG나 PNG 파일로 다시 올려 주세요.",true); img.src=URL.createObjectURL(f); });
-  $("planBtn").addEventListener("click",()=>{ const pl=makePlan(); photoFile=null; useBg("plan",pl.canvas,{...pl, layout:true}); setTool("select");
-    $("toolHint").textContent="사진이 없을 때 쓰는 거실 평면도입니다. 조명을 끌어서 대략 위치를 잡거나 위에서 항목을 골라 더 붙이세요."; });
-  $("plan34Btn").addEventListener("click",()=>{ const pl=makePlan34(); photoFile=null; useBg("plan",pl.canvas,{...pl, layout:true}); setTool("select");
-    $("toolHint").textContent="34평형(전용 84㎡) 예시 평면도입니다. 거실에 먼저 놓았고, 위에서 다운라이트 등을 골라 방·주방·현관에도 붙이세요."; });
+  $("planBtn").addEventListener("click",()=>{ const pl=makePlan(); photoFile=null; useBg("plan",pl.canvas,{...pl, layout:false}); setTool("down");
+    $("toolHint").textContent="빈 거실 평면도입니다. 위에서 조명을 골라 하나씩 붙이세요. 잘못 붙이면 「↶ 되돌리기」."; });
+  $("plan34Btn").addEventListener("click",()=>{ const pl=makePlan34(); photoFile=null; useBg("plan",pl.canvas,{...pl, layout:false}); setTool("down");
+    $("toolHint").textContent="34평형(전용 84㎡) 빈 평면도입니다. 위에서 다운라이트·라인조명·실링팬 등을 골라 하나씩 붙이세요. 잘못 붙이면 「↶ 되돌리기」."; });
   let realImgs=null;
   function showReal(){ const go=()=>{ photoFile=null; useBg("real",realImgs.b,{lit:realImgs.a}); setTool("select");
       $("toolHint").textContent="실제 시공 사진입니다. 가운데 선을 좌우로 밀어 시공 전·후를 비교하고, 조명 색을 바꿔 보세요."; };
@@ -730,12 +744,34 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   let curId = new URLSearchParams(location.search).get("id"), curCust = new URLSearchParams(location.search).get("cust")||"";
   function thumb(){ try { const k=Math.min(1,900/after.width), t=document.createElement("canvas"); t.width=Math.round(after.width*k); t.height=Math.round(after.height*k);
     t.getContext("2d").drawImage(after,0,0,t.width,t.height); return t.toDataURL("image/jpeg",.72); } catch { return ""; } }
+  const KN={2700:"전구색",4000:"주백색",6500:"주광색"}, KCOL={2700:"#e8962c",4000:"#d8b640",6500:"#3d8fd1"};
+  const segLen=i=>Math.hypot((i.b.x-i.a.x)*bg.img.width,(i.b.y-i.a.y)*bg.img.height)/bg.ppm;
+  function lineMeters(){ if(!bg.ppm) return 0; return items.filter(i=>i.type==="line").reduce((s,i)=>s+segLen(i),0); }
+  function layoutList(){ const g={}; items.forEach(i=>{ const n=NAMES[i.type], k=KN[i.k||kelvin]; g[n]=g[n]||{n:0,k:{},m:0}; g[n].n++; g[n].k[k]=(g[n].k[k]||0)+1;
+      if(i.type==="line"&&bg.ppm) g[n].m+=segLen(i); });
+    return Object.keys(g).map(n=>{ const x=g[n], ks=Object.keys(x.k), u=(n==="라인조명"||n==="커튼박스 조명")?"줄":n==="우물 조명"?"곳":"개";
+      return n+" "+x.n+u+(x.m?" (약 "+x.m.toFixed(1)+"m)":"")+" · "+ks.map(k=>k+(ks.length>1?" "+x.k[k]:"")).join(", "); }); }
+  function layoutImg(){ if(!items.length||!bg.img) return ""; try{
+    const w=Math.min(1400,bg.img.width), h=Math.round(bg.img.height*w/bg.img.width), c=document.createElement("canvas"); c.width=w; c.height=h; const g=c.getContext("2d"), m=Math.min(w,h);
+    g.drawImage(bg.img,0,0,w,h); g.fillStyle="rgba(255,255,255,.35)"; g.fillRect(0,0,w,h);
+    const P2=p=>({x:p.x*w,y:p.y*h}), col=i=>KCOL[i.k||kelvin];
+    items.forEach(i=>{ g.save(); g.lineCap="round"; g.lineJoin="round"; g.strokeStyle=col(i); g.fillStyle=col(i);
+      if(i.type==="cove"){ g.lineWidth=m*.012; g.beginPath(); i.pts.map(P2).forEach((p,j)=>j?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y)); g.closePath(); g.stroke(); }
+      else if(i.type==="curtain"||i.type==="line"){ const a=P2(i.a),b=P2(i.b); if(i.type==="curtain") g.setLineDash([m*.025,m*.012]); g.lineWidth=m*(i.type==="line"?.014:.012); g.beginPath(); g.moveTo(a.x,a.y); g.lineTo(b.x,b.y); g.stroke(); }
+      else if(i.type==="fan"){ const p=P2(i), r=m*.05; g.lineWidth=m*.008; g.strokeStyle="#c0392b"; g.beginPath(); g.arc(p.x,p.y,r,0,Math.PI*2); g.stroke(); g.beginPath(); g.moveTo(p.x-r*.7,p.y-r*.7); g.lineTo(p.x+r*.7,p.y+r*.7); g.moveTo(p.x+r*.7,p.y-r*.7); g.lineTo(p.x-r*.7,p.y+r*.7); g.stroke(); }
+      else { const p=P2(i), r=m*.016; g.beginPath(); g.arc(p.x,p.y,r,0,Math.PI*2); g.fill(); g.lineWidth=Math.max(2,m*.004); g.strokeStyle="#2b2420"; g.stroke(); if(i.type==="wall"){ g.beginPath(); g.moveTo(p.x-r*1.6,p.y+r*1.6); g.lineTo(p.x+r*1.6,p.y+r*1.6); g.stroke(); } }
+      g.restore(); });
+    const L=layoutList(), fs=Math.round(m*.026), bw=fs*23, bh=fs*1.5*(L.length+1)+fs*.8, bx=w-bw-fs*.6, by=h-bh-fs*.6;
+    g.fillStyle="rgba(255,255,255,.93)"; g.fillRect(bx,by,bw,bh); g.strokeStyle="#3B2F2A"; g.lineWidth=2; g.strokeRect(bx,by,bw,bh);
+    g.fillStyle="#3B2F2A"; g.font="700 "+fs+"px 'Noto Sans KR',sans-serif"; g.textAlign="left"; g.fillText("조명 배치 · 주황 전구색 / 노랑 주백색 / 파랑 주광색",bx+fs*.6,by+fs*1.4);
+    g.font="500 "+fs+"px 'Noto Sans KR',sans-serif"; L.forEach((t,j)=>g.fillText("· "+t,bx+fs*.6,by+fs*1.4+fs*1.5*(j+1)));
+    return c.toDataURL("image/jpeg",.75); }catch(e){ return ""; } }
   function snapshot(){ const p=P(), v=id=>$(id).value.trim();
     return { cust:{name:v("custName"),phone:v("custPhone"),addr:v("custAddr"),staff:v("custStaff")}, memo:v("memoInput"),
       pkg:p.id, pkgName:p.name, pkgPrice:p.price, pkgDesc:p.desc,
       items:QI.filter(i=>i.qty>0).map(i=>({id:i.id,name:i.name,unit:i.unit,price:i.price,qty:i.qty,opt:i.opt})),
       etc:etcRows.filter(r=>r.label||r.amount).map(r=>({label:r.label,amount:r.amount||0})),
-      kelvin, discount:Math.max(0,parseInt($("discount").value)||0), status:$("qStatus").value, totals:totals() }; }
+      kelvin, layout: items.length ? {img:layoutImg(), list:layoutList()} : null, discount:Math.max(0,parseInt($("discount").value)||0), status:$("qStatus").value, totals:totals() }; }
   function restore(q){
     $("custName").value=q.cust?.name||""; $("custPhone").value=q.cust?.phone||""; $("custAddr").value=q.cust?.addr||""; $("custStaff").value=q.cust?.staff||""; $("memoInput").value=q.memo||""; $("discount").value=q.discount||""; $("qStatus").value=q.status||"상담";
     if (PKGS.some(p=>p.id===q.pkg)) pkg=q.pkg;
