@@ -70,7 +70,11 @@
     if (!old) { var d = new Date(now), day = String(d.getFullYear()).slice(2) + pad(d.getMonth() + 1) + pad(d.getDate());
       o.id = 'w' + now.toString(36) + Math.random().toString(36).slice(2, 5); o.no = nextNo(all, '작업-' + day + '-'); o.created = now; }
     else { o.no = old.no; o.created = old.created; }
-    o.updated = now; var next = all.filter(function (x) { return x.id !== o.id; }); next.push(o); return wr(KO, next) ? o : null; };
+    o.updated = now; var next = all.filter(function (x) { return x.id !== o.id; }); next.push(o); if (!wr(KO, next)) return null;
+    // 지시서 진행 상태 → 연결된 견적 상태도 앞으로만 맞춤 (진행 → 시공, 완료 → 완료)
+    var to = { '진행': '시공', '완료': '완료' }[o.status], q = to && o.quoteId ? D.getQuote(o.quoteId) : null, R = ['상담', '실측', '계약', '시공', '완료'];
+    if (q && R.indexOf(q.status || '상담') >= 0 && R.indexOf(q.status || '상담') < R.indexOf(to)) D.setQuoteStatus(q.id, to);
+    return o; };
   D.delOrder = function (id) { return wr(KO, rd(KO, []).filter(function (x) { return x.id !== id; })); };
 
   // ---------- 고객 (기기 저장). 견적을 저장하면 같은 전화번호 고객에 자동으로 묶임 ----------
