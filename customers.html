@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>고객 관리 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.bar input,.bar select{font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:0 12px;height:46px;background:#fff}
+.bar input{flex:1 1 240px}
+.sum{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.sum div{background:#fff;border:1px solid var(--line);padding:8px 14px;font-size:14px;color:var(--muted)}
+.sum b{display:block;font-size:22px;color:var(--ink)}
+.c{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);padding:12px 14px;margin-bottom:6px;color:var(--ink);text-decoration:none}
+.c:hover{border-color:var(--pri)}
+.c h3{margin:0;font-size:19px}
+.c .m{color:var(--muted);font-size:14px}
+.c .r{text-align:right;white-space:nowrap}
+.c .r b{display:block;font-size:17px}
+.tag{display:inline-block;font-size:13px;padding:0 6px;border:1px solid var(--pri);color:var(--pri);margin-left:6px;vertical-align:2px}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">고객 관리</h1>
+  <p class="sub">견적을 저장하면 고객이 자동으로 등록됩니다(같은 전화번호는 한 사람으로 묶음). 눌러서 상담 기록·견적·시공 내역을 봅니다.</p>
+  <div class="sum" id="sum"></div>
+  <div class="bar">
+    <input id="qs" type="search" placeholder="이름·전화번호·주소로 찾기" aria-label="고객 찾기">
+    <select id="fs" aria-label="진행 상태로 거르기"></select>
+    <a class="btn2 pri" href="customer.html">+ 고객 등록</a>
+  </div>
+  <div id="box"></div>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  DECO.syncCustomers();
+  var E = DECO.esc, qs = document.getElementById('qs'), fs = document.getElementById('fs'), box = document.getElementById('box');
+  var C = DECO.customers().map(function (c) {
+    var Q = DECO.custQuotes(c), st = Q.length ? (Q[0].status || '상담') : '견적 전';
+    var won = Q.filter(function (q) { return ['계약', '시공', '완료'].indexOf(q.status) >= 0; }).reduce(function (s, q) { return s + ((q.totals && q.totals.total) || 0); }, 0);
+    return { c: c, n: Q.length, st: st, won: won };
+  });
+  fs.innerHTML = '<option value="">전체 상태</option>' + ['견적 전'].concat(DECO.STATUS).map(function (s) { return '<option>' + s + '</option>'; }).join('');
+  var cnt = function (s) { return C.filter(function (x) { return x.st === s; }).length; };
+  document.getElementById('sum').innerHTML = '<div>전체 고객<b>' + C.length + '명</b></div><div>상담·실측 중<b>' + (cnt('상담') + cnt('실측') + cnt('견적 전')) + '명</b></div><div>계약·시공<b>' + (cnt('계약') + cnt('시공')) + '명</b></div><div>완료<b>' + cnt('완료') + '명</b></div>';
+  function draw() {
+    var k = qs.value.trim(), kd = k.replace(/\D/g, '');
+    var L = C.filter(function (x) { var c = x.c; if (fs.value && x.st !== fs.value) return false; if (!k) return true;
+      return [c.name, c.addr].join(' ').indexOf(k) >= 0 || (kd.length >= 3 && String(c.phone).replace(/\D/g, '').indexOf(kd) >= 0); });
+    if (!L.length) { box.innerHTML = '<div class="empty">' + (k || fs.value ? '찾는 고객이 없습니다.' : '아직 고객이 없습니다. 견적을 저장하거나 「+ 고객 등록」을 누르세요.') + '</div>'; return; }
+    box.innerHTML = L.map(function (x) { var c = x.c;
+      return '<a class="c" href="customer.html?id=' + encodeURIComponent(c.id) + '"><div><h3>' + E(c.name || '이름 없음') + ' 님<span class="tag">' + E(x.st) + '</span></h3>' +
+        '<div class="m">' + E(c.phone || '전화 없음') + (c.addr ? ' · ' + E(c.addr) : '') + '</div>' +
+        '<div class="m">견적 ' + x.n + '건' + (c.source ? ' · ' + E(c.source) : '') + (c.logs && c.logs.length ? ' · 최근 상담 ' + E(c.logs[c.logs.length - 1].date) : '') + '</div></div>' +
+        '<div class="r">' + (x.won ? '<b>' + DECO.won(x.won) + '</b><span class="m">계약 금액</span>' : '') + '</div></a>';
+    }).join('');
+  }
+  qs.addEventListener('input', draw); fs.addEventListener('change', draw); draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>거래처 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.fl select{font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:9px 10px;background:#fff}
+h2.s{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding-bottom:4px}
+.p{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);padding:10px 12px;margin-bottom:5px}
+.p b{font-size:18px}
+.p small{display:block;color:var(--muted);font-size:14px}
+.p .a{display:flex;gap:6px;flex-wrap:wrap}
+.p .a .btn2{height:40px;font-size:15px;padding:0 12px}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:820px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">거래처</h1>
+  <p class="sub">작업 지시를 내리는 목수·전기·도배 거래처입니다. 여기 넣어 두면 작업 지시서에서 골라 문자로 바로 보낼 수 있습니다.</p>
+  <form class="card" id="f" autocomplete="off">
+    <div class="grid2">
+      <label class="fl">공종<select name="trade" id="trade"></select></label>
+      <label class="fl"><span class="need">이름·상호</span><input name="name" required placeholder="예: 김목수"></label>
+      <label class="fl"><span class="need">휴대폰</span><input name="phone" required inputmode="tel" placeholder="010-0000-0000"></label>
+      <label class="fl">메모<input name="memo" placeholder="예: 오전만 가능, 일당 ○○"></label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn2 pri" type="submit" id="sv">거래처 추가</button>
+      <button class="btn2" type="button" id="cancel" hidden>새로 넣기</button>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+  </form>
+  <div id="box"></div>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, f = $('f'), ed = null;
+  $('trade').innerHTML = DECO.TRADES.map(function (t) { return '<option>' + t + '</option>'; }).join('');
+  function draw() { var A = DECO.partners();
+    $('box').innerHTML = DECO.TRADES.map(function (t) { var L = A.filter(function (p) { return p.trade === t; });
+      return '<h2 class="s">' + t + ' (' + L.length + ')</h2>' + (L.length ? L.map(function (p) { var tel = String(p.phone).replace(/[^\d+]/g, '');
+        return '<div class="p"><div><b>' + E(p.name) + '</b><small>' + E(p.phone) + (p.memo ? ' · ' + E(p.memo) : '') + '</small></div><div class="a">' +
+          '<a class="btn2" href="tel:' + tel + '">전화</a><a class="btn2" href="sms:' + tel + '">문자</a><button class="btn2" type="button" data-ed="' + p.id + '">고치기</button><button class="btn2 no" type="button" data-del="' + p.id + '">지우기</button></div></div>'; }).join('')
+        : '<div class="empty">' + t + ' 거래처가 없습니다.</div>'); }).join(''); }
+  function reset() { ed = null; f.reset(); $('sv').textContent = '거래처 추가'; $('cancel').hidden = true; }
+  f.addEventListener('submit', function (e) { e.preventDefault(); var p = ed || {};
+    ['trade', 'name', 'phone', 'memo'].forEach(function (k) { p[k] = f.elements[k].value.trim(); });
+    var r = DECO.savePartner(p); $('msg').className = 'msg' + (r ? '' : ' bad'); $('msg').textContent = r ? p.name + ' (' + p.trade + ') 저장했습니다.' : '저장하지 못했습니다.'; if (r) { reset(); draw(); } });
+  $('cancel').addEventListener('click', reset);
+  $('box').addEventListener('click', function (e) { var b = e.target.closest('[data-ed],[data-del]'); if (!b) return; var A = DECO.partners();
+    if (b.dataset.del) { var d = A.filter(function (x) { return x.id === b.dataset.del; })[0]; if (d && confirm(d.name + ' 거래처를 지울까요?')) { DECO.delPartner(d.id); draw(); } return; }
+    ed = A.filter(function (x) { return x.id === b.dataset.ed; })[0]; ['trade', 'name', 'phone', 'memo'].forEach(function (k) { f.elements[k].value = ed[k] || ''; });
+    $('sv').textContent = '고친 내용 저장'; $('cancel').hidden = false; window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  draw();
+})();
+</script>
+</body>
+</html>

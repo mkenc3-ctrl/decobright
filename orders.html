@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>작업 지시서 목록 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tabs button{font:inherit;font-size:16px;height:44px;padding:0 16px;border:1px solid var(--bd);background:#fff;border-radius:10px;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--pri);color:#fff;border-color:var(--pri)}
+.o{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);padding:12px;margin-bottom:6px;color:var(--ink);text-decoration:none}
+.o:hover{border-color:var(--pri)}
+.o .d{text-align:center;border-right:1px solid var(--line);padding-right:10px}
+.o .d b{display:block;font-size:22px;line-height:1.2}
+.o .d small{color:var(--muted);font-size:13px}
+.o h3{margin:0;font-size:18px}
+.o .m{color:var(--muted);font-size:14px}
+.o .s{font-size:14px;padding:2px 8px;border:1px solid var(--pri);color:var(--pri);white-space:nowrap}
+.o .s.완료{border-color:var(--ok);color:var(--ok)}
+.o.today{border-left:5px solid var(--warm)}
+@media (max-width:560px){.o{grid-template-columns:76px minmax(0,1fr)}.o .s{grid-column:2;justify-self:start}}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">작업 지시서</h1>
+  <p class="sub">시공일 순서로 보입니다. 견적 목록에서 「작업 지시서」를 누르면 견적 내용이 미리 채워집니다.</p>
+  <div class="tabs" id="tabs" role="group" aria-label="거르기">
+    <button type="button" data-f="up" aria-pressed="true">다가오는 작업</button>
+    <button type="button" data-f="done">끝난 작업</button>
+    <button type="button" data-f="">전체</button>
+    <a class="btn2" href="partners.html" style="margin-left:auto">거래처 (목수·전기·도배)</a><a class="btn2 pri" href="order.html">+ 새 지시서</a>
+  </div>
+  <div id="box"></div>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var E = DECO.esc, f = 'up', today = DECO.today(), box = document.getElementById('box');
+  function draw() {
+    var L = DECO.orders().filter(function (o) { if (f === 'up') return o.status !== '완료' && o.status !== '보류'; if (f === 'done') return o.status === '완료'; return true; });
+    if (f === 'up') L.reverse();   // 다가오는 작업은 가까운 날부터
+    if (!L.length) { box.innerHTML = '<div class="empty">' + (f === 'up' ? '예정된 작업이 없습니다.' : '지시서가 없습니다.') + '</div>'; return; }
+    box.innerHTML = L.map(function (o) {
+      var d = o.workDate ? new Date(o.workDate + 'T00:00') : null;
+      return '<a class="o' + (o.workDate === today ? ' today' : '') + '" href="order.html?id=' + encodeURIComponent(o.id) + '"><div class="d">' +
+        (d ? '<small>' + d.getFullYear() + '. ' + (d.getMonth() + 1) + '.</small><b>' + d.getDate() + '일</b><small>' + '일월화수목금토'[d.getDay()] + '요일' + (o.workDate === today ? ' · 오늘' : '') + '</small>' : '<small>날짜 없음</small>') +
+        '</div><div><h3>' + E(o.name || '이름 없음') + ' 님 · ' + E(o.workTime || '') + '</h3><div class="m">' + E(o.addr || '') + '</div><div class="m">' + E(o.no) + (o.lead ? ' · 책임 ' + E(o.lead) : '') + (o.crew ? ' · ' + E(o.crew) : '') + '</div></div>' +
+        '<span class="s ' + E(o.status || '예정') + '">' + E(o.status || '예정') + '</span></a>';
+    }).join('');
+  }
+  document.getElementById('tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; f = b.dataset.f;
+    this.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

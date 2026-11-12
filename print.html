@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>견적서 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="icon" href="icons/icon.svg">
+<style>
+@page{size:A4;margin:12mm}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.tools p{flex:1 1 100%;margin:0;color:var(--muted);font-size:15px}
+.sheet{background:#fff;max-width:210mm;margin:0 auto;padding:14mm 13mm;border:1px solid var(--line);font-size:13.5px;line-height:1.5;color:#111}
+.sheet h1{font-family:'Noto Sans KR',sans-serif;font-weight:800;text-align:center;font-size:30px;letter-spacing:.6em;margin:0 0 14px;padding-left:.6em}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;margin-bottom:12px}
+.to .nm{font-size:19px;font-weight:700;border-bottom:1px solid #111;padding-bottom:4px;margin-bottom:6px}
+.to div{margin:2px 0}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid #555;padding:5px 7px;vertical-align:middle}
+th{background:#f1eee7;font-weight:500;white-space:nowrap}
+.sup th{width:72px}
+.sup .vt{width:22px;padding:4px;text-align:center;line-height:1.3}
+.amt{border:2px solid #111;padding:9px 12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:15px;margin-bottom:12px}
+.amt b{font-size:17px}
+.items th{text-align:center}
+.items td.n{text-align:right;white-space:nowrap}
+.items td.c{text-align:center}
+.items .grp td{background:#faf8f3;font-weight:700}
+.tot td{font-weight:700}
+.tot.g td{font-size:15px;background:#f1eee7}
+.memo{margin-top:10px;border:1px solid #555;padding:7px 9px;min-height:44px;white-space:pre-wrap}
+.pic{margin-top:10px;text-align:center}
+.pic img{max-width:100%;max-height:72mm;border:1px solid #999}
+.pic small{display:block;color:#555}
+.foot{margin-top:10px;font-size:12.5px;color:#333}
+@media print{body.app{background:#fff}.page{padding:0;max-width:none}.tools,.topnav{display:none!important}.sheet{border:0;padding:0;max-width:none}}
+@media (max-width:640px){.top{grid-template-columns:minmax(0,1fr)}.sheet{padding:16px 12px}}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <div class="tools">
+    <button class="btn2 pri" type="button" onclick="print()">인쇄 · PDF 저장</button>
+    <a class="btn2" id="editA" href="quote.html">견적 고치기</a>
+    <label style="font-size:15px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="picChk" checked style="width:20px;height:20px"> 예상 모습 그림 넣기</label>
+    <p>PDF로 받으려면 「인쇄 · PDF 저장」을 누른 뒤 프린터에서 「PDF로 저장」을 고르세요.</p>
+  </div>
+  <div class="sheet" id="sheet"></div>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var E = DECO.esc, W = DECO.won, s = DECO.settings(), P = new URLSearchParams(location.search), id = P.get('id');
+  var q = id ? DECO.getQuote(id) : null;
+  if (!q && P.get('sample')) q = { no: 'DB-예시-01', updated: Date.now(), cust: { name: '홍길동', phone: '010-0000-0000', addr: '창원시 성산구 ○○아파트 101동 1001호', staff: s.staff },
+    pkg: 'p3', pkgName: '거실 실링팬 패키지', pkgPrice: 1650000, pkgDesc: '실링팬 / 우물 다운라이트 12개 / 우물등박스 T5 간접등 / 거실 커튼박스 T5 간접등 / 현관 간접 센서등 / TV·쇼파 다운라이트 6개 (도배 별도)',
+    items: [{ name: '다운라이트 3인치', unit: '개당', price: 30000, qty: 4 }], etc: [{ label: '야간작업 추가비', amount: 100000 }], memo: '공사 하루, 계약금 30%', kelvin: 2700,
+    totals: { supply: 1870000, vat: 187000, total: 2057000 } };
+  var sh = document.getElementById('sheet');
+  if (!q) { sh.innerHTML = '<div class="empty">견적을 찾을 수 없습니다. 견적 목록에서 다시 골라 주세요.</div>'; return; }
+  if (q.id) document.getElementById('editA').href = 'quote.html?id=' + encodeURIComponent(q.id);
+  var c = q.cust || {}, t = q.totals || {}, rows = '', no = 0, color = { 2700: '전구색', 4000: '주백색', 6500: '주광색' }[q.kelvin] || '';
+  var valid = new Date(q.updated + s.validDays * 864e5);
+  if (q.pkg && q.pkg !== 'none') rows += '<tr><td class="c">' + (++no) + '</td><td><b>' + E(q.pkgName) + '</b><br><small>' + E(q.pkgDesc) + '</small></td><td class="c">식</td><td class="c">1</td><td class="n">' + W(q.pkgPrice) + '</td><td class="n">' + W(q.pkgPrice) + '</td></tr>';
+  (q.items || []).forEach(function (i) { rows += '<tr><td class="c">' + (++no) + '</td><td>' + E(i.name) + (i.opt ? ' (' + E(i.opt) + ')' : '') + '</td><td class="c">' + E(String(i.unit).split(' ')[0]) + '</td><td class="c">' + i.qty + '</td><td class="n">' + W(i.price) + '</td><td class="n">' + W(i.qty * i.price) + '</td></tr>'; });
+  (q.etc || []).forEach(function (r) { rows += '<tr><td class="c">' + (++no) + '</td><td>' + E(r.label || '기타') + '</td><td class="c">식</td><td class="c">1</td><td class="n">' + W(r.amount) + '</td><td class="n">' + W(r.amount) + '</td></tr>'; });
+  if (!rows) rows = '<tr><td colspan="6" class="c">항목이 없습니다</td></tr>';
+  sh.innerHTML =
+    '<h1>견적서</h1>' +
+    '<div class="top"><div class="to"><div class="nm">' + E(c.name || '　　　　') + ' 귀하</div>' +
+      '<div>견적번호 : ' + E(q.no) + '</div><div>견적일자 : ' + DECO.date(q.updated) + '</div>' +
+      (c.addr ? '<div>현장주소 : ' + E(c.addr) + '</div>' : '') + (c.phone ? '<div>연락처 : ' + E(c.phone) + '</div>' : '') +
+      '<div>유효기간 : ' + DECO.date(valid) + '까지</div><div style="margin-top:6px">아래와 같이 견적합니다.</div></div>' +
+    '<table class="sup"><tr><td class="vt" rowspan="6">공<br>급<br>자</td><th>상호</th><td>' + E(s.bizName || s.company) + '</td><th>대표자</th><td>' + E(s.ceo) + '</td></tr>' +
+      '<tr><th>사업자번호</th><td colspan="3">' + E(s.bizno) + '</td></tr><tr><th>주소</th><td colspan="3">' + E(s.addr) + '</td></tr><tr><th>업태·종목</th><td colspan="3" style="font-size:12px">' + E(s.bizType) + (s.bizItem ? ' / ' + E(s.bizItem) : '') + '</td></tr>' +
+      '<tr><th>전화</th><td>' + E(s.phone) + '</td><th>담당</th><td>' + E(c.staff || s.staff) + '</td></tr><tr><th>전자우편</th><td colspan="3">' + E(s.email) + '</td></tr></table></div>' +
+    '<div class="amt"><span>합계금액 (부가세 포함)</span><b>일금 ' + DECO.hanWon(t.total) + '원정 (' + W(t.total) + ')</b></div>' +
+    '<table class="items"><thead><tr><th style="width:34px">번호</th><th>품목 · 내용</th><th style="width:50px">단위</th><th style="width:46px">수량</th><th style="width:96px">단가</th><th style="width:104px">금액</th></tr></thead><tbody>' + rows +
+      (t.dc ? '<tr><td colspan="5" class="c">할인</td><td class="n">-' + W(t.dc) + '</td></tr>' : '') +
+      '<tr class="tot"><td colspan="5" class="c">공급가액</td><td class="n">' + W(t.supply) + '</td></tr>' +
+      '<tr class="tot"><td colspan="5" class="c">부가세 (10%)</td><td class="n">' + W(t.vat) + '</td></tr>' +
+      '<tr class="tot g"><td colspan="5" class="c">합계금액</td><td class="n">' + W(t.total) + '</td></tr></tbody></table>' +
+    '<div class="memo"><b>비고</b>' + (color ? ' · 조명 색 ' + color : '') + '\n' + E(q.memo || '') + '</div>' +
+    (q.img ? '<div class="pic" id="pic"><img src="' + q.img + '" alt="시공 후 예상 모습"><small>사진 위에 붙여 본 시공 후 예상 모습 (실제와 다를 수 있음)</small></div>' : '') +
+    '<div class="foot">※ ' + E(s.terms) + (s.bank ? '<br>※ 입금 계좌 : ' + E(s.bank) : '') + '</div>';
+  var pc = document.getElementById('picChk'), pic = document.getElementById('pic');
+  if (!pic) pc.parentNode.hidden = true; else pc.addEventListener('change', function () { pic.hidden = !pc.checked; });
+})();
+</script>
+</body>
+</html>

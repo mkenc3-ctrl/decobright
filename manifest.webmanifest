@@ -1,0 +1,14 @@
+{
+  "name": "데코브라이트 천장 견적",
+  "short_name": "데코 견적",
+  "description": "데코브라이트 간접 조명·실링팬 견적, 고객, 작업 지시, 현장 사진 관리",
+  "lang": "ko",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FBF6EE",
+  "theme_color": "#3B2F2A",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

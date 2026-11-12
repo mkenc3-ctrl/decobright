@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>고객 카드 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.fl select{font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:9px 10px;background:#fff}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+h2.s{font-size:20px;margin:24px 0 8px;border-bottom:2px solid var(--ink);padding-bottom:4px;display:flex;justify-content:space-between;align-items:end;gap:8px}
+h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
+.log{display:flex;gap:10px;background:#fff;border:1px solid var(--line);padding:9px 12px;margin-bottom:5px}
+.log .d{color:var(--muted);font-size:14px;white-space:nowrap;min-width:92px}
+.log .t{flex:1;white-space:pre-wrap}
+.log button{border:0;background:none;color:var(--no);font-size:20px;cursor:pointer}
+.addlog{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.addlog input{font:inherit;font-size:16px;border:1px solid var(--bd);border-radius:10px;padding:0 10px;height:46px}
+.addlog input[type=text]{flex:1 1 240px}
+.it{display:flex;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);padding:10px 12px;margin-bottom:5px;color:var(--ink);text-decoration:none}
+.it:hover{border-color:var(--pri)}
+.it small{display:block;color:var(--muted);font-size:14px}
+.it b{white-space:nowrap}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:820px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a><a class="home" href="customers.html">고객 목록</a></div>
+  <h1 class="t" id="ttl">고객 등록</h1>
+  <div class="quick" id="quick" hidden>
+    <a class="btn2 pri" id="call" href="#">전화 걸기</a>
+    <a class="btn2" id="sms" href="#">문자 보내기</a>
+    <a class="btn2" id="newQ" href="quote.html">이 고객 새 견적</a>
+    <a class="btn2" id="newE" href="calendar.html">실측·상담 일정 잡기</a>
+  </div>
+  <form class="card" id="f" autocomplete="off">
+    <div class="grid2">
+      <label class="fl"><span class="need">이름</span><input name="name" required></label>
+      <label class="fl">연락처<input name="phone" inputmode="tel" placeholder="010-0000-0000"></label>
+      <label class="fl" style="grid-column:1/-1">주소<input name="addr" placeholder="예: 창원시 성산구 ○○아파트 101동 1001호"></label>
+      <label class="fl">알게 된 경로<select name="source"><option value="">고르기</option></select></label>
+      <label class="fl">평형·구조<input name="size" placeholder="예: 34평, 우물 천장"></label>
+      <label class="fl" style="grid-column:1/-1">메모<textarea name="memo" rows="2" placeholder="예: 오전 통화 선호, 반려견 있음"></textarea></label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn2 pri" type="submit">저장</button>
+      <button class="btn2 no" type="button" id="del" hidden>고객 지우기</button>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+  </form>
+  <div id="more" hidden>
+    <h2 class="s">상담 기록 <small>통화·방문 내용을 짧게 남기세요</small></h2>
+    <div id="logs"></div>
+    <div class="addlog"><input type="date" id="ld" aria-label="날짜"><input type="text" id="lt" placeholder="예: 실측 방문 약속, 실링팬 우드 원함" aria-label="상담 내용"><button class="btn2 pri" type="button" id="la">기록 추가</button></div>
+    <h2 class="s">견적 <small id="qsum"></small></h2>
+    <div id="qs"></div>
+    <h2 class="s">작업 지시서·일정</h2>
+    <div id="os"></div>
+    <h2 class="s">현장 사진</h2>
+    <div id="ps"></div>
+  </div>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, f = $('f'), P = new URLSearchParams(location.search);
+  var c = P.get('id') ? DECO.getCustomer(P.get('id')) : null;
+  f.elements.source.innerHTML += DECO.SOURCES.map(function (s) { return '<option>' + s + '</option>'; }).join('');
+  $('ld').value = DECO.today();
+  function fill() {
+    Array.prototype.forEach.call(f.elements, function (el) { if (el.name && c[el.name] != null) el.value = c[el.name]; });
+    $('ttl').textContent = (c.name || '이름 없음') + ' 님'; $('quick').hidden = false; $('more').hidden = false; $('del').hidden = false;
+    var tel = String(c.phone || '').replace(/[^\d+]/g, '');
+    $('call').href = 'tel:' + tel; $('sms').href = 'sms:' + tel; $('call').hidden = $('sms').hidden = !tel;
+    $('newQ').href = 'quote.html?cust=' + encodeURIComponent(c.id); $('newE').href = 'calendar.html?cust=' + encodeURIComponent(c.id);
+    logs(); rel();
+  }
+  function logs() {
+    var L = (c.logs || []).slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+    $('logs').innerHTML = L.length ? L.map(function (l) { return '<div class="log"><span class="d">' + E(l.date) + '</span><span class="t">' + E(l.text) + '</span><button type="button" data-l="' + E(l.id) + '" aria-label="기록 지우기">×</button></div>'; }).join('') : '<div class="empty">상담 기록이 없습니다.</div>';
+  }
+  function rel() {
+    var Q = DECO.custQuotes(c), ids = Q.map(function (q) { return q.id; });
+    var tot = Q.filter(function (q) { return ['계약', '시공', '완료'].indexOf(q.status) >= 0; }).reduce(function (s, q) { return s + q.totals.total; }, 0);
+    $('qsum').textContent = Q.length ? Q.length + '건' + (tot ? ' · 계약 ' + DECO.won(tot) : '') : '';
+    $('qs').innerHTML = Q.length ? Q.map(function (q) { return '<a class="it" href="quote.html?id=' + encodeURIComponent(q.id) + '"><span>' + E(q.no) + ' · ' + E(q.status || '상담') + '<small>' + DECO.date(q.updated) + ' · ' + E(q.pkg === 'none' ? '패키지 없음' : q.pkgName) + '</small></span><b>' + DECO.won(q.totals && q.totals.total) + '</b></a>'; }).join('') : '<div class="empty">견적이 없습니다.</div>';
+    var O = DECO.orders().filter(function (o) { return ids.indexOf(o.quoteId) >= 0 || o.custId === c.id; }).map(function (o) { return { d: o.workDate, h: 'order.html?id=' + encodeURIComponent(o.id), t: '시공 · ' + (o.status || '예정'), s: o.no + (o.lead ? ' · ' + o.lead : '') }; });
+    var V = DECO.events().filter(function (e) { return e.custId === c.id; }).map(function (e) { return { d: e.date, h: 'calendar.html?d=' + e.date, t: e.kind + (e.time ? ' · ' + e.time : ''), s: e.title || '' }; });
+    var A = O.concat(V).sort(function (a, b) { return (b.d || '').localeCompare(a.d || ''); });
+    $('os').innerHTML = A.length ? A.map(function (x) { return '<a class="it" href="' + x.h + '"><span>' + E(x.t) + '<small>' + E(x.s) + '</small></span><b>' + E(x.d || '') + '</b></a>'; }).join('') : '<div class="empty">지시서·일정이 없습니다.</div>';
+    DECO.photoAll().then(function (ph) { var n = ph.filter(function (p) { return ids.indexOf(p.job) >= 0; });
+      $('ps').innerHTML = n.length ? Q.filter(function (q) { return n.some(function (p) { return p.job === q.id; }); }).map(function (q) {
+        return '<a class="it" href="photos.html?job=' + encodeURIComponent(q.id) + '"><span>' + E(q.no) + ' 현장 사진</span><b>' + n.filter(function (p) { return p.job === q.id; }).length + '장</b></a>'; }).join('') : '<div class="empty">사진이 없습니다.</div>';
+    }).catch(function () { $('ps').innerHTML = ''; });
+  }
+  f.addEventListener('submit', function (e) { e.preventDefault(); c = c || { logs: [] };
+    Array.prototype.forEach.call(f.elements, function (el) { if (el.name) c[el.name] = el.value.trim(); });
+    var r = DECO.saveCustomer(c); $('msg').className = 'msg' + (r ? '' : ' bad'); $('msg').textContent = r ? '저장했습니다.' : '저장하지 못했습니다.';
+    if (r) { c = r; history.replaceState(null, '', 'customer.html?id=' + encodeURIComponent(c.id)); fill(); } });
+  $('la').addEventListener('click', function () { var t = $('lt').value.trim(); if (!t) { $('lt').focus(); return; }
+    c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: $('ld').value || DECO.today(), text: t }); c.touched = Date.now(); DECO.saveCustomer(c); $('lt').value = ''; logs(); });
+  $('logs').addEventListener('click', function (e) { var b = e.target.closest('[data-l]'); if (!b || !confirm('이 상담 기록을 지울까요?')) return;
+    c.logs = c.logs.filter(function (l) { return l.id !== b.dataset.l; }); DECO.saveCustomer(c); logs(); });
+  $('del').addEventListener('click', function () { if (!confirm((c.name || '이 고객') + ' 님을 고객 목록에서 지울까요?\n견적·지시서·사진은 지워지지 않습니다. 지운 고객은 되살릴 수 없습니다.')) return; DECO.delCustomer(c.id); location.href = 'customers.html'; });
+  if (c) fill();
+})();
+</script>
+</body>
+</html>

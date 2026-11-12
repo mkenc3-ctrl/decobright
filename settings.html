@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>회사 정보 설정 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+</head>
+<body class="app">
+<div class="page" style="max-width:760px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">회사 정보 설정</h1>
+  <p class="sub">① 칸을 채우고 ② 「저장」을 누르면 ③ 견적서 공급자 칸에 그대로 찍힙니다. (이 기기에만 저장)</p>
+  <form class="card" id="f">
+    <div class="grid2">
+      <label class="fl"><span class="need">상호</span><input name="company" required placeholder="예: 데코브라이트"></label>
+      <label class="fl">사업자등록증 상호<input name="bizName" placeholder="예: 데코브라이트 간접조명 실링팬"><small>견적서 공급자 칸에 찍힙니다. 위 상호는 문자·글에 씁니다.</small></label>
+      <label class="fl">대표자<input name="ceo" placeholder="예: 홍길동"></label>
+      <label class="fl">사업자등록번호<input name="bizno" placeholder="예: 000-00-00000" inputmode="numeric"></label>
+      <label class="fl"><span class="need">대표 전화</span><input name="phone" required placeholder="예: 010-0000-0000" inputmode="tel"></label>
+      <label class="fl">업태<input name="bizType"></label>
+      <label class="fl">종목<input name="bizItem"></label>
+      <label class="fl" style="grid-column:1/-1">사업장 주소<input name="addr" placeholder="예: 경남 창원시 …"></label>
+      <label class="fl">전자우편<input name="email" type="email" placeholder="예: deco@example.com"></label>
+      <label class="fl">기본 담당자<input name="staff" placeholder="견적 화면 담당자 칸에 미리 넣음"></label>
+      <label class="fl" style="grid-column:1/-1">입금 계좌<input name="bank" placeholder="예: ○○은행 000-0000-0000 (예금주 데코브라이트)"><small>견적서 아래쪽에 표시됩니다. 비워 두면 표시하지 않습니다.</small></label>
+      <label class="fl">견적 유효기간(일)<input name="validDays" type="number" min="1" max="365"></label>
+      <label class="fl">주 활동 지역<input name="area" placeholder="예: 창원"><small>홍보 글 제목·해시태그에 들어갑니다.</small></label>
+      <label class="fl">블로그 주소<input name="blog" placeholder="예: blog.naver.com/○○○"></label>
+      <label class="fl" style="grid-column:1/-1">기본 해시태그<textarea name="tags" rows="2"></textarea><small>인스타그램 글 끝에 붙습니다.</small></label>
+      <label class="fl" style="grid-column:1/-1">견적서 안내 문구<textarea name="terms" rows="3"></textarea></label>
+      <div style="grid-column:1/-1;border-top:2px solid var(--ink);margin-top:8px;padding-top:8px;font-weight:700;font-size:18px">계약 안내 문자</div>
+      <label class="fl" style="grid-column:1/-1">첫 인사 소개말<input name="slogan" placeholder="예: 간접 조명 · 실링팬 전문 브랜드"><small>「○○ ○○입니다.」로 시작합니다.</small></label>
+      <label class="fl">기본 계약금(원)<input name="deposit" type="number" min="0" step="10000"></label>
+      <label class="fl">부가세<select name="vat" style="font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:9px 10px;background:#fff"><option value="separate">별도 (요청 시 발행)</option><option value="include">포함</option></select></label>
+      <label class="fl" style="grid-column:1/-1">계약금 안내<input name="refund"></label>
+      <label class="fl" style="grid-column:1/-1">맺음말<textarea name="closing" rows="4"></textarea></label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn2 pri" type="submit">저장</button>
+      <a class="btn2" href="print.html?sample=1">견적서 모양 미리 보기</a>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+  </form>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var f = document.getElementById('f'), s = DECO.settings(), m = document.getElementById('msg');
+  Array.prototype.forEach.call(f.elements, function (el) { if (el.name && s[el.name] != null) el.value = s[el.name]; });
+  f.addEventListener('submit', function (e) {
+    e.preventDefault(); var o = {};
+    Array.prototype.forEach.call(f.elements, function (el) { if (el.name) o[el.name] = el.value.trim(); });
+    o.validDays = Math.max(1, parseInt(o.validDays, 10) || 30);
+    var ok = DECO.saveSettings(o); m.className = 'msg' + (ok ? '' : ' bad'); m.textContent = ok ? '저장했습니다. 다음 견적서부터 반영됩니다.' : '저장하지 못했습니다.';
+  });
+})();
+</script>
+</body>
+</html>

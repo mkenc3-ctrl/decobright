@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>계약 안내 문자 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.out{width:100%;font:inherit;font-size:17px;line-height:1.7;border:1px solid var(--bd);border-radius:10px;padding:14px;background:#fff;min-height:520px}
+.opt{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:12px}
+.opt label{display:flex;flex-direction:column;gap:4px;font-size:15px;color:var(--ink2)}
+.opt input,.opt select{font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;height:46px;padding:0 10px;background:#fff}
+.sums{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.sums div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:14px;color:var(--muted)}
+.sums b{display:block;font-size:20px;color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:760px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a><a class="home" id="toQ" href="list.html">견적 열기</a></div>
+  <h1 class="t">계약 안내 문자</h1>
+  <p class="sub">견적 내용으로 고객에게 보낼 계약 안내문이 자동으로 써집니다. ① 계약금을 확인하고 ② 글을 고친 뒤 ③ 「문자 보내기」나 「복사」를 누르세요.</p>
+  <div class="opt">
+    <label>계약금(원)<input type="number" id="dep" min="0" step="10000"></label>
+    <label>부가세<select id="vat"><option value="separate">별도 (요청 시)</option><option value="include">포함</option></select></label>
+    <label>현장 주소 넣기<select id="addr"><option value="1">넣기</option><option value="">빼기</option></select></label>
+  </div>
+  <div class="sums" id="sums"></div>
+  <textarea class="out" id="out" aria-label="계약 안내문"></textarea>
+  <div class="row">
+    <a class="btn2 pri" id="sms" href="#">고객에게 문자 보내기</a>
+    <button class="btn2" type="button" id="cp">복사 (카톡에 붙여넣기)</button>
+    <button class="btn2" type="button" id="re">처음 글로 다시 만들기</button>
+  </div>
+  <p class="msg" id="msg" role="status"></p>
+  <p class="sub" style="font-size:14px;margin-top:14px">※ 입금 계좌·인사말·맺음말은 「회사 정보 설정」에서 바꿉니다. 금액은 견적 그대로 쓰며, 할인은 총 공사금액에서 뺍니다.</p>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, W = DECO.won, s = DECO.settings(), id = new URLSearchParams(location.search).get('id'), q = id ? DECO.getQuote(id) : null;
+  if (!q) { $('out').value = '견적을 찾을 수 없습니다. 견적 목록에서 「계약 안내 문자」를 눌러 주세요.'; return; }
+  $('toQ').href = 'quote.html?id=' + encodeURIComponent(q.id);
+  $('dep').value = q.deposit != null ? q.deposit : s.deposit; $('vat').value = q.vatMode || s.vat;
+  function amt() { var t = q.totals || {}, vatIn = $('vat').value === 'include', total = vatIn ? t.total : t.supply, dep = Math.max(0, parseInt($('dep').value, 10) || 0);
+    return { total: total, dep: Math.min(dep, total), rest: total - Math.min(dep, total), vatIn: vatIn, vat: t.vat, dc: t.dc || 0 }; }
+  function make() { var a = amt(), c = q.cust || {}, L = [], hello = s.slogan + ' ' + s.company + '입니다.';
+    L.push(hello, '');
+    if ($('addr').value && c.addr) L.push(c.addr);
+    if (c.phone) L.push(c.phone);
+    if (($('addr').value && c.addr) || c.phone) L.push('');
+    L.push('[간접조명 및 주요 시공 견적]', '');
+    if (q.pkg && q.pkg !== 'none') L.push(q.pkgName + ' : ' + W(q.pkgPrice));
+    (q.items || []).forEach(function (i) { var u = String(i.unit || ''), cnt = i.qty > 1 ? ' ' + i.qty + (/대/.test(u) ? '대' : /미터/.test(u) ? 'm' : '개') : '';
+      L.push(i.name.replace(/\s*\(.*?\)\s*/g, '') + (i.opt ? '(' + i.opt + ')' : '') + cnt + ' : ' + W(i.qty * i.price)); });
+    (q.etc || []).forEach(function (r) { L.push((r.label || '기타') + ' : ' + W(r.amount)); });
+    if (a.dc) L.push('할인 : -' + W(a.dc));
+    L.push('', '총 공사금액 : ' + W(a.total) + (a.vatIn ? ' (부가세 포함)' : ''), '', '', '계약금 : ' + W(a.dep), '잔금 : ' + W(a.rest), '', '');
+    if (s.bank) L.push('계좌번호', s.bank, '(입금 후 전화 또는 문자 부탁드립니다.)', '');
+    L.push(a.vatIn ? '부가세 포함 금액입니다.' : 'VAT 별도이며, 요청 시 말씀해 주세요.');
+    if (s.refund) L.push(s.refund);
+    if (s.closing) L.push('', s.closing);
+    $('out').value = L.join('\n'); sums(); }
+  function sums() { var a = amt(); $('sums').innerHTML = '<div>총 공사금액<b>' + W(a.total) + '</b></div><div>계약금<b>' + W(a.dep) + '</b></div><div>잔금<b>' + W(a.rest) + '</b></div>' + (a.vatIn ? '' : '<div>부가세 발행 시<b>+' + W(a.vat) + '</b></div>');
+    var tel = String((q.cust && q.cust.phone) || '').replace(/[^\d+]/g, ''), ios = /iPhone|iPad/.test(navigator.userAgent);
+    $('sms').href = tel ? 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent($('out').value) : '#'; $('sms').hidden = !tel; }
+  function keep() { var all = DECO.getQuote(q.id); if (!all) return; all.deposit = Math.max(0, parseInt($('dep').value, 10) || 0); all.vatMode = $('vat').value; q = DECO.saveQuote(all) || q; }
+  ['dep', 'vat', 'addr'].forEach(function (k) { $(k).addEventListener('change', function () { keep(); make(); }); });
+  $('out').addEventListener('input', sums);
+  $('re').addEventListener('click', make);
+  $('cp').addEventListener('click', function () { navigator.clipboard && navigator.clipboard.writeText($('out').value).then(function () { $('msg').textContent = '복사했습니다. 문자·카톡에 붙여넣으세요.'; }, function () { $('out').select(); }); });
+  if (!s.bank) { $('msg').className = 'msg bad'; $('msg').innerHTML = '입금 계좌가 비어 있습니다. <a href="settings.html">회사 정보 설정</a>에서 넣어 주세요.'; }
+  make();
+})();
+</script>
+</body>
+</html>

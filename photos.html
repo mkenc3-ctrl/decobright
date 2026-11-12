@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>작업 사진 보관함 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.up{display:flex;flex-direction:column;gap:10px}
+.up .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sel{font:inherit;font-size:16px;height:46px;border:1px solid var(--bd);border-radius:10px;background:#fff;padding:0 10px;min-width:0;max-width:100%}
+.up input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 10px}
+.chips button{font:inherit;font-size:15px;height:40px;padding:0 14px;border:1px solid var(--bd);background:#fff;border-radius:10px;cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--pri);color:#fff;border-color:var(--pri)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.ph{background:#fff;border:1px solid var(--line);padding:0;cursor:pointer;text-align:left;font:inherit;display:flex;flex-direction:column}
+.ph img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#ddd}
+.ph span{padding:5px 7px;font-size:13px;color:var(--ink2);line-height:1.35}
+.ph b{display:inline-block;background:var(--pri-s);color:var(--pri);font-size:12px;padding:0 5px;margin-right:4px}
+.grp{font-size:17px;margin:18px 0 8px;font-weight:700}
+.view{position:fixed;inset:0;background:rgba(10,12,18,.92);display:flex;flex-direction:column;z-index:10;padding:12px}
+.view img{flex:1;min-height:0;object-fit:contain;width:100%}
+.view .vb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding-top:10px;color:#fff}
+.view .vb input,.view .vb select{font:inherit;font-size:16px;height:44px;border-radius:10px;border:0;padding:0 10px}
+.view .vb input{flex:1 1 220px}
+.bar2{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">작업 사진 보관함</h1>
+  <p class="sub">현장별로 시공 전·중·후 사진을 모아 둡니다. 사진은 줄여서 <b>이 기기에만</b> 저장됩니다.</p>
+  <section class="card up">
+    <div class="r">
+      <label>① 현장 <select class="sel" id="job"></select></label>
+      <label>② 구분 <select class="sel" id="stage"></select></label>
+    </div>
+    <div class="r">
+      <label class="btn2 pri" for="cam">③ 사진 찍기</label><input id="cam" type="file" accept="image/*" capture="environment">
+      <label class="btn2" for="files">사진 여러 장 고르기</label><a class="btn2" id="toSns" href="sns.html">이 현장 홍보 글 만들기 (인스타·블로그)</a><input id="files" type="file" accept="image/*" multiple>
+    </div>
+    <p class="msg" id="msg" role="status" style="margin:0"></p>
+  </section>
+  <div class="chips" id="chips" role="group" aria-label="구분으로 거르기"></div>
+  <div class="bar2"><span id="cnt"></span><span id="space"></span></div>
+  <div id="gal"></div>
+</div>
+<div class="view" id="view" hidden>
+  <img id="vimg" alt="">
+  <div class="vb">
+    <select id="vstage" aria-label="구분"></select>
+    <input id="vmemo" placeholder="메모 (예: 거실 우물 마감)" aria-label="메모">
+    <button class="btn2 pri" type="button" id="vsave">메모 저장</button>
+    <button class="btn2" type="button" id="vdown">내려받기</button>
+    <button class="btn2 no" type="button" id="vdel">지우기</button>
+    <button class="btn2" type="button" id="vclose">닫기</button>
+  </div>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, msg = $('msg'), filt = '', all = [], urls = [], cur = null;
+  var P = new URLSearchParams(location.search), Q = DECO.list();
+  function jobName(id) { if (!id) return '현장 미지정'; var q = Q.filter(function (x) { return x.id === id; })[0]; return q ? ((q.cust && q.cust.name) || '이름 없음') + ' 님' + (q.cust && q.cust.addr ? ' · ' + q.cust.addr : '') : '지운 견적'; }
+  $('job').innerHTML = '<option value="">현장 미지정</option>' + Q.map(function (q) { return '<option value="' + E(q.id) + '">' + E(jobName(q.id)) + '</option>'; }).join('') + '<option value="*">― 전체 현장 보기 ―</option>';
+  $('job').value = P.get('job') || '*';
+  $('stage').innerHTML = $('vstage').innerHTML = DECO.STAGES.map(function (s) { return '<option>' + s + '</option>'; }).join('');
+  $('chips').innerHTML = ['전체'].concat(DECO.STAGES).map(function (s) { return '<button type="button" data-s="' + (s === '전체' ? '' : s) + '" aria-pressed="' + (s === '전체') + '">' + s + '</button>'; }).join('');
+  $('chips').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; filt = b.dataset.s;
+    $('chips').querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); draw(); });
+  $('job').addEventListener('change', draw);
+  function snsLink() { var j = $('job').value; $('toSns').href = 'sns.html' + (j && j !== '*' ? '?job=' + encodeURIComponent(j) : ''); }
+  $('job').addEventListener('change', snsLink); snsLink();
+  function say(t, bad) { msg.textContent = t; msg.className = 'msg' + (bad ? ' bad' : ''); }
+  function load() { return DECO.photoAll().then(function (a) { all = a; draw(); }).catch(function () { say('이 브라우저에서는 사진을 저장할 수 없습니다.', true); }); }
+  function draw() {
+    urls.forEach(URL.revokeObjectURL); urls = [];
+    var j = $('job').value, list = all.filter(function (p) { return (j === '*' || (p.job || '') === j) && (!filt || p.stage === filt); });
+    $('cnt').textContent = '사진 ' + list.length + '장';
+    if (!list.length) { $('gal').innerHTML = '<div class="empty">' + (all.length ? '이 조건의 사진이 없습니다.' : '아직 사진이 없습니다. 위에서 「사진 찍기」를 눌러 보세요.') + '</div>'; return; }
+    var groups = {}; list.forEach(function (p) { var k = j === '*' ? (p.job || '') : p.stage; (groups[k] = groups[k] || []).push(p); });
+    var order = j === '*' ? Object.keys(groups) : DECO.STAGES.filter(function (s) { return groups[s]; });
+    $('gal').innerHTML = order.map(function (k) {
+      return '<div class="grp">' + E(j === '*' ? jobName(k) : k) + ' (' + groups[k].length + ')</div><div class="gal">' + groups[k].map(function (p) {
+        var u = URL.createObjectURL(p.blob); urls.push(u);
+        return '<button type="button" class="ph" data-id="' + p.id + '"><img src="' + u + '" alt="' + E(p.stage) + ' 사진" loading="lazy"><span><b>' + E(p.stage) + '</b>' + DECO.date(p.taken || p.added) + (p.memo ? '<br>' + E(p.memo) : '') + '</span></button>';
+      }).join('') + '</div>';
+    }).join('');
+    if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(function (s) { $('space').textContent = '사용 ' + Math.round(s.usage / 1048576) + 'MB'; });
+  }
+  function addFiles(fl) {
+    var files = Array.prototype.slice.call(fl || []); if (!files.length) return;
+    var j = $('job').value === '*' ? '' : $('job').value, st = $('stage').value, n = 0;
+    say('사진 ' + files.length + '장을 저장하는 중…');
+    files.reduce(function (pr, f) { return pr.then(function () { return DECO.shrink(f).then(function (r) {
+      return DECO.photoAdd({ job: j, stage: st, memo: '', blob: r.blob, w: r.w, h: r.h, taken: f.lastModified || Date.now() }); }).then(function () { n++; }, function () {}); }); }, Promise.resolve())
+      .then(function () { say(n + '장을 「' + jobName(j) + ' · ' + st + '」에 저장했습니다.' + (n < files.length ? ' (' + (files.length - n) + '장은 열 수 없어 뺐습니다)' : ''), n < files.length); $('cam').value = $('files').value = ''; return load(); });
+  }
+  $('cam').addEventListener('change', function (e) { addFiles(e.target.files); });
+  $('files').addEventListener('change', function (e) { addFiles(e.target.files); });
+  var vu = null;
+  $('gal').addEventListener('click', function (e) { var b = e.target.closest('.ph'); if (!b) return; cur = all.filter(function (p) { return p.id === b.dataset.id; })[0]; if (!cur) return;
+    if (vu) URL.revokeObjectURL(vu); vu = URL.createObjectURL(cur.blob); $('vimg').src = vu; $('vstage').value = cur.stage; $('vmemo').value = cur.memo || ''; $('view').hidden = false; });
+  function close() { $('view').hidden = true; cur = null; }
+  $('vclose').addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('view').hidden) close(); });
+  $('vsave').addEventListener('click', function () { cur.stage = $('vstage').value; cur.memo = $('vmemo').value.trim(); DECO.photoPut(cur).then(function () { close(); say('메모를 저장했습니다.'); load(); }); });
+  $('vdown').addEventListener('click', function () { var a = document.createElement('a'); a.href = vu; a.download = '데코브라이트_' + jobName(cur.job).split(' · ')[0] + '_' + cur.stage.replace('·', '') + '_' + DECO.date(cur.taken || cur.added).replace(/\D+/g, '') + '.jpg'; a.click(); });
+  $('vdel').addEventListener('click', function () { if (!confirm('이 사진을 지울까요?\n지운 사진은 되살릴 수 없습니다.')) return; DECO.photoDel(cur.id).then(function () { close(); say('사진을 지웠습니다.'); load(); }); });
+  load();
+})();
+</script>
+</body>
+</html>

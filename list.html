@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>견적 목록 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.bar input{flex:1 1 240px;font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:0 12px;height:46px}
+.q{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;background:#fff;border:1px solid var(--line);padding:12px;margin-bottom:8px}
+@media (max-width:560px){.q{grid-template-columns:minmax(0,1fr)}}
+.q img{width:100%;aspect-ratio:16/10;object-fit:cover;background:#1b2233;display:block}
+.q .noimg{width:100%;aspect-ratio:16/10;background:var(--line2)}
+.q h3{margin:0;font-size:19px}
+.q .meta{color:var(--muted);font-size:14px}
+.q .sum{font-size:20px;font-weight:700;margin:4px 0}
+.q .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.q .acts .btn2{height:40px;font-size:15px;padding:0 12px}
+.st,.st2{font:inherit;font-size:15px;height:40px;border:1px solid var(--pri);border-radius:10px;background:var(--pri-s);padding:0 8px}
+.st2{height:46px;font-size:16px}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">견적 목록</h1>
+  <p class="sub">이 기기에 저장한 견적입니다. 눌러서 고치거나 견적서를 다시 인쇄할 수 있습니다.</p>
+  <div class="bar">
+    <input id="qs" type="search" placeholder="고객명·주소·견적번호로 찾기" aria-label="견적 찾기">
+    <select id="fst" class="st2" aria-label="상태로 거르기"></select>
+    <a class="btn2 pri" href="quote.html">+ 새 견적</a>
+  </div>
+  <div id="box"></div>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var box = document.getElementById('box'), qs = document.getElementById('qs'), E = DECO.esc;
+  function draw() {
+    var k = qs.value.trim(), L = DECO.list().filter(function (q) {
+      if (fs.value && (q.status || '상담') !== fs.value) return false;
+      if (!k) return true; var c = q.cust || {}; return [c.name, c.addr, c.phone, q.no].join(' ').indexOf(k) >= 0; });
+    if (!L.length) { box.innerHTML = '<div class="empty">' + (k || fs.value ? '찾는 견적이 없습니다.' : '아직 저장한 견적이 없습니다.<br>「+ 새 견적」을 눌러 시작하세요.') + '</div>'; return; }
+    box.innerHTML = L.map(function (q) {
+      var c = q.cust || {}, id = encodeURIComponent(q.id);
+      return '<div class="q">' + (q.img ? '<img src="' + q.img + '" alt="시공 후 예상 모습">' : '<div class="noimg"></div>') +
+        '<div><h3>' + E(c.name || '이름 없음') + ' 님</h3>' +
+        '<div class="meta">' + E(q.no) + ' · ' + DECO.date(q.updated) + (c.addr ? ' · ' + E(c.addr) : '') + (c.phone ? ' · ' + E(c.phone) : '') + '</div>' +
+        '<div class="meta">' + E(q.pkg === 'none' ? '패키지 없음' : q.pkgName) + (q.items && q.items.length ? ' + 추가 ' + q.items.length + '건' : '') + '</div>' +
+        '<div class="sum">' + DECO.won(q.totals && q.totals.total) + ' <small style="font-size:13px;font-weight:400;color:var(--muted)">부가세 포함</small></div>' +
+        '<div class="acts"><select class="st" data-st="' + E(q.id) + '" aria-label="진행 상태">' + DECO.STATUS.map(function (s) { return '<option' + ((q.status || '상담') === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
+        '<a class="btn2" href="quote.html?id=' + id + '">열어서 고치기</a><a class="btn2" href="print.html?id=' + id + '">견적서 인쇄</a>' +
+        '<a class="btn2" href="contract.html?id=' + id + '">계약 안내 문자</a><a class="btn2" href="order.html?quote=' + id + '">작업 지시서</a><a class="btn2" href="photos.html?job=' + id + '">현장 사진</a>' +
+        '<button class="btn2" type="button" data-copy="' + E(q.id) + '">복사해서 새 견적</button>' +
+        '<button class="btn2 no" type="button" data-del="' + E(q.id) + '">지우기</button></div></div></div>';
+    }).join('');
+  }
+  box.addEventListener('click', function (e) {
+    var cp = e.target.closest('[data-copy]');
+    if (cp) { var src = DECO.getQuote(cp.dataset.copy), c2 = JSON.parse(JSON.stringify(src)); c2.id = null; c2.status = '상담';
+      var nq = DECO.saveQuote(c2); if (nq) location.href = 'quote.html?id=' + encodeURIComponent(nq.id); return; }
+    var b = e.target.closest('[data-del]'); if (!b) return; var q = DECO.getQuote(b.dataset.del);
+    if (q && confirm((q.cust && q.cust.name || '이 견적') + ' 견적(' + q.no + ')을 지울까요?\n지운 견적은 되살릴 수 없습니다.')) { DECO.delQuote(q.id); draw(); }
+  });
+  box.addEventListener('change', function (e) { var s = e.target.closest('[data-st]'); if (s) DECO.setQuoteStatus(s.dataset.st, s.value); });
+  var fs = document.getElementById('fst');
+  fs.innerHTML = '<option value="">전체 상태</option>' + DECO.STATUS.map(function (s) { return '<option>' + s + '</option>'; }).join('');
+  fs.addEventListener('change', draw);
+  qs.addEventListener('input', draw); draw();
+})();
+</script>
+</body>
+</html>

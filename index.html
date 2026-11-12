@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>데코브라이트 견적</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<meta name="theme-color" content="#3B2F2A">
+<style>
+.hero{background:var(--pri);color:#fff;border-radius:14px;padding:22px 20px;margin-bottom:14px;background-image:radial-gradient(circle at 85% 20%,rgba(224,149,43,.45),transparent 55%)}
+.hero h1.t{color:#fff;margin:2px 0 0}
+.grp{font-size:16px;color:var(--muted);margin:22px 0 8px;font-weight:700;letter-spacing:.04em}
+.today{background:var(--warm-s);border:1px solid #F0C98E;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:16px}
+.today a{color:var(--pri);font-weight:700}
+.recent{margin-top:26px}
+.recent h2{font-size:19px;margin:0 0 10px}
+.rq{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:#fff;border:1px solid var(--line);margin-bottom:6px;color:var(--ink);text-decoration:none}
+.rq:hover{border-color:var(--pri)}
+.rq small{color:var(--muted);display:block;font-size:14px}
+.rq b.m{white-space:nowrap}
+.inst{margin-top:22px;font-size:15px;color:var(--muted)}
+.alert{background:#fff;border:2px solid var(--warm);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.alert .h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-weight:800;font-size:18px}
+.alert ul{margin:6px 0 0;padding-left:20px}
+.alert li{margin:3px 0}
+.alert li b{color:var(--acc)}
+.alert a{color:var(--ink)}
+.alert .btn2{height:40px;font-size:15px;padding:0 12px}
+.mc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:14px;cursor:pointer}
+.mc .mh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800}
+.mc .mh span{font-weight:400;font-size:14px;color:var(--muted)}
+.mc .g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-top:6px;text-align:center}
+.mc .w{font-size:12px;color:var(--muted)}
+.mc .d{font:inherit;font-size:13px;border:0;background:none;padding:3px 0 5px;border-radius:8px;position:relative;cursor:pointer;color:var(--ink);min-width:0}
+.mc .d.o{color:#c9bfb2}
+.mc .d.t{background:var(--warm);color:#2a1a04;font-weight:800}
+.mc .d i{position:absolute;left:50%;bottom:1px;transform:translateX(-50%);display:flex;gap:2px}
+.mc .d i s{width:5px;height:5px;border-radius:50%;background:var(--pri);display:block}
+.mc .d i s.k1{background:#b26b12}.mc .d i s.k2{background:#2E6A4E}.mc .d i s.k3,.mc .d i s.k4,.mc .d i s.k5{background:#9B3A22}
+.mc .d em{display:none}
+.mc.big{cursor:default}
+.mc.big .d{min-height:64px;text-align:left;padding:3px 4px;border:1px solid var(--line2);font-size:14px;display:flex;flex-direction:column;gap:1px}
+.mc.big .d i{display:none}
+.mc.big .d em{display:block;font-style:normal;font-size:11.5px;line-height:1.25;background:var(--pri);color:#fff;border-radius:4px;padding:0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc.big .d em.k1{background:#b26b12}.mc.big .d em.k2{background:#2E6A4E}.mc.big .d em.k3,.mc.big .d em.k4,.mc.big .d em.k5{background:#9B3A22}
+.mc .ft{display:none;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}
+.mc.big .ft{display:flex}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="hero">
+    <div class="brandline" id="cname">데코브라이트</div>
+    <h1 class="t">간접 조명 · 실링팬 업무</h1>
+  </div>
+  <section class="alert" id="alert" hidden aria-live="polite">
+    <div class="h"><span>🔔 다가오는 작업 알림</span><span><button class="btn2 pri" type="button" id="say">🔊 소리로 듣기</button> <button class="btn2" type="button" id="noti">휴대폰 알림 켜기</button></span></div>
+    <ul id="alist"></ul>
+  </section>
+  <section class="mc" id="mc" aria-label="이번 달 일정 (누르면 크게)">
+    <div class="mh"><b id="mct"></b><span id="mcs">누르면 크게 보기</span></div>
+    <div class="g" id="mcg"></div>
+    <div class="ft"><button class="btn2" type="button" id="mcSmall">작게 접기</button><a class="btn2 pri" href="calendar.html">달력에서 일정 추가 ›</a></div>
+  </section>
+  <div class="today" id="today" hidden></div>
+  <nav class="menu" aria-label="메뉴">
+    <a class="main" href="quote.html"><b>새 견적 작성</b><span>견적 → 계약 안내 문자까지</span></a>
+    <a href="list.html"><b>견적 목록</b><span id="cnt">이 기기에 저장한 견적</span></a>
+  </nav>
+  <h2 class="grp">고객·일정</h2>
+  <nav class="menu" aria-label="고객·일정">
+    <a href="customers.html"><b>고객 관리</b><span id="ccnt">상담 기록·견적·시공 내역</span></a>
+    <a href="calendar.html"><b>시공 달력</b><span>시공·실측·상담 일정</span></a>
+  </nav>
+  <h2 class="grp">현장 작업</h2>
+  <nav class="menu" aria-label="현장 작업">
+    <a href="orders.html"><b>작업 지시서</b><span id="ocnt">목수·전기·도배 거래처 지시·연락처, 문자 보내기</span></a>
+    <a href="photos.html"><b>작업 사진 보관함</b><span>현장별 시공 전·중·후 사진</span></a>
+    <a href="sns.html"><b>홍보 글 만들기</b><span>사진으로 인스타그램·블로그 글 자동 작성</span></a>
+  </nav>
+  <h2 class="grp">기타</h2>
+  <nav class="menu" aria-label="기타">
+    <a href="memo.html"><b>메모장</b><span>할 일·자재·전화 내용</span></a>
+    <a href="prices.html"><b>가격표 관리</b><span>패키지·항목 단가 고치기, 새 항목 추가</span></a>
+    <a href="settings.html"><b>회사 정보 설정</b><span>상호·연락처·계좌·계약 안내 문구</span></a>
+    <button type="button" id="installBtn"><b>휴대폰에 설치</b><span id="instTxt">홈 화면에 아이콘 만들기</span></button>
+  </nav>
+  <section class="recent" id="recentBox" hidden>
+    <h2>최근 견적</h2>
+    <div id="recent"></div>
+  </section>
+  <p class="inst">※ 지금은 견적이 <b>이 기기에만</b> 저장됩니다. 다른 기기에서 보려면 견적서를 PDF로 저장해 보내 주세요.</p>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var s = DECO.settings(), L = DECO.list();
+  document.getElementById('cname').textContent = s.company;
+  document.getElementById('cnt').textContent = L.length ? '저장된 견적 ' + L.length + '건' : '아직 저장한 견적이 없습니다';
+  var td = DECO.today(), O = DECO.orders(), up = O.filter(function (o) { return o.status !== '완료' && o.status !== '보류' && o.workDate >= td; });
+  var tn = up.filter(function (o) { return o.workDate === td; }).length;
+  if (up.length) document.getElementById('ocnt').textContent = (tn ? '오늘 작업 ' + tn + '건 · ' : '') + '다가오는 작업 ' + up.length + '건';
+  var C = DECO.customers(), PT = DECO.partners(); if (C.length) document.getElementById("ccnt").textContent = "고객 " + C.length + "명";
+  if (false) document.getElementById("pcnt").textContent = DECO.TRADES.map(function (t) { return t + " " + PT.filter(function (p) { return p.trade === t; }).length; }).join(" · ");
+  var tw = O.filter(function (o) { return o.workDate === td && o.status !== "완료"; }), te = DECO.events().filter(function (e) { return e.date === td && !e.done; });
+  if (tw.length || te.length) { var tb = document.getElementById("today"); tb.hidden = false;
+    tb.innerHTML = "<b>오늘</b> · " + tw.map(function (o) { return "시공 " + DECO.esc(o.name || "") + " " + DECO.esc(o.workTime || ""); }).concat(te.map(function (e) { return DECO.esc(e.kind) + " " + DECO.esc(e.time || ""); })).join(", ") + " · <a href=\"calendar.html\">달력 보기 ›</a>"; }
+  if (L.length) {
+    document.getElementById('recentBox').hidden = false;
+    document.getElementById('recent').innerHTML = L.slice(0, 3).map(function (q) {
+      return '<a class="rq" href="quote.html?id=' + encodeURIComponent(q.id) + '"><span>' + DECO.esc((q.cust && q.cust.name) || '이름 없음') + ' 님' +
+        '<small>' + DECO.esc(q.no) + ' · ' + DECO.date(q.updated) + (q.cust && q.cust.addr ? ' · ' + DECO.esc(q.cust.addr) : '') + '</small></span><b class="m">' + DECO.won(q.totals && q.totals.total) + '</b></a>';
+    }).join('');
+  }
+  var ev = null, btn = document.getElementById('installBtn'), tx = document.getElementById('instTxt');
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; tx.textContent = '눌러서 바로 설치'; });
+  btn.addEventListener('click', function () {
+    if (ev) { ev.prompt(); ev = null; return; }
+    alert('휴대폰 설치 방법\n\n· 안드로이드(크롬): 오른쪽 위 ⋮ → 「홈 화면에 추가」\n· 아이폰(사파리): 아래 공유 버튼 → 「홈 화면에 추가」\n\n※ 인터넷 주소로 올린 뒤에 설치할 수 있습니다.');
+  });
+})();
+</script>
+<script>
+// 상단 작은 달력 (누르면 크게) + 작업 7일·3일·1일 전 음성 알림
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, mc = $('mc'), td = DECO.today(), now = new Date(td + 'T00:00');
+  function cal() { var y = now.getFullYear(), m = now.getMonth(), first = new Date(y, m, 1), st = new Date(y, m, 1 - first.getDay()), n = 0, h = '';
+    $('mct').textContent = (m + 1) + '월 일정';
+    h += '일월화수목금토'.split('').map(function (w) { return '<div class="w">' + w + '</div>'; }).join('');
+    for (var i = 0; i < 42; i++) { var d = new Date(st.getFullYear(), st.getMonth(), st.getDate() + i), ds = DECO.ymd(d); if (i >= 35 && d.getMonth() !== m) break;
+      var its = DECO.dayItems(ds); if (d.getMonth() === m) n += its.length;
+      h += '<button type="button" class="d' + (d.getMonth() !== m ? ' o' : '') + (ds === td ? ' t' : '') + '" data-d="' + ds + '" aria-label="' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + its.length + '건">' + d.getDate() +
+        (its.length ? '<i>' + its.slice(0, 3).map(function (x) { return '<s class="k' + x.k + '"></s>'; }).join('') + '</i>' : '') +
+        its.slice(0, 2).map(function (x) { return '<em class="k' + x.k + '">' + E((x.time ? x.time.slice(0, 5) + ' ' : '') + x.t) + '</em>'; }).join('') + '</button>'; }
+    $('mcg').innerHTML = h; $('mcs').textContent = (n ? '이번 달 ' + n + '건 · ' : '') + (mc.classList.contains('big') ? '날짜를 누르면 그날 일정' : '누르면 크게 보기'); }
+  mc.addEventListener('click', function (e) { var b = e.target.closest('.d');
+    if (!mc.classList.contains('big')) { mc.classList.add('big'); cal(); return; }
+    if (b) location.href = 'calendar.html?d=' + b.dataset.d; });
+  $('mcSmall').addEventListener('click', function (e) { e.stopPropagation(); mc.classList.remove('big'); cal(); });
+  cal();
+  // 알림
+  var A = DECO.alerts(), KS = 'deco-spoken';
+  if (!A.length) return;
+  $('alert').hidden = false;
+  $('alist').innerHTML = A.map(function (a) { return '<li><a href="' + a.href + '"><b>' + (a.n === 0 ? '오늘' : a.n === 1 ? '내일' : a.n === 3 ? '3일 전' : '일주일 전') + '</b> · ' + E(DECO.alertText(a)) + (a.where ? ' (' + E(a.where) + ')' : '') + '</a></li>'; }).join('');
+  var text = '데코브라이트 알림입니다. ' + A.map(DECO.alertText).join(' ');
+  function heard() { try { var o = JSON.parse(localStorage.getItem(KS) || '{}'); A.forEach(function (a) { o[a.key + '#' + td] = 1; }); localStorage.setItem(KS, JSON.stringify(o)); } catch (e) {} }
+  function fresh() { try { var o = JSON.parse(localStorage.getItem(KS) || '{}'); return A.some(function (a) { return !o[a.key + '#' + td]; }); } catch (e) { return true; } }
+  $('say').addEventListener('click', function (e) { e.stopPropagation(); DECO.speak(text); heard(); });
+  // 오늘 아직 안 들은 알림은 화면을 열 때(막히면 처음 누를 때) 한 번 읽어 줌
+  if (fresh()) { var go = function () { if (DECO.speak(text)) heard(); document.removeEventListener('pointerdown', go); };
+    if ('speechSynthesis' in window) { speechSynthesis.getVoices(); setTimeout(function () { if (navigator.userActivation && !navigator.userActivation.hasBeenActive) document.addEventListener('pointerdown', go); else go(); }, 600); } }
+  // 휴대폰 알림 (앱을 열었을 때 알림창에도 띄움)
+  var nb = $('noti');
+  if (!('Notification' in window)) nb.hidden = true; else if (Notification.permission === 'granted') nb.hidden = true;
+  function pop() { if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    A.forEach(function (a) { var t = '데코브라이트 · ' + (a.n === 0 ? '오늘 작업' : a.n === 1 ? '내일 작업' : a.n + '일 뒤 작업'), b = DECO.alertText(a);
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(function (r) { r.showNotification(t, { body: b, tag: a.key, icon: 'icons/icon.svg' }); }).catch(function () { try { new Notification(t, { body: b }); } catch (e) {} });
+      else try { new Notification(t, { body: b }); } catch (e) {} }); }
+  nb.addEventListener('click', function (e) { e.stopPropagation(); Notification.requestPermission().then(function (p) { if (p === 'granted') { nb.hidden = true; pop(); } }); });
+  if (fresh()) pop();
+})();
+</script>
+</body>
+</html>

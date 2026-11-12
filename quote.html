@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>데코브라이트 천장 견적</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3B2F2A">
+<style>
+/* 레이아웃: 왼쪽 큰 미리보기(밤 천장 캔버스) + 오른쪽 견적 패널, 폰에서는 위아래로 쌓임 */
+:root{
+  --bg:#FBF6EE; --surface:#ffffff; --ink:#1B1E22; --muted:#5d6168; --line:#E6D9C6;
+  --night:#1b2233; --warm:#e9a23b; --warm-ink:#7a4a0e; --warm-soft:#fbefdc; --ok:#2E6A4E; --bad:#B42318;
+  --f-display:"Noto Sans KR",sans-serif;
+  --f-body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-num:"Noto Sans KR","Malgun Gothic",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;word-break:keep-all;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px}
+.brand{font-family:var(--f-num);font-size:12px;letter-spacing:.18em;color:var(--warm-ink);text-transform:none}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4.4vw,38px);line-height:1.25;margin:4px 0 0;text-wrap:balance}
+.lead{color:var(--muted);margin:0;max-width:52ch}
+.grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--night);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0;color:#e4e6ec}
+.canvas-box{position:relative;border-radius:10px;overflow:hidden;background:#000;touch-action:none}
+canvas#view{display:block;width:100%;height:auto;cursor:default}
+.tag{position:absolute;top:10px;padding:3px 9px;border-radius:10px;font-size:12px;font-weight:600;background:rgba(10,12,18,.72);color:#fff;pointer-events:none}
+.tag.l{left:10px}.tag.r{right:10px;color:#ffd99a}
+.tag.demo{left:50%;transform:translateX(-50%);top:auto;bottom:10px;background:rgba(233,162,59,.94);color:#2a1a04;white-space:nowrap}
+.tag.edit{left:50%;transform:translateX(-50%);top:10px;background:rgba(80,190,230,.92);color:#04212c}
+.stage-row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;font-size:13px;color:#c9cdd8}
+.stage-row label.slider{display:flex;align-items:center;gap:10px;flex:1 1 220px}
+input[type=range]{flex:1;accent-color:#e9a23b}
+.seg{display:inline-flex;border:1px solid #3a4358;border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;background:transparent;color:#c9cdd8;border:0;padding:8px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#e9a23b;color:#2a1a04;font-weight:600}
+.seg button:focus-visible,.btn:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+.btn{font:inherit;font-weight:600;border-radius:10px;padding:9px 13px;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center;font-size:14px}
+.btn-warm{background:var(--warm);color:#2a1a04}
+.btn-warm:hover{filter:brightness(1.06)}
+.btn-ghost{background:transparent;color:#e4e6ec;border-color:#3a4358}
+.btn-ghost:hover{background:#252d40}
+.btn-ghost[aria-pressed="true"]{background:#50bee6;color:#04212c;border-color:#50bee6}
+.btn-line{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.btn-line:hover{border-color:var(--warm)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.drop{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.drop input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.tools{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+@media (max-width:700px){.tools{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.tool{font:inherit;text-align:left;background:#202839;color:#e4e6ec;border:1px solid #3a4358;border-radius:10px;padding:9px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tool b{font-size:14px;font-weight:600}
+.tool span{font-size:11.5px;color:#9ea6b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool[aria-pressed="true"]{background:#e9a23b;border-color:#e9a23b;color:#2a1a04}
+.tool[aria-pressed="true"] span{color:#5a3a0c}
+.tool:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+.toolhint{margin:0;font-size:13px;color:#c9cdd8}
+.selbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:#202839;border-radius:10px;padding:10px;font-size:13px}
+.selbar strong{color:#ffd99a}
+.selbar .slider{display:flex;align-items:center;gap:8px;flex:1 1 180px}
+.editbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#202839;border-radius:10px;padding:10px}
+.editbar .hint{flex:1 1 100%;font-size:12.5px;color:#aab1c2;margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:#c9cdd8}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#dfe2ea;cursor:pointer}
+.chk input{accent-color:#50bee6}
+.ai-note{background:#252d40;color:#e8eaf0;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.55}
+.ai-note b{color:#ffd99a}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel h2{font-family:var(--f-display);font-size:20px;margin:0}
+.step{font-family:var(--f-num);font-size:11.5px;letter-spacing:.14em;color:var(--warm-ink);text-transform:none}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--warm);background:var(--warm-soft)}
+.opt:has(input:disabled){opacity:.5;cursor:not-allowed}
+.opt input{margin-top:3px;accent-color:#c9831f;width:16px;height:16px}
+.opt strong{display:block;font-weight:600}
+.opt small{color:var(--muted);font-size:12.5px;line-height:1.45;display:block}
+.price{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:14px}
+.price.tbd{font-family:var(--f-body);font-size:12.5px;color:var(--muted)}
+.opt .pdesc{color:var(--muted);font-size:12px;line-height:1.5;display:block;margin-top:2px}
+.lines{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.lines div{display:flex;justify-content:space-between;gap:12px}
+.lines span:last-child{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lines .sub{color:var(--muted)}
+.total{border-top:2px solid var(--ink);padding-top:12px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.total .sum{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:28px;font-weight:500}
+.fine{color:var(--muted);font-size:12.5px;margin:0}
+.qcard{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.qcard h3{margin:0;font-size:15px;font-weight:700;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.badge{font-size:11px;font-weight:500;color:var(--warm-ink);background:var(--warm-soft);border-radius:10px;padding:2px 8px}
+.cust{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cust label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.fld{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13.5px;background:var(--surface);color:var(--ink)}
+.fld:focus-visible{outline:2px solid var(--warm);outline-offset:1px}
+.irow{display:grid;grid-template-columns:22px minmax(0,1fr) auto;grid-template-areas:"c n a" ". p q";gap:6px 10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.irow:last-child{border-bottom:0}
+.irow .chk2{grid-area:c;width:16px;height:16px;accent-color:#c9831f}
+.irow .nm{grid-area:n;min-width:0}
+.irow .nm b{font-weight:600;display:block}
+.irow .nm small{color:var(--muted);font-size:11.5px;display:block}
+.irow .amt{grid-area:a;font-family:var(--f-num);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.irow .up{grid-area:p;color:var(--muted);font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:12.5px}
+.irow .up input{width:110px;text-align:right;padding:4px 6px;border:1px solid var(--warm);border-radius:10px;background:var(--warm-soft);font:inherit;color:var(--ink)}
+.irow select{margin-top:4px;padding:3px 6px;border:1px solid var(--warm);border-radius:10px;background:var(--warm-soft);font:inherit;font-size:12px;color:var(--ink)}
+.irow.off .nm b,.irow.off .amt{color:var(--muted);font-weight:500}
+.qty{grid-area:q;display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.qty button{width:30px;height:30px;border:0;background:var(--warm-soft);color:var(--ink);font-size:16px;cursor:pointer}
+.qty input{width:40px;text-align:center;border:0;font:inherit;padding:4px 0;background:var(--surface);color:var(--ink)}
+.etc-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 30px;gap:6px}
+.etc-row .del{border:0;background:none;color:var(--bad);font-size:18px;cursor:pointer}
+.add-etc{background:none;border:1px dashed var(--warm);color:var(--warm-ink);border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer;align-self:flex-start}
+.summary{background:var(--warm-soft);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:5px;font-size:13.5px}
+.summary div{display:flex;justify-content:space-between;gap:12px}
+.summary span:last-child{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.summary .tot{border-top:2px solid var(--ink);margin-top:6px;padding-top:8px;align-items:baseline;font-weight:700}
+.summary .tot span:last-child{font-size:24px;font-weight:500}
+.contact{background:var(--warm-soft);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.phone{font-family:var(--f-num);font-size:20px;user-select:all}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.toast{min-height:1.3em;font-size:13px;color:var(--ok);margin:0}
+.toast.bad{color:var(--bad)}
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.how{grid-template-columns:minmax(0,1fr)}}
+.how div{border-top:1px solid var(--line);padding-top:10px}
+.how b{font-family:var(--f-display);font-size:16px;display:block}
+.how span{color:var(--muted);font-size:13.5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+      <div class="brand">데코브라이트 · 하루 천장 시공</div>
+      <h1>사진 한 장으로 천장 견적과 완성 모습 보기</h1>
+    </div>
+    <p class="lead">우리 집 사진을 올리고 위의 실링팬, 다운라이트, 커튼박스 조명, 우물 조명을 하나씩 골라 사진 위에 붙여 보세요. 붙인 조명은 끌어서 옮기고 크기를 바꿀 수 있습니다.</p>
+  </header>
+
+  <div class="grid">
+    <section class="stage" aria-label="시공 미리보기">
+      <div class="tools" role="toolbar" aria-label="사진에 붙일 항목">
+        <button type="button" class="tool" data-tool="fan" aria-pressed="false"><b>실링팬</b><span>눌러서 붙이기</span></button>
+        <button type="button" class="tool" data-tool="down" aria-pressed="false"><b>다운라이트</b><span>누를 때마다 1개</span></button>
+        <button type="button" class="tool" data-tool="wall" aria-pressed="false"><b>벽비춤 다운라이트</b><span>벽에 빛자국</span></button>
+        <button type="button" class="tool" data-tool="curtain" aria-pressed="false"><b>커튼박스 조명</b><span>끝에서 끝까지 끌기</span></button>
+        <button type="button" class="tool" data-tool="cove" aria-pressed="false"><b>우물 조명</b><span>모서리 4곳 누르기</span></button>
+        <button type="button" class="tool" data-tool="select" aria-pressed="true"><b>옮기기</b><span>끌어서 위치 조정</span></button>
+      </div>
+      <p class="toolhint" id="toolHint" role="status">위에서 항목을 고른 뒤 사진을 누르면 그 자리에 붙습니다.</p>
+      <div class="selbar" id="selbar" hidden>
+        <strong id="selName">선택한 항목</strong>
+        <label class="slider" for="selSize" id="sizeWrap">크기 <input id="selSize" type="range" min="40" max="220" value="100"></label>
+        <div class="seg" role="group" aria-label="간접등 줄 수" id="segLines" hidden>
+          <button type="button" data-v="1" aria-pressed="true">1줄</button>
+          <button type="button" data-v="2" aria-pressed="false">2줄</button>
+        </div>
+        <button class="btn btn-ghost" id="delSel" type="button">이 항목 지우기</button>
+      </div>
+      <div class="canvas-box" id="box">
+        <canvas id="view" width="1600" height="1000" aria-label="왼쪽은 시공 전, 오른쪽은 시공 후 예상 모습"></canvas>
+        <span class="tag l">시공 전</span>
+        <span class="tag r">시공 후 (예상)</span>
+        <span class="tag edit" id="editTag" hidden></span>
+        <span class="tag demo" id="demoTag">예시 사진입니다 · 우리 집 사진을 올려 보세요</span>
+      </div>
+      <div class="stage-row">
+        <label class="slider" for="split">전 · 후 비교 <input id="split" type="range" min="0" max="100" value="30"></label>
+        <label class="slider" for="persp">사진 각도 <input id="persp" type="range" min="25" max="100" value="45"></label>
+      </div>
+      <div class="drop">
+        <label class="btn btn-warm" for="photo">사진 올리기</label>
+        <input id="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+        <button class="btn btn-ghost" id="planBtn" type="button">사진 없이 거실 평면도로 배치</button>
+        <button class="btn btn-ghost" id="demoBtn" type="button">실제 시공 사진 보기</button>
+        <button class="btn btn-ghost" id="aiBtn" type="button" hidden>자동 배치</button>
+        <button class="btn btn-ghost" id="clearBtn" type="button">붙인 항목 모두 지우기</button>
+        <button class="btn btn-ghost" id="saveBtn" type="button" hidden>이미지 저장</button>
+      </div>
+      <div class="stage-row">
+        <span>조명 색</span>
+        <div class="seg" role="group" aria-label="조명 색온도" id="segK">
+          <button type="button" data-k="2700" aria-pressed="true">전구색</button>
+          <button type="button" data-k="4000" aria-pressed="false">주백색</button>
+          <button type="button" data-k="6500" aria-pressed="false">주광색</button>
+        </div>
+        <span>우물 모서리</span>
+        <div class="seg" role="group" aria-label="우물 모서리" id="segShape">
+          <button type="button" data-v="round" aria-pressed="true">라운드</button>
+          <button type="button" data-v="square" aria-pressed="false">직각</button>
+        </div>
+        <span>실링팬</span>
+        <div class="seg" role="group" aria-label="실링팬 날개 색" id="segFan">
+          <button type="button" data-v="white" aria-pressed="true">화이트</button>
+          <button type="button" data-v="wood" aria-pressed="false">우드</button>
+        </div>
+      </div>
+      <div class="ai-note" id="aiNote" hidden></div>
+    </section>
+
+    <aside class="panel" aria-label="견적">
+      <div>
+        <div class="step">2단계 · 견적</div>
+        <h2>견적 작성</h2>
+      </div>
+      <div class="qcard" style="border-top:0;padding-top:0">
+        <h3>고객 정보</h3>
+        <div class="cust">
+          <label>고객명<input class="fld" id="custName" placeholder="예: 홍길동"></label>
+          <label>연락처<input class="fld" id="custPhone" placeholder="010-0000-0000" inputmode="tel"></label>
+          <label style="grid-column:1/-1">현장주소<input class="fld" id="custAddr" placeholder="예: 창원시 성산구 ..."></label>
+          <label>담당자<input class="fld" id="custStaff" placeholder="담당 직원명"></label>
+          <label>진행 상태<select class="fld" id="qStatus"></select></label>
+        </div>
+      </div>
+      <div class="qcard">
+        <h3>패키지 <span class="badge">1개 선택 · 선택안함 가능</span></h3>
+        <div class="opts" id="pkgs" role="radiogroup" aria-label="패키지"></div>
+      </div>
+      <div class="qcard">
+        <h3>추가 항목 <span class="badge">수량 클릭으로 조절</span></h3>
+        <button class="btn btn-line" id="syncQty" type="button">사진에 붙인 조명 수만큼 수량 넣기</button>
+        <div id="itemList"></div>
+      </div>
+      <div class="qcard">
+        <h3>기타 (직접 입력)</h3>
+        <div id="etcList" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button class="add-etc" id="addEtc" type="button">+ 기타 항목 추가</button>
+      </div>
+      <div class="qcard">
+        <h3>비고 <span class="badge">견적서에 표시됩니다</span></h3>
+        <textarea class="fld" id="memoInput" rows="3" placeholder="공사 일정, 결제 조건, 특이사항 등"></textarea>
+      </div>
+      <div class="summary" aria-live="polite">
+        <div><span>패키지 금액</span><span id="sumPkg">0원</span></div>
+        <div><span>추가 항목 합계</span><span id="sumItems">0원</span></div>
+        <div><span>기타 합계</span><span id="sumEtc">0원</span></div>
+        <div><span>할인 (빼는 금액)</span><span><input id="discount" class="fld" type="number" min="0" step="10000" placeholder="0" style="width:130px;text-align:right;padding:4px 8px" aria-label="할인 금액"></span></div>
+        <div><span>공급가액 합계</span><span id="sumSupply">0원</span></div>
+        <div><span>부가세(10%)</span><span id="sumVat">0원</span></div>
+        <div class="tot"><span>합계금액</span><span id="sumTotal">0원</span></div>
+      </div>
+      <button class="btn btn-ghost" id="resetQ" type="button" style="align-self:flex-start">견적 초기화</button>
+      <p class="fine">사진 기준 예상 금액입니다. 실측과 현장 여건(천장 구조, 배선, 실링팬 모델)에 따라 달라질 수 있으며 방문 확인 후 확정됩니다.</p>
+      <div class="contact">
+        <div class="step">3단계 · 저장·인쇄·보내기</div>
+        <div>전화 또는 문자로 이 견적을 보내 주세요.</div>
+        <div class="phone" id="phone"></div>
+        <div class="fine" id="qno"></div>
+        <div class="row">
+          <button class="btn btn-line" id="copyPhone" type="button">번호 복사</button>
+          <button class="btn btn-line" id="copyQuote" type="button">견적 내용 복사</button>
+        </div>
+        <div class="row">
+          <button class="btn btn-warm big" id="saveQuote" type="button">견적 저장</button>
+          <button class="btn btn-line big" id="printQuote" type="button">견적서 인쇄·PDF</button>
+        </div>
+        <div class="row">
+          <button class="btn btn-line big" id="toOrder" type="button">작업 지시서 만들기</button>
+          <button class="btn btn-line big" id="toPhotos" type="button">현장 사진 보관함</button>
+          <button class="btn btn-warm big" id="toContract" type="button">계약 안내 문자</button>
+        </div>
+        <p class="toast" id="toast" role="status"></p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="how" aria-label="진행 순서">
+    <div><b>1. 사진 올리기</b><span>거실 전체를 찍거나 천장을 아래에서 올려다본 사진을 올려 주세요.</span></div>
+    <div><b>2. 견적과 모습 확인</b><span>시공 항목을 고르면 금액과 완성 모습이 바로 바뀝니다. 조명 위치는 직접 옮길 수 있습니다.</span></div>
+    <div><b>3. 하루 시공</b><span>방문 확인 후 일정을 잡고, 전기·목공·도배를 하루에 끝냅니다.</span></div>
+  </section>
+</div>
+
+<script src="common.js"></script>
+<script src="prices-default.js"></script>
+<script src="real-photos.js"></script>
+<script>
+(() => {
+  // ---------- prices: 데코브라이트 견적프로그램(최신) 기준, 공급가액 ----------
+  // 가격표: prices-default.js 기본값 + 가격표 관리 화면에서 고친 값
+  const PKGS = DECO.pkgs();
+  const QI0 = DECO.items();
+  let QI = QI0.map(x=>({...x, qty:0, opt:""})), etcRows = [], etcId = 1;
+  const DL_PRICE = 30000;
+  const won = n => Math.round(n).toLocaleString("ko-KR") + "원";
+  const $ = id => document.getElementById(id);
+  const cv = $("view"), ctx = cv.getContext("2d");
+  const after = document.createElement("canvas"), actx = after.getContext("2d");
+
+  let bg = {kind:"demo", img:null, old:[]};
+  let items = [], uid = 0, tool = "select", selId = null, pending = null;
+  let pkg = "p3";
+  let kelvin = 2700, shape = "round", fanColor = "white";
+  const P = () => PKGS.find(p => p.id === pkg);
+  const isPlan = () => bg.kind === "plan";
+  const isReal = () => bg.kind === "real";
+  // 실제 시공 사진: 켜진 조명 빛(시공 후 − 시공 전)만 골라 선택한 색온도로 다시 칠함
+  const realCache = {};
+  function realLit(){
+    if (realCache[kelvin]) return realCache[kelvin];
+    const w=bg.img.width, h=bg.img.height, c=document.createElement("canvas"); c.width=w; c.height=h; const g=c.getContext("2d");
+    g.drawImage(bg.img,0,0); const B=g.getImageData(0,0,w,h).data; g.drawImage(bg.lit,0,0); const A=g.getImageData(0,0,w,h);
+    const d=A.data, k=KC[kelvin], lk=.299*k[0]+.587*k[1]+.114*k[2], cr=k[0]/lk, cg=k[1]/lk, cb=k[2]/lk;
+    for (let i=0;i<d.length;i+=4){ const dr=d[i]-B[i], dg=d[i+1]-B[i+1], db=d[i+2]-B[i+2], l=Math.max(0,.299*dr+.587*dg+.114*db);
+      if (l<=0) continue; const w=Math.min(1,1.25*l/(Math.max(Math.abs(dr),Math.abs(dg),Math.abs(db))+1));
+      d[i]=Math.max(0,Math.min(255,d[i]+w*(l*cr-dr))); d[i+1]=Math.max(0,Math.min(255,d[i+1]+w*(l*cg-dg))); d[i+2]=Math.max(0,Math.min(255,d[i+2]+w*(l*cb-db))); }
+    g.putImageData(A,0,0); return realCache[kelvin]=c; }
+  const persp = () => isPlan() ? 1 : Number($("persp").value)/100;
+  const KC = {2700:[255,174,88], 4000:[255,232,204], 6500:[214,230,255]};
+  const kc = a => `rgba(${KC[kelvin].join(",")},${a})`;
+  const kcore = () => kelvin === 6500 ? "#f4f8ff" : kelvin === 4000 ? "#fffaf2" : "#ffe4bd";
+  const NAMES = {fan:"실링팬", down:"다운라이트", wall:"벽비춤 다운라이트", curtain:"커튼박스 조명", cove:"우물 조명"};
+
+  // ---------- small geometry helpers (normalized 0..1) ----------
+  const L = (a,b,t) => ({x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t});
+  function bil(q,u,v){ const [A,B,C,D]=q; return {x:(1-u)*(1-v)*A.x+u*(1-v)*B.x+u*v*C.x+(1-u)*v*D.x, y:(1-u)*(1-v)*A.y+u*(1-v)*B.y+u*v*C.y+(1-u)*v*D.y}; }
+  const insetQ = (q,iu,iv) => [bil(q,iu,iv),bil(q,1-iu,iv),bil(q,1-iu,1-iv),bil(q,iu,1-iv)];
+  const centroid = q => ({x:q.reduce((s,p)=>s+p.x,0)/q.length, y:q.reduce((s,p)=>s+p.y,0)/q.length});
+  const W = () => after.width, H = () => after.height, M = () => Math.min(after.width, after.height);
+  const px = p => ({x:p.x*W(), y:p.y*H()});
+
+  function path(g,q){ g.beginPath(); q.forEach((p,i)=>{ const a=px(p); i?g.lineTo(a.x,a.y):g.moveTo(a.x,a.y); }); g.closePath(); }
+  function roundPath(g,q,rad){ const pts=q.map(px); g.beginPath();
+    for (let i=0;i<4;i++){ const a=pts[(i+3)%4], b=pts[i], c=pts[(i+1)%4], la=Math.hypot(a.x-b.x,a.y-b.y)||1, lc=Math.hypot(c.x-b.x,c.y-b.y)||1, r=Math.min(rad,la*.3,lc*.3);
+      const p1={x:b.x+(a.x-b.x)/la*r,y:b.y+(a.y-b.y)/la*r}, p2={x:b.x+(c.x-b.x)/lc*r,y:b.y+(c.y-b.y)/lc*r};
+      i?g.lineTo(p1.x,p1.y):g.moveTo(p1.x,p1.y); g.quadraticCurveTo(b.x,b.y,p2.x,p2.y); } g.closePath(); }
+  const covePath = (g,q) => (shape==="round" || pkg==="p1") ? roundPath(g,q,M()*.06) : path(g,q);
+
+  // ---------- items ----------
+  const mk = (type, o) => ({id:++uid, type, size:100, lines:1, ...o});
+  function packageLayout(ceil, cove, curtain, fanAt, opt={}){
+    const f = P().f, list = [], q = cove || insetQ(ceil,.16,.16);
+    if (cove) list.push(mk("cove",{pts:cove.map(p=>({...p})), lines: Math.max(1, f.cove || 1)}));
+    if (curtain) list.push(mk("curtain",{a:{...curtain[0]}, b:{...curtain[1]}}));
+    if (f.fan || opt.fan) list.push(mk("fan",{x:fanAt.x, y:fanAt.y}));
+    const inN = f.inN || 8, r = insetQ(q,.08,.1), longN = Math.round(inN*.33), shortN = Math.max(0, Math.round((inN-2*longN)/2));
+    const edge=(a,b,n)=>{ for(let i=0;i<n;i++){ const p=L(r[a],r[b],(i+.5)/n); list.push(mk("down",{x:p.x,y:p.y})); } };
+    edge(0,1,longN); edge(3,2,longN); edge(0,3,shortN); edge(1,2,inN-2*longN-shortN);
+    const tvN = f.tvN || 6, per = Math.ceil(tvN/2);
+    for (let s=0;s<2;s++){ const [a,d] = s?[1,2]:[0,3]; for (let i=0;i<per;i++){ const t=(i+.5)/per, p=L(L(ceil[a],ceil[d],t),L(q[a],q[d],t),.5); list.push(mk("wall",{x:p.x,y:p.y})); } }
+    return list;
+  }
+
+  // ---------- backgrounds ----------
+  function makeDemo(){
+    const w=1600,h=1000,c=document.createElement("canvas"); c.width=w; c.height=h; const g=c.getContext("2d");
+    const P2=(x,y)=>[x*w,y*h], poly=(pts,fill)=>{g.beginPath(); pts.forEach((p,i)=>i?g.lineTo(...P2(...p)):g.moveTo(...P2(...p))); g.closePath(); g.fillStyle=fill; g.fill();};
+    let gr=g.createLinearGradient(0,0,0,.3*h); gr.addColorStop(0,"#c7c1b6"); gr.addColorStop(1,"#dcd7cd"); poly([[0,0],[1,0],[.775,.3],[.225,.3]],gr);
+    gr=g.createLinearGradient(0,0,.225*w,0); gr.addColorStop(0,"#bbb2a4"); gr.addColorStop(1,"#d3ccc0"); poly([[0,0],[.225,.3],[.225,.78],[0,1]],gr);
+    gr=g.createLinearGradient(w,0,.775*w,0); gr.addColorStop(0,"#b4ab9d"); gr.addColorStop(1,"#cfc8bc"); poly([[1,0],[.775,.3],[.775,.78],[1,1]],gr);
+    gr=g.createLinearGradient(0,.3*h,0,.78*h); gr.addColorStop(0,"#e1dcd2"); gr.addColorStop(1,"#d5cfc3"); poly([[.225,.3],[.775,.3],[.775,.78],[.225,.78]],gr);
+    gr=g.createLinearGradient(0,.78*h,0,h); gr.addColorStop(0,"#d9d3c8"); gr.addColorStop(1,"#c5bdb0"); poly([[.225,.78],[.775,.78],[1,1],[0,1]],gr);
+    g.strokeStyle="rgba(90,80,65,.16)"; g.lineWidth=2;
+    for(let i=1;i<8;i++){ const t=i/8; g.beginPath(); g.moveTo(...P2(.225+.55*t,.78)); g.lineTo(...P2(t,1)); g.stroke(); }
+    gr=g.createLinearGradient(0,.34*h,0,.72*h); gr.addColorStop(0,"#eef3f8"); gr.addColorStop(1,"#d7e0ea"); poly([[.3,.34],[.7,.34],[.7,.72],[.3,.72]],gr);
+    g.strokeStyle="#cfcac0"; g.lineWidth=10; [.3,.4,.5,.6,.7].forEach(x=>{ g.beginPath(); g.moveTo(...P2(x,.34)); g.lineTo(...P2(x,.72)); g.stroke(); }); g.strokeRect(...P2(.3,.34),.4*w,.38*h);
+    const curtain=(x0,x1)=>{ for(let i=0;i<8;i++){ const t0=x0+(x1-x0)*i/8, t1=x0+(x1-x0)*(i+1)/8;
+      gr=g.createLinearGradient(t0*w,0,t1*w,0); gr.addColorStop(0,"#e6e0d5"); gr.addColorStop(.5,"#f6f2ea"); gr.addColorStop(1,"#d6cec0"); poly([[t0,.315],[t1,.315],[t1,.775],[t0,.775]],gr);} };
+    curtain(.235,.31); curtain(.69,.765);
+    poly([[.215,.3],[.785,.3],[.775,.318],[.225,.318]],"rgba(70,62,52,.5)");
+    poly([[.07,.44],[.17,.47],[.17,.62],[.07,.64]],"#1e2126"); poly([[.04,.74],[.19,.73],[.19,.77],[.04,.79]],"#b9b0a2");
+    poly([[.84,.62],[.97,.6],[.98,.86],[.83,.84]],"#cfc6b8"); poly([[.8,.72],[.99,.70],[1,.9],[.79,.88]],"#ddd5c8");
+    const cq=[[0,0],[1,0],[.775,.3],[.225,.3]].map(([x,y])=>({x,y}));
+    g.strokeStyle="rgba(80,72,62,.42)"; g.lineWidth=4; g.beginPath(); insetQ(cq,.17,.2).forEach((p,i)=>i?g.lineTo(p.x*w,p.y*h):g.moveTo(p.x*w,p.y*h)); g.closePath(); g.stroke();
+    const ol=bil(cq,.5,.55); g.save(); g.translate(ol.x*w,ol.y*h); g.scale(1,.42); g.fillStyle="#f1eee7"; g.beginPath(); g.arc(0,0,105,0,Math.PI*2); g.fill(); g.strokeStyle="rgba(90,84,74,.45)"; g.lineWidth=5; g.stroke(); g.restore();
+    for(let i=0;i<9000;i++){ g.fillStyle=`rgba(${Math.random()<.5?40:255},${Math.random()<.5?36:252},30,${Math.random()*.03})`; g.fillRect(Math.random()*w,Math.random()*h,2,2); }
+    return {canvas:c, ceil:cq, cove:insetQ(cq,.17,.2), curtain:[bil(cq,.04,.93),bil(cq,.96,.93)], fan:ol, old:[{x:ol.x,y:ol.y,rx:105/w*1.15,ry:44/h*1.15}]};
+  }
+  // 거실 평면도(위에서 내려다본 천장 배치도)
+  function makePlan(){
+    const w=1600,h=1000,c=document.createElement("canvas"); c.width=w; c.height=h; const g=c.getContext("2d");
+    g.fillStyle="#efebe4"; g.fillRect(0,0,w,h);
+    g.strokeStyle="rgba(120,110,95,.08)"; g.lineWidth=1; for(let x=0;x<w;x+=40){ g.beginPath(); g.moveTo(x,0); g.lineTo(x,h); g.stroke(); } for(let y=0;y<h;y+=40){ g.beginPath(); g.moveTo(0,y); g.lineTo(w,y); g.stroke(); }
+    const R={x:120,y:110,w:1360,h:800};
+    g.fillStyle="#e3ddd2"; g.fillRect(R.x,R.y,R.w,R.h);
+    g.strokeStyle="#4a4339"; g.lineWidth=18; g.strokeRect(R.x,R.y,R.w,R.h);
+    g.fillStyle="#dfe9f2"; g.fillRect(R.x+200,R.y-9,R.w-400,18); g.strokeStyle="#7d8a96"; g.lineWidth=3; g.strokeRect(R.x+200,R.y-9,R.w-400,18);
+    g.setLineDash([14,10]); g.strokeStyle="#8a7b66"; g.lineWidth=3; g.strokeRect(R.x+20,R.y+20,R.w-40,40); g.setLineDash([]);
+    g.fillStyle="#2a2d33"; g.fillRect(R.x+14,R.y+280,26,240);
+    g.fillStyle="#b9b0a2"; g.fillRect(R.x+40,R.y+250,70,300);
+    g.fillStyle="#cfc6b8"; g.fillRect(R.x+R.w-210,R.y+230,190,340); g.fillStyle="#ddd5c8"; g.fillRect(R.x+R.w-180,R.y+250,150,300);
+    g.fillStyle="#d2c8b8"; g.fillRect(R.x+R.w/2-150,R.y+R.h-30,300,30);
+    g.fillStyle="#5c5347"; g.font="600 26px 'IBM Plex Sans KR', sans-serif"; g.textAlign="center";
+    g.fillText("창 · 베란다", w/2, R.y-24); g.fillText("현관·주방 방향", w/2, R.y+R.h+50);
+    g.save(); g.translate(R.x-40,h/2); g.rotate(-Math.PI/2); g.fillText("TV 벽", 0, 0); g.restore();
+    g.save(); g.translate(R.x+R.w+48,h/2); g.rotate(Math.PI/2); g.fillText("소파 벽", 0, 0); g.restore();
+    g.font="500 20px 'IBM Plex Sans KR', sans-serif"; g.fillStyle="#8a7b66"; g.fillText("커튼박스", w/2, R.y+48);
+    const n = (x,y)=>({x:x/w,y:y/h});
+    const ceil=[n(R.x,R.y),n(R.x+R.w,R.y),n(R.x+R.w,R.y+R.h),n(R.x,R.y+R.h)];
+    const cove=[n(R.x+260,R.y+200),n(R.x+R.w-260,R.y+200),n(R.x+R.w-260,R.y+R.h-170),n(R.x+260,R.y+R.h-170)];
+    g.setLineDash([10,8]); g.strokeStyle="rgba(90,80,65,.45)"; g.lineWidth=3; g.strokeRect(R.x+260,R.y+200,R.w-520,R.h-370); g.setLineDash([]);
+    g.fillStyle="rgba(90,80,65,.55)"; g.font="500 20px 'IBM Plex Sans KR', sans-serif"; g.fillText("우물 자리 (예시)", w/2, R.y+R.h-190);
+    return {canvas:c, ceil, cove, curtain:[n(R.x+40,R.y+40),n(R.x+R.w-40,R.y+40)], fan:centroid(cove)};
+  }
+
+  // ---------- drawing ----------
+  function sizeTo(w,h){ const m=1800, k=Math.min(1,m/Math.max(w,h)); cv.width=after.width=Math.round(w*k); cv.height=after.height=Math.round(h*k); }
+  function avgRing(g,cx,cy,rx,ry){ let r=0,gg=0,b=0,n=0;
+    for (let i=0;i<24;i++){ const a=i/24*Math.PI*2, x=Math.round(cx+Math.cos(a)*rx*1.35), y=Math.round(cy+Math.sin(a)*ry*1.35);
+      if (x<0||y<0||x>=W()||y>=H()) continue; try{ const d=g.getImageData(x,y,1,1).data; r+=d[0]; gg+=d[1]; b+=d[2]; n++; }catch{ return null; } }
+    return n?[r/n|0,gg/n|0,b/n|0]:null; }
+  function patchOld(g){ (bg.old||[]).forEach(o=>{ const cx=o.x*W(),cy=o.y*H(),rx=o.rx*W(),ry=o.ry*H(),col=avgRing(g,cx,cy,rx,ry); if(!col) return;
+    g.save(); g.translate(cx,cy); g.scale(1,ry/rx); const gr=g.createRadialGradient(0,0,rx*.6,0,0,rx*1.25); gr.addColorStop(0,`rgba(${col},1)`); gr.addColorStop(1,`rgba(${col},0)`);
+    g.fillStyle=gr; g.beginPath(); g.arc(0,0,rx*1.25,0,Math.PI*2); g.fill(); g.restore(); }); }
+  function coveWash(g,q,strength){
+    const m=M(), lw=Math.max(2,m*.0032);
+    g.save(); covePath(g,q); g.clip(); g.globalCompositeOperation="screen"; g.lineJoin="round";
+    g.fillStyle=kc(.06*strength); g.fillRect(0,0,W(),H());
+    for (let i=1;i<=6;i++){ g.strokeStyle=kc(.17*strength/i); g.lineWidth=m*.007*i; covePath(g,q); g.stroke(); }
+    g.restore();
+    g.save(); g.globalCompositeOperation="screen"; g.lineJoin="round"; g.strokeStyle=kc(.2*strength); g.lineWidth=lw*2.2; covePath(g,q); g.stroke();
+    g.strokeStyle=kcore(); g.lineWidth=lw; covePath(g,q); g.stroke(); g.restore(); }
+  function drawCove(g,it){
+    const q=it.pts, c=centroid(q), grow=q.map(p=>({x:c.x+(p.x-c.x)*1.03, y:c.y+(p.y-c.y)*1.05}));
+    g.save(); g.globalCompositeOperation="multiply"; g.strokeStyle="rgba(120,110,98,.22)"; g.lineWidth=M()*.014; covePath(g,grow); g.stroke(); g.restore();
+    coveWash(g,q,1); if (it.lines>1) coveWash(g, q.map(p=>({x:c.x+(p.x-c.x)*.9, y:c.y+(p.y-c.y)*.86})), .7); }
+  const rnd = i => { const x=Math.sin(i*127.1+311.7)*43758.5453; return x-Math.floor(x); };
+  function band(g,A,B,n,h,stops,op){ const mid={x:(A.x+B.x)/2,y:(A.y+B.y)/2}, gr=g.createLinearGradient(mid.x,mid.y,mid.x+n.x*h,mid.y+n.y*h);
+    stops.forEach(s=>gr.addColorStop(s[0],s[1])); g.globalCompositeOperation=op; g.fillStyle=gr;
+    g.beginPath(); g.moveTo(A.x,A.y); g.lineTo(B.x,B.y); g.lineTo(B.x+n.x*h,B.y+n.y*h); g.lineTo(A.x+n.x*h,A.y+n.y*h); g.closePath(); g.fill(); }
+  function drawCurtain(g,it){
+    const A=px(it.a), B=px(it.b), len=Math.hypot(B.x-A.x,B.y-A.y)||1; let n={x:-(B.y-A.y)/len, y:(B.x-A.x)/len};
+    if (isPlan()){ n = n.y<0 ? {x:-n.x,y:-n.y} : n;
+      g.save(); band(g,A,B,n,M()*.06,[[0,kc(.7)],[1,kc(0)]],"screen"); band(g,A,B,{x:-n.x,y:-n.y},M()*.03,[[0,kc(.6)],[1,kc(0)]],"screen");
+      g.globalCompositeOperation="screen"; g.strokeStyle=kcore(); g.lineWidth=Math.max(3,M()*.006); g.beginPath(); g.moveTo(A.x,A.y); g.lineTo(B.x,B.y); g.stroke(); g.restore(); return; }
+    if (n.y<0) n={x:-n.x,y:-n.y};
+    const h2=Math.max(60,len*.62), hc=Math.max(20,M()*.05);
+    g.save(); band(g,A,B,n,h2,[[0,kc(.95)],[.45,kc(.35)],[1,kc(0)]],"soft-light"); band(g,A,B,n,h2,[[0,kc(.62)],[.12,kc(.34)],[.5,kc(.1)],[1,kc(0)]],"screen");
+    const N=56; g.globalCompositeOperation="screen";
+    for (let i=0;i<N;i++){ const P0=L(A,B,i/N), P1=L(A,B,(i+1)/N), hh=h2*(.55+.45*rnd(i)), al=.04+.16*rnd(i+99), m2={x:(P0.x+P1.x)/2,y:(P0.y+P1.y)/2};
+      const gr=g.createLinearGradient(m2.x,m2.y,m2.x+n.x*hh,m2.y+n.y*hh); gr.addColorStop(0,kc(al)); gr.addColorStop(1,kc(0)); g.fillStyle=gr;
+      g.beginPath(); g.moveTo(P0.x,P0.y); g.lineTo(P1.x,P1.y); g.lineTo(P1.x+n.x*hh,P1.y+n.y*hh); g.lineTo(P0.x+n.x*hh,P0.y+n.y*hh); g.closePath(); g.fill(); }
+    band(g,A,B,{x:-n.x,y:-n.y},hc,[[0,kc(.5)],[1,kc(0)]],"screen");
+    g.globalCompositeOperation="screen"; g.strokeStyle=kcore(); g.lineWidth=Math.max(2,M()*.004); g.beginPath(); g.moveTo(A.x,A.y); g.lineTo(B.x,B.y); g.stroke(); g.restore(); }
+  function drawDown(g,it){
+    const p=px(it), r=M()*.0085*it.size/100, sq=persp();
+    if (it.type==="wall" && !isPlan()){ const w=r*5.5, hgt=w*5.2;
+      g.save(); g.globalCompositeOperation="screen"; g.translate(p.x, p.y+r*2.2); g.scale(w,hgt);
+      let gr=g.createRadialGradient(0,.32,0,0,.32,.7); gr.addColorStop(0,kc(.46)); gr.addColorStop(.45,kc(.17)); gr.addColorStop(1,kc(0)); g.fillStyle=gr; g.beginPath(); g.arc(0,.32,.7,0,Math.PI*2); g.fill();
+      gr=g.createRadialGradient(0,.04,0,0,.04,.22); gr.addColorStop(0,kc(.6)); gr.addColorStop(1,kc(0)); g.fillStyle=gr; g.beginPath(); g.arc(0,.04,.22,0,Math.PI*2); g.fill(); g.restore(); }
+    g.save(); g.translate(p.x,p.y); g.scale(r, r*sq);
+    g.save(); g.globalCompositeOperation="screen"; const halo=g.createRadialGradient(0,0,0,0,0,4.5); halo.addColorStop(0,kc(.7)); halo.addColorStop(.2,kc(.22)); halo.addColorStop(1,kc(0));
+    g.fillStyle=halo; g.beginPath(); g.arc(0,0,4.5,0,Math.PI*2); g.fill(); g.restore();
+    g.fillStyle="#bdb8ae"; g.beginPath(); g.arc(0,0,1.25,0,Math.PI*2); g.fill();
+    const core=g.createRadialGradient(0,0,0,0,0,1); core.addColorStop(0,"#ffffff"); core.addColorStop(1,kcore()); g.fillStyle=core; g.beginPath(); g.arc(0,0,1,0,Math.PI*2); g.fill();
+    g.restore(); }
+  function drawFan(g,it){
+    const p=px(it), R=M()*.13*it.size/100, sq=persp(), drop=isPlan()?0:R*(1-sq)*.75, wood=fanColor==="wood";
+    g.save(); g.translate(p.x,p.y); g.scale(R,R*sq); g.fillStyle="#efebe4"; g.beginPath(); g.arc(0,0,.13,0,Math.PI*2); g.fill(); g.restore();
+    if (drop>0){ g.save(); g.strokeStyle="#dcd7cd"; g.lineWidth=Math.max(3,R*.05); g.lineCap="round"; g.beginPath(); g.moveTo(p.x,p.y); g.lineTo(p.x,p.y+drop); g.stroke(); g.restore(); }
+    g.save(); g.translate(p.x,p.y+drop); g.scale(R,R*sq);
+    g.save(); g.shadowColor="rgba(0,0,0,.3)"; g.shadowBlur=R*.08; g.shadowOffsetY=R*.03;
+    for (let i=0;i<3;i++){ g.save(); g.rotate(i*2*Math.PI/3-Math.PI/2+.35); const bl=g.createLinearGradient(0,-.1,0,.1);
+      if (wood){ bl.addColorStop(0,"#8a6a4c"); bl.addColorStop(1,"#5e4632"); } else { bl.addColorStop(0,"#fdfcf9"); bl.addColorStop(1,"#d8d3c9"); }
+      g.fillStyle=bl; g.beginPath(); g.moveTo(.16,-.07); g.bezierCurveTo(.5,-.13,.92,-.1,1.02,-.02); g.bezierCurveTo(1.0,.07,.55,.09,.16,.06); g.closePath(); g.fill(); g.restore(); }
+    g.restore();
+    const hub=g.createRadialGradient(-.05,-.05,.02,0,0,.22); hub.addColorStop(0,"#ffffff"); hub.addColorStop(1,"#c6c0b5"); g.fillStyle=hub; g.beginPath(); g.arc(0,0,.2,0,Math.PI*2); g.fill();
+    g.globalCompositeOperation="screen"; const lk=g.createRadialGradient(0,0,0,0,0,.45); lk.addColorStop(0,kc(.95)); lk.addColorStop(.3,kc(.32)); lk.addColorStop(1,kc(0));
+    g.fillStyle=lk; g.beginPath(); g.arc(0,0,.45,0,Math.PI*2); g.fill(); g.restore(); }
+  function buildAfter(){
+    const g=actx; g.globalCompositeOperation="source-over"; g.clearRect(0,0,W(),H()); g.drawImage(isReal()?realLit():bg.img,0,0,W(),H());
+    if (items.some(i=>i.type==="fan"||i.type==="cove")) patchOld(g);
+    if (items.length && !isReal()){ g.save(); g.fillStyle = isPlan() ? "rgba(14,16,24,.42)" : "rgba(14,16,24,.34)"; g.fillRect(0,0,W(),H());
+      g.globalCompositeOperation="soft-light"; g.fillStyle=kc(.2); g.fillRect(0,0,W(),H()); g.restore(); }
+    items.filter(i=>i.type==="cove").forEach(i=>drawCove(g,i));
+    items.filter(i=>i.type==="curtain").forEach(i=>drawCurtain(g,i));
+    items.filter(i=>i.type==="down"||i.type==="wall").forEach(i=>drawDown(g,i));
+    items.filter(i=>i.type==="fan").forEach(i=>drawFan(g,i));
+  }
+  // handles: [{id, key, p}]
+  function handles(){
+    const hs=[];
+    items.forEach(it=>{
+      if (it.type==="cove"){ it.pts.forEach((p,i)=>hs.push({id:it.id,key:"pt"+i,p,c:"#e9a23b"})); hs.push({id:it.id,key:"move",p:centroid(it.pts),c:"#e9a23b",ring:true}); }
+      else if (it.type==="curtain"){ hs.push({id:it.id,key:"a",p:it.a,c:"#50bee6"},{id:it.id,key:"b",p:it.b,c:"#50bee6"},{id:it.id,key:"move",p:L(it.a,it.b,.5),c:"#50bee6",ring:true}); }
+      else hs.push({id:it.id,key:"move",p:{x:it.x,y:it.y},c: it.type==="fan"?"#f07f6e": it.type==="wall"?"#b6e3ff":"#ffd99a"});
+    }); return hs; }
+  function render(){
+    if (!bg.img) return; buildAfter(); totals();
+    const w=cv.width,h=cv.height,sx=Math.round(w*$("split").value/100),m=Math.min(w,h);
+    ctx.globalCompositeOperation="source-over"; ctx.clearRect(0,0,w,h); ctx.drawImage(bg.img,0,0,w,h);
+    ctx.save(); ctx.beginPath(); ctx.rect(sx,0,w-sx,h); ctx.clip(); ctx.drawImage(after,0,0); ctx.restore();
+    ctx.fillStyle="#e9a23b"; ctx.fillRect(sx-2,0,4,h);
+    const showHandles = tool==="select" || selId!=null;
+    if (showHandles){ const r=Math.max(8,m*.012);
+      handles().forEach(hd=>{ const a=px(hd.p), on=hd.id===selId; if (!on && hd.ring) return;
+        ctx.globalAlpha = on ? 1 : .35; ctx.beginPath(); ctx.arc(a.x,a.y,on?(hd.ring?r*1.2:r):r*.55,0,Math.PI*2);
+        if (hd.ring){ ctx.lineWidth=Math.max(2,m*.003); ctx.strokeStyle=hd.c; ctx.stroke(); } else { ctx.fillStyle=hd.c; ctx.fill(); }
+        ctx.lineWidth=Math.max(1.5,m*.002); ctx.strokeStyle=on?"#ff3b30":"rgba(10,12,18,.8)"; ctx.stroke(); ctx.globalAlpha=1; });
+      const s=items.find(i=>i.id===selId);
+      if (s && s.type==="cove"){ ctx.save(); ctx.setLineDash([m*.012,m*.008]); ctx.strokeStyle="rgba(233,162,59,.95)"; ctx.lineWidth=Math.max(2,m*.003); path(ctx,s.pts); ctx.stroke(); ctx.restore(); } }
+    if (pending){ ctx.save(); ctx.strokeStyle="#50bee6"; ctx.fillStyle="#50bee6"; ctx.lineWidth=Math.max(2,m*.004); ctx.setLineDash([m*.012,m*.008]);
+      const pts=pending.pts.map(px); ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); if (pending.hover){ const hv=px(pending.hover); ctx.lineTo(hv.x,hv.y); } ctx.stroke();
+      ctx.setLineDash([]); pts.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(7,m*.01),0,Math.PI*2); ctx.fill(); }); ctx.restore(); }
+  }
+
+  // ---------- selection bar ----------
+  function updateSel(){
+    const s=items.find(i=>i.id===selId); $("selbar").hidden=!s; if(!s) return;
+    $("selName").textContent=NAMES[s.type]; const sized = s.type==="fan"||s.type==="down"||s.type==="wall";
+    $("sizeWrap").hidden=!sized; if (sized) $("selSize").value=s.size; $("segLines").hidden = s.type!=="cove";
+    if (s.type==="cove") $("segLines").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", String(Number(b.dataset.v)===s.lines)));
+  }
+  const HINT = {select:"붙인 조명을 끌어서 옮기세요. 누르면 선택되어 크기를 바꾸거나 지울 수 있습니다.",
+    fan:"사진에서 실링팬을 달 자리를 누르세요.", down:"다운라이트를 달 자리를 누를 때마다 1개씩 붙습니다.",
+    wall:"벽 가까운 천장을 누르면 아래 벽에 빛자국이 생기는 다운라이트가 붙습니다.",
+    curtain:"커튼박스의 한쪽 끝을 누른 채 반대쪽 끝까지 끌어 주세요. (두 번 눌러도 됩니다)",
+    cove:"우물 테두리의 모서리 4곳을 차례로 누르세요."};
+  function setTool(t){ tool=t; pending=null; document.querySelectorAll(".tool").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.tool===t)));
+    $("toolHint").textContent=HINT[t]; cv.style.cursor = t==="select" ? "default" : "crosshair"; if (t!=="select") { selId=null; updateSel(); } render(); }
+  document.querySelectorAll(".tool").forEach(b=>b.addEventListener("click",()=>setTool(b.dataset.tool)));
+  $("selSize").addEventListener("input",e=>{ const s=items.find(i=>i.id===selId); if(s){ s.size=Number(e.target.value); render(); } });
+  $("segLines").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ const s=items.find(i=>i.id===selId); if(s){ s.lines=Number(b.dataset.v); updateSel(); render(); } }));
+  $("delSel").addEventListener("click",()=>{ items=items.filter(i=>i.id!==selId); selId=null; updateSel(); render(); });
+  $("clearBtn").addEventListener("click",()=>{ items=[]; selId=null; pending=null; updateSel(); render(); $("toolHint").textContent="모두 지웠습니다. 위에서 항목을 골라 다시 붙여 보세요."; });
+
+  // ---------- pointer ----------
+  const pt=e=>{ const r=cv.getBoundingClientRect(); return {x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)), y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}; };
+  const scaleK=()=>cv.width/Math.max(1,cv.getBoundingClientRect().width);
+  let drag=null;
+  cv.addEventListener("pointerdown",e=>{
+    const p=pt(e);
+    if (tool==="fan"||tool==="down"||tool==="wall"){ const it=mk(tool,{x:p.x,y:p.y}); items.push(it); selId=it.id;
+      if (tool==="fan") setTool("select"); updateSel(); render(); return; }
+    if (tool==="curtain"){ if (pending && pending.pts.length===1){ items.push(mk("curtain",{a:pending.pts[0],b:p})); pending=null; selId=items[items.length-1].id; setTool("select"); updateSel(); return; }
+      pending={pts:[p],hover:p,dragging:true}; cv.setPointerCapture(e.pointerId); render(); return; }
+    if (tool==="cove"){ if(!pending) pending={pts:[]}; pending.pts.push(p);
+      if (pending.pts.length===4){ const q=pending.pts; items.push(mk("cove",{pts:q, lines:Math.max(1,P().f.cove||1)})); pending=null; selId=items[items.length-1].id; setTool("select"); updateSel(); return; }
+      $("toolHint").textContent=`우물 모서리 ${pending.pts.length}/4 — 다음 모서리를 누르세요.`; render(); return; }
+    // select
+    let best=null,bd=1e9; const w=cv.width,h=cv.height;
+    handles().forEach(hd=>{ const d=Math.hypot((hd.p.x-p.x)*w,(hd.p.y-p.y)*h); if(d<bd){bd=d;best=hd;} });
+    const lim=Math.max(20,Math.min(w,h)*.03)*(scaleK()>1.5?1.5:1);
+    if (best && bd<lim){ selId=best.id; drag={...best, start:p, orig:JSON.parse(JSON.stringify(items.find(i=>i.id===best.id)))}; cv.setPointerCapture(e.pointerId); cv.style.cursor="grabbing"; }
+    else selId=null;
+    updateSel(); render();
+  });
+  cv.addEventListener("pointermove",e=>{ const p=pt(e);
+    if (pending && tool==="curtain" && pending.dragging){ pending.hover=p; render(); return; }
+    if (pending && tool==="cove"){ pending.hover=p; render(); return; }
+    if (!drag) return; const it=items.find(i=>i.id===drag.id), o=drag.orig, dx=p.x-drag.start.x, dy=p.y-drag.start.y;
+    if (it.type==="cove"){ if (drag.key==="move") it.pts=o.pts.map(q=>({x:q.x+dx,y:q.y+dy})); else it.pts[Number(drag.key.slice(2))]=p; }
+    else if (it.type==="curtain"){ if (drag.key==="move"){ it.a={x:o.a.x+dx,y:o.a.y+dy}; it.b={x:o.b.x+dx,y:o.b.y+dy}; } else it[drag.key]=p; }
+    else { it.x=p.x; it.y=p.y; }
+    render(); });
+  cv.addEventListener("pointerup",e=>{ const p=pt(e);
+    if (pending && tool==="curtain" && pending.dragging){ const a=pending.pts[0], d=Math.hypot((p.x-a.x)*cv.width,(p.y-a.y)*cv.height);
+      if (d>Math.min(cv.width,cv.height)*.04){ items.push(mk("curtain",{a,b:p})); pending=null; selId=items[items.length-1].id; setTool("select"); updateSel(); return; }
+      pending.dragging=false; $("toolHint").textContent="커튼박스 반대쪽 끝을 누르세요."; render(); return; }
+    drag=null; cv.style.cursor = tool==="select" ? "default" : "crosshair"; });
+  cv.addEventListener("pointercancel",()=>{ drag=null; });
+
+  // ---------- price panel ----------
+  function renderPanel(){ renderPkgs(); renderItems(); renderEtc(); totals(); }
+  function renderPkgs(){
+    const pk=$("pkgs"); pk.innerHTML="";
+    PKGS.forEach(p=>{ if (p.hide && pkg!==p.id) return; const l=document.createElement("label"); l.className="opt"; l.htmlFor="pk-"+p.id;
+      l.innerHTML=`<input type="radio" name="pkg" id="pk-${p.id}"><span><strong></strong><span class="pdesc"></span></span><span class="price"></span>`;
+      l.querySelector("strong").textContent=p.name; l.querySelector(".pdesc").textContent=p.desc; l.querySelector(".price").textContent=p.price?won(p.price):"";
+      const r=l.querySelector("input"); r.checked=pkg===p.id; r.addEventListener("change",()=>{ pkg=p.id; renderPkgs(); render(); }); pk.append(l); }); }
+  function renderItems(){
+    const el=$("itemList"); el.innerHTML="";
+    QI.forEach(it=>{ if (it.hide && !it.qty) return; const row=document.createElement("div"); row.className="irow"+(it.qty>0?"":" off");
+      row.innerHTML=`<input type="checkbox" class="chk2" aria-label=""><div class="nm"><b></b><small></small></div><div class="amt"></div><div class="up"></div>
+        <div class="qty"><button type="button" class="mi" aria-label="줄이기">−</button><input type="number" min="0" inputmode="numeric" aria-label="수량"><button type="button" class="pl" aria-label="늘리기">+</button></div>`;
+      row.querySelector("b").textContent=it.name; row.querySelector("small").textContent=it.unit; row.querySelector(".chk2").setAttribute("aria-label",it.name);
+      const amt=row.querySelector(".amt"), q=row.querySelector(".qty input"), up=row.querySelector(".up");
+      const upd=()=>{ amt.textContent=won(it.qty*it.price); q.value=it.qty; row.classList.toggle("off",it.qty===0); row.querySelector(".chk2").checked=it.qty>0; totals(); };
+      if (it.editable){ up.textContent="단가 "; const pi=document.createElement("input"); pi.type="number"; pi.min="0"; pi.step="10000"; pi.value=it.price; pi.setAttribute("aria-label",it.name+" 단가");
+        pi.addEventListener("input",()=>{ it.price=Math.max(0,parseInt(pi.value)||0); upd(); }); up.append(pi); }
+      else up.textContent="단가 "+won(it.price);
+      if (it.options){ const sel=document.createElement("select"); sel.setAttribute("aria-label",it.name+" 형태");
+        sel.innerHTML=`<option value="">형태 선택</option>`+it.options.map(o=>`<option>${o}</option>`).join(""); sel.value=it.opt;
+        sel.addEventListener("change",()=>{ it.opt=sel.value; }); row.querySelector(".nm").append(sel); }
+      row.querySelector(".chk2").addEventListener("change",e=>{ it.qty=e.target.checked?(it.qty||1):0; upd(); });
+      row.querySelector(".pl").addEventListener("click",()=>{ it.qty++; upd(); });
+      row.querySelector(".mi").addEventListener("click",()=>{ it.qty=Math.max(0,it.qty-1); upd(); });
+      q.addEventListener("input",()=>{ it.qty=Math.max(0,parseInt(q.value)||0); amt.textContent=won(it.qty*it.price); row.classList.toggle("off",it.qty===0); row.querySelector(".chk2").checked=it.qty>0; totals(); });
+      upd(); el.append(row); }); }
+  function renderEtc(){
+    const el=$("etcList"); el.innerHTML="";
+    etcRows.forEach(r=>{ const row=document.createElement("div"); row.className="etc-row";
+      row.innerHTML=`<input class="fld" placeholder="항목명 (예: 야간작업 추가비)" aria-label="기타 항목명"><input class="fld" type="number" placeholder="금액" style="text-align:right" aria-label="기타 금액"><button type="button" class="del" aria-label="삭제">×</button>`;
+      const [lb,am]=row.querySelectorAll("input"); lb.value=r.label; am.value=r.amount||"";
+      lb.addEventListener("input",()=>{ r.label=lb.value; }); am.addEventListener("input",()=>{ r.amount=parseInt(am.value)||0; totals(); });
+      row.querySelector(".del").addEventListener("click",()=>{ etcRows=etcRows.filter(x=>x!==r); renderEtc(); totals(); }); el.append(row); }); }
+  $("addEtc").addEventListener("click",()=>{ etcRows.push({id:etcId++,label:"",amount:0}); renderEtc(); const ins=$("etcList").querySelectorAll(".etc-row input"); if(ins.length) ins[ins.length-2].focus(); });
+  $("resetQ").addEventListener("click",()=>{ QI=QI0.map(x=>({...x,qty:0,opt:""})); etcRows=[]; pkg="p3"; ["custName","custPhone","custAddr","custStaff","memoInput","discount"].forEach(id=>$(id).value=""); $("qStatus").value="상담"; renderPanel(); render(); curId=null; curCust=""; history.replaceState(null,"","quote.html"); $("qno").textContent=""; toast("견적을 초기화했습니다. 저장하면 새 견적으로 저장됩니다."); });
+  $("syncQty").addEventListener("click",()=>{ const f=P().f, cnt=k=>items.filter(i=>i.type===k).length, set=(id,n)=>{ QI.find(x=>x.id===id).qty=Math.max(0,n); };
+    if (!items.length){ toast("사진에 붙인 조명이 없습니다. 위에서 조명을 먼저 붙여 주세요.",true); return; }
+    const fans=cnt("fan")-(f.fan?1:0); set("i1", cnt("down")+cnt("wall")-(f.inN+f.tvN)); set("i3", cnt("curtain")-(f.curtain?1:0));
+    set("i6",fans); set("i7",fans); set("i8",fans); if (items.some(i=>i.type==="cove"&&i.lines>1) && f.cove<2) set("i4",1);
+    renderItems(); totals(); toast("패키지에 포함된 수를 빼고 추가 수량을 넣었습니다."); });
+  function totals(){ const p=P(), pa=p.price, ia=QI.reduce((s,i)=>s+i.qty*i.price,0), ea=etcRows.reduce((s,r)=>s+(r.amount||0),0), dc=Math.max(0,parseInt($("discount").value)||0), supply=Math.max(0,pa+ia+ea-dc), vat=Math.round(supply*.1);
+    $("sumPkg").textContent=won(pa); $("sumItems").textContent=won(ia); $("sumEtc").textContent=won(ea); $("sumSupply").textContent=won(supply); $("sumVat").textContent=won(vat); $("sumTotal").textContent=won(supply+vat);
+    return {pa,ia,ea,dc,supply,vat,total:supply+vat}; }
+  $("discount").addEventListener("input",totals);
+
+  // ---------- backgrounds & controls ----------
+  function useBg(kind, img, extra){
+    bg={kind, img, lit:extra&&extra.lit, old:(extra&&extra.old)||[], ceil:extra&&extra.ceil}; sizeTo(img.width,img.height); selId=null; pending=null;
+    items = extra && extra.layout ? packageLayout(extra.ceil, extra.cove, extra.curtain, extra.fan) : [];
+    $("demoTag").hidden = kind==="photo"; $("demoTag").textContent = kind==="plan" ? "거실 평면도 · 위에서 내려다본 천장 배치" : "실제 시공 사진 · 우리 집 사진을 올려 보세요";
+    $("persp").closest("label").hidden = kind==="plan"; $("aiBtn").hidden = !(sample&&canImg&&photoFile&&kind==="photo");
+    updateSel(); render(); }
+  $("split").addEventListener("input",render); $("persp").addEventListener("input",render);
+  const segPick=(id,attr,fn)=>$(id).querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ $(id).querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); fn(b.dataset[attr]); render(); }));
+  segPick("segK","k",v=>kelvin=Number(v)); segPick("segShape","v",v=>shape=v); segPick("segFan","v",v=>fanColor=v);
+  $("photo").addEventListener("change",e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; photoFile=f;
+    const img=new Image(); img.onload=()=>{ $("aiNote").hidden=true; useBg("photo",img,null); setTool("fan");
+      $("toolHint").textContent="사진을 올렸습니다. 위에서 실링팬, 다운라이트, 커튼박스 조명, 우물 조명을 하나씩 골라 사진 위에 붙이세요."; };
+    img.onerror=()=>toast("사진을 열 수 없습니다. JPG나 PNG 파일로 다시 올려 주세요.",true); img.src=URL.createObjectURL(f); });
+  $("planBtn").addEventListener("click",()=>{ const pl=makePlan(); photoFile=null; useBg("plan",pl.canvas,{...pl, layout:true}); setTool("select");
+    $("toolHint").textContent="사진이 없을 때 쓰는 거실 평면도입니다. 조명을 끌어서 대략 위치를 잡거나 위에서 항목을 골라 더 붙이세요."; });
+  let realImgs=null;
+  function showReal(){ const go=()=>{ photoFile=null; useBg("real",realImgs.b,{lit:realImgs.a}); setTool("select");
+      $("toolHint").textContent="실제 시공 사진입니다. 가운데 선을 좌우로 밀어 시공 전·후를 비교하고, 조명 색을 바꿔 보세요."; };
+    if (realImgs) return go(); const b=new Image(), a=new Image(); let n=0; const done=()=>{ if(++n===2){ realImgs={a,b}; go(); } };
+    a.onload=b.onload=done; b.src=REAL_B; a.src=REAL_A; }
+  $("demoBtn").addEventListener("click",showReal);
+
+  // ---------- copy ----------
+  function toast(msg,bad){ const t=$("toast"); t.textContent=msg; t.classList.toggle("bad",!!bad); }
+  async function copy(text){ try { await navigator.clipboard.writeText(text); toast("복사했습니다. 문자나 카톡에 붙여넣으세요."); }
+    catch { toast("자동 복사가 안 되어 번호를 선택해 두었습니다. 길게 눌러 복사하세요.",true); const r=document.createRange(); r.selectNodeContents($("phone")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); } }
+  $("copyPhone").addEventListener("click",()=>copy($("phone").textContent.trim()));
+  $("copyQuote").addEventListener("click",()=>{ const t=totals(), p=P(), v=id=>$(id).value.trim(), out=["[데코브라이트 견적]"];
+    [["고객명","custName"],["연락처","custPhone"],["현장주소","custAddr"],["담당자","custStaff"]].forEach(([k,id])=>{ if(v(id)) out.push(`${k}: ${v(id)}`); });
+    out.push("", `■ 패키지: ${p.id==="none"?"선택 안함":p.name+" "+won(p.price)}`);
+    const ch=QI.filter(i=>i.qty>0); if (ch.length){ out.push("■ 추가 항목"); ch.forEach(i=>out.push(`- ${i.name}${i.opt?" ("+i.opt+")":""} ${won(i.price)} × ${i.qty} = ${won(i.qty*i.price)}`)); }
+    const et=etcRows.filter(r=>r.label||r.amount); if (et.length){ out.push("■ 기타"); et.forEach(r=>out.push(`- ${r.label||"기타"} ${won(r.amount||0)}`)); }
+    if (v("memoInput")) out.push("■ 비고", v("memoInput"));
+    const color={2700:"전구색",4000:"주백색",6500:"주광색"}[kelvin]; out.push("", `조명 색 ${color}`);
+    if (t.dc) out.push(`할인 -${won(t.dc)}`);
+    out.push(`공급가액 ${won(t.supply)} / 부가세 ${won(t.vat)}`, `합계금액 ${won(t.total)}`, "※ 실측 후 확정 · 문의 "+$("phone").textContent.trim());
+    copy(out.join("\n")); });
+
+  // ---------- AI auto placement ----------
+  let sample=null, canImg=false, busy=false, photoFile=null;
+  (async()=>{ try { sample=await window.claude?.use?.("sample"); if(sample){ const lim=await sample.limits().catch(()=>null); canImg=!!lim?.images; } } catch { sample=null; }
+    $("aiBtn").hidden=!(sample&&canImg&&photoFile&&bg.kind==="photo");
+    let dl=null; try { dl=await window.claude?.use?.("downloads"); } catch {}
+    if (!dl){ $("saveBtn").hidden=false; $("saveBtn").addEventListener("click",()=>{ const a=document.createElement("a"); a.download="데코브라이트_천장_미리보기.png"; a.href=after.toDataURL("image/png"); a.click(); }); }
+    try { if(dl){ $("saveBtn").hidden=false;
+      $("saveBtn").addEventListener("click",()=>{ const t=document.createElement("canvas"); t.width=after.width; t.height=after.height; t.getContext("2d").drawImage(after,0,0);
+        t.toBlob(async b=>{ try { await dl.save({filename:"데코브라이트_천장_미리보기.png",data:b}); toast("저장했습니다."); } catch { toast("저장하지 않았습니다."); } },"image/png"); }); } } catch {} })();
+  const ERR={not_granted:"AI 배치를 허용하지 않아 사용할 수 없습니다. 위에서 항목을 골라 직접 붙여 주세요.", rate_limited:"잠시 후 다시 시도해 주세요.",
+    image_rejected:"이 사진은 분석할 수 없습니다. 다른 사진을 올려 주세요.", invalid_json:"분석 결과를 읽지 못했습니다. 다시 눌러 주세요.", refused:"이 사진은 분석하지 못했습니다."};
+  const cl=v=>Math.min(1,Math.max(0,Number(v))), okPt=p=>p&&isFinite(p.x)&&isFinite(p.y);
+  const quad=q=>Array.isArray(q)&&q.length===4&&q.every(okPt)?q.map(p=>({x:cl(p.x),y:cl(p.y)})):null;
+  $("aiBtn").addEventListener("click",async()=>{
+    if (busy||!photoFile) return; busy=true; const b=$("aiBtn"); b.disabled=true; b.textContent="배치하는 중…";
+    const note=$("aiNote"); note.hidden=false; note.textContent="사진 속 천장, 우물, 커튼박스, 기존 조명 위치를 찾는 중입니다…";
+    try {
+      const r=await sample.json(
+`이 사진은 한국 아파트 거실(또는 방) 사진입니다. 천장 조명 시공 업체가 이 사진 위에 실링팬, 다운라이트, 우물 T5 간접조명, 커튼박스 T5 간접조명을 붙이려고 합니다.
+좌표는 사진 왼쪽 위 (0,0), 오른쪽 아래 (1,1) 비율입니다. 아래 JSON 하나만 답하세요.
+{"ceiling": [가까운쪽 왼쪽, 가까운쪽 오른쪽, 먼쪽 오른쪽, 먼쪽 왼쪽] 4개의 {"x","y"} — 천장면 네 모서리(사진 밖이면 가장자리 값으로 자름),
+ "cove": 같은 순서 4개 {"x","y"} 또는 null — 우물(단 내림) 테두리,
+ "curtain_box": [{"x","y"},{"x","y"}] 또는 null — 창 쪽 커튼박스 양 끝,
+ "old_lights": [{"x","y","rx","ry"}] — 지금 달린 천장 조명, 없으면 [],
+ "fan": {"x","y"} — 실링팬 달 자리,
+ "summary": "고객에게 보여줄 한국어 두 문장. 가격 언급 금지."}`, {images:[photoFile], modelTier:"default"});
+      const ceil=quad(r&&r.ceiling); if(!ceil){ note.textContent="천장이 잘 보이지 않습니다. 위에서 항목을 골라 직접 붙여 주세요."; return; }
+      const cove=quad(r.cove), cur=(Array.isArray(r.curtain_box)&&r.curtain_box.length===2&&r.curtain_box.every(okPt))?r.curtain_box.map(p=>({x:cl(p.x),y:cl(p.y)})):null;
+      bg.old=Array.isArray(r.old_lights)?r.old_lights.filter(okPt).slice(0,4).map(o=>({x:cl(o.x),y:cl(o.y),rx:Math.min(.2,Math.max(.01,Number(o.rx)||.04)),ry:Math.min(.2,Math.max(.005,Number(o.ry)||.03))})):[];
+      bg.ceil=ceil; const fan=okPt(r.fan)?{x:cl(r.fan.x),y:cl(r.fan.y)}:centroid(cove||ceil);
+      items=packageLayout(ceil, cove, cur, fan); selId=null; setTool("select");
+      note.innerHTML=""; const hd=document.createElement("b"); hd.textContent="자동 배치 완료 "; note.append(hd, document.createTextNode(String(r.summary||"")+" 어긋난 조명은 끌어서 옮기세요."));
+      render();
+    } catch(e){ if (e&&["not_granted","sampling_disabled","images_unavailable"].includes(e.code)) $("aiBtn").hidden=true; note.textContent=(e&&ERR[e.code])||"자동 배치가 중단되었습니다. 다시 누르거나 직접 붙여 주세요."; }
+    finally { busy=false; b.disabled=false; b.textContent="자동 배치"; } });
+
+  // ---------- 기기 저장·불러오기 (DECO: common.js) ----------
+  const CF = ["custName","custPhone","custAddr","custStaff"];
+  let curId = new URLSearchParams(location.search).get("id"), curCust = new URLSearchParams(location.search).get("cust")||"";
+  function thumb(){ try { const k=Math.min(1,900/after.width), t=document.createElement("canvas"); t.width=Math.round(after.width*k); t.height=Math.round(after.height*k);
+    t.getContext("2d").drawImage(after,0,0,t.width,t.height); return t.toDataURL("image/jpeg",.72); } catch { return ""; } }
+  function snapshot(){ const p=P(), v=id=>$(id).value.trim();
+    return { cust:{name:v("custName"),phone:v("custPhone"),addr:v("custAddr"),staff:v("custStaff")}, memo:v("memoInput"),
+      pkg:p.id, pkgName:p.name, pkgPrice:p.price, pkgDesc:p.desc,
+      items:QI.filter(i=>i.qty>0).map(i=>({id:i.id,name:i.name,unit:i.unit,price:i.price,qty:i.qty,opt:i.opt})),
+      etc:etcRows.filter(r=>r.label||r.amount).map(r=>({label:r.label,amount:r.amount||0})),
+      kelvin, discount:Math.max(0,parseInt($("discount").value)||0), status:$("qStatus").value, totals:totals() }; }
+  function restore(q){
+    $("custName").value=q.cust?.name||""; $("custPhone").value=q.cust?.phone||""; $("custAddr").value=q.cust?.addr||""; $("custStaff").value=q.cust?.staff||""; $("memoInput").value=q.memo||""; $("discount").value=q.discount||""; $("qStatus").value=q.status||"상담";
+    if (PKGS.some(p=>p.id===q.pkg)) pkg=q.pkg;
+    QI=QI0.map(x=>{ const s=(q.items||[]).find(i=>i.id===x.id); return {...x, qty:s?s.qty:0, opt:s?s.opt||"":"", price:(s&&x.editable)?s.price:x.price}; });
+    etcRows=(q.etc||[]).map(r=>({id:etcId++,label:r.label,amount:r.amount}));
+    if (q.kelvin){ kelvin=q.kelvin; $("segK").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(Number(b.dataset.k)===kelvin))); }
+    renderPanel(); render(); }
+  function doSave(){ const s=snapshot();
+    if (!s.cust.name && !s.cust.addr){ toast("고객명이나 현장주소를 하나는 넣어 주세요.",true); $("custName").focus(); return null; }
+    const r=DECO.saveQuote({...s, id:curId, custId:DECO.ensureCustomer(s.cust, curCust), img:thumb()}); if(r) curCust=r.custId; if(!r){ toast("저장하지 못했습니다. 기기 저장 공간이 부족합니다.",true); return null; }
+    curId=r.id; history.replaceState(null,"","quote.html?id="+encodeURIComponent(curId)); $("qno").textContent="견적번호 "+r.no+" · 저장됨";
+    toast("견적을 이 기기에 저장했습니다. (견적 목록에서 다시 열 수 있습니다)"); return r; }
+  $("saveQuote").addEventListener("click",doSave);
+  $("qStatus").innerHTML=DECO.STATUS.map(s=>`<option>${s}</option>`).join("");
+  $("toOrder").addEventListener("click",()=>{ const r=doSave(); if(r) location.href="order.html?quote="+encodeURIComponent(r.id); });
+  $("toContract").addEventListener("click",()=>{ const r=doSave(); if(r) location.href="contract.html?id="+encodeURIComponent(r.id); });
+  $("toPhotos").addEventListener("click",()=>{ const r=doSave(); if(r) location.href="photos.html?job="+encodeURIComponent(r.id); });
+  $("printQuote").addEventListener("click",()=>{ const r=doSave(); if(r) location.href="print.html?id="+encodeURIComponent(r.id); });
+  const ST=DECO.settings(); $("phone").textContent=ST.phone||"010-0000-0000"; if(ST.staff && !$("custStaff").value) $("custStaff").value=ST.staff;
+
+  // ---------- start ----------
+  renderPanel(); showReal();
+  if (!curId && curCust){ const c=DECO.getCustomer(curCust); if(c){ $("custName").value=c.name||""; $("custPhone").value=c.phone||""; $("custAddr").value=c.addr||""; } }
+  if (curId){ const q=DECO.getQuote(curId); if(q){ curCust=q.custId||""; restore(q); $("qno").textContent="견적번호 "+q.no+" · "+DECO.date(q.updated)+" 저장"; } else curId=null; }
+})();
+</script>
+
+</body>
+</html>

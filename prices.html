@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>가격표 관리 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+h2{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding-bottom:4px}
+.pr{display:grid;grid-template-columns:minmax(0,1fr) 150px 80px;gap:8px;align-items:start;background:#fff;border:1px solid var(--line);padding:10px;margin-bottom:6px}
+.pr.off{opacity:.55}
+.pr input,.pr textarea{font:inherit;font-size:16px;border:1px solid var(--bd);border-radius:10px;padding:6px 8px;width:100%;min-width:0}
+.pr textarea{font-size:14px;margin-top:4px}
+.pr .money{text-align:right}
+.pr .unit{font-size:14px;margin-top:4px}
+.pr label.h{font-size:14px;display:flex;gap:4px;align-items:center;justify-content:center;padding-top:6px}
+.pr .chg{color:var(--acc);font-size:12px}
+@media (max-width:560px){.pr{grid-template-columns:minmax(0,1fr) 110px}.pr label.h{grid-column:1/-1;justify-content:flex-start}}
+.sticky{position:sticky;bottom:0;background:var(--paper);padding:10px 0;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">가격표 관리</h1>
+  <p class="sub">① 금액·설명을 고치고 ② 맨 아래 「저장」을 누르면 ③ 새로 여는 견적부터 바뀐 값이 들어갑니다. 공급가액(부가세 빼고) 기준입니다. 이미 저장한 견적 금액은 바뀌지 않습니다.</p>
+  <h2>패키지</h2>
+  <div id="pk"></div>
+  <h2>추가 항목</h2>
+  <div id="it"></div>
+  <button type="button" class="btn2" id="addX">+ 새 항목 추가</button>
+  <div class="sticky">
+    <button type="button" class="btn2 pri" id="save">저장</button>
+    <button type="button" class="btn2 no" id="reset">처음 가격으로 되돌리기</button>
+    <span class="msg" id="msg" role="status" style="margin:0"></span>
+  </div>
+</div>
+<script src="common.js"></script>
+<script src="prices-default.js"></script>
+<script>
+(function () {
+  var E = DECO.esc, ed = DECO.priceEdits(), D0p = window.DECO_PKGS0, D0i = window.DECO_ITEMS0, msg = document.getElementById('msg');
+  ed.extra = ed.extra || [];
+  function row(kind, o, d) {
+    var x = (kind === 'p' ? ed.pkgs : kind === 'i' ? ed.items : null) || {}, cur = kind === 'x' ? o : (x[o.id] || {});
+    var name = cur.name || o.name, price = cur.price != null ? cur.price : o.price, changed = kind !== 'x' && (cur.price != null && cur.price !== o.price);
+    return '<div class="pr' + (cur.hide ? ' off' : '') + '" data-k="' + kind + '" data-id="' + E(o.id) + '">' +
+      '<div><input class="nm" value="' + E(name) + '" aria-label="이름">' +
+      (kind === 'p' ? '<textarea class="ds" rows="2" aria-label="설명">' + E(cur.desc || o.desc) + '</textarea>' : '<input class="unit" value="' + E(cur.unit || o.unit) + '" aria-label="단위" placeholder="단위 (예: 개당)">') +
+      (changed ? '<div class="chg">처음 가격 ' + DECO.won(o.price) + '</div>' : '') + '</div>' +
+      '<input class="money" type="number" min="0" step="10000" value="' + price + '" aria-label="금액"' + (o.id === 'none' ? ' disabled' : '') + '>' +
+      (o.id === 'none' ? '<span></span>' : '<label class="h"><input type="checkbox" class="hd"' + (cur.hide ? ' checked' : '') + '> ' + (kind === 'x' ? '빼기' : '숨김') + '</label>') + '</div>';
+  }
+  function draw() {
+    document.getElementById('pk').innerHTML = D0p.map(function (p) { return row('p', p); }).join('');
+    document.getElementById('it').innerHTML = D0i.map(function (i) { return row('i', i); }).join('') + ed.extra.map(function (x) { return row('x', x); }).join('');
+  }
+  function collect() {
+    var o = { pkgs: {}, items: {}, extra: [] };
+    document.querySelectorAll('.pr').forEach(function (r) {
+      var k = r.dataset.k, id = r.dataset.id, nm = r.querySelector('.nm').value.trim(), pr = parseInt(r.querySelector('.money').value, 10), hd = r.querySelector('.hd');
+      if (k === 'x') { if (hd && hd.checked) return; if (nm) o.extra.push({ id: id, name: nm, price: Math.max(0, pr || 0), unit: r.querySelector('.unit').value.trim() || '개' }); return; }
+      var base = (k === 'p' ? D0p : D0i).filter(function (b) { return b.id === id; })[0], e = {};
+      if (nm && nm !== base.name) e.name = nm;
+      if (!isNaN(pr) && pr !== base.price) e.price = Math.max(0, pr);
+      if (k === 'p') { var ds = r.querySelector('.ds').value.trim(); if (ds && ds !== base.desc) e.desc = ds; }
+      else { var u = r.querySelector('.unit').value.trim(); if (u && u !== base.unit) e.unit = u; }
+      if (hd && hd.checked) e.hide = true;
+      if (Object.keys(e).length) o[k === 'p' ? 'pkgs' : 'items'][id] = e;
+    });
+    return o;
+  }
+  document.addEventListener('change', function (e) { if (e.target.classList.contains('hd')) e.target.closest('.pr').classList.toggle('off', e.target.checked); });
+  document.getElementById('addX').addEventListener('click', function () {
+    ed = collect(); ed.extra.push({ id: 'x' + Date.now().toString(36), name: '', price: 0, unit: '개' }); draw();
+    var all = document.querySelectorAll('#it .nm'); all[all.length - 1].focus();
+  });
+  document.getElementById('save').addEventListener('click', function () {
+    ed = collect(); var ok = DECO.savePriceEdits(ed); draw();
+    msg.className = 'msg' + (ok ? '' : ' bad'); msg.textContent = ok ? '저장했습니다. 새 견적부터 반영됩니다.' : '저장하지 못했습니다.';
+  });
+  document.getElementById('reset').addEventListener('click', function () {
+    if (!confirm('고친 가격·설명과 새로 넣은 항목을 모두 지우고 처음 가격표로 되돌릴까요?')) return;
+    ed = { pkgs: {}, items: {}, extra: [] }; DECO.savePriceEdits(ed); draw(); msg.className = 'msg'; msg.textContent = '처음 가격표로 되돌렸습니다.';
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

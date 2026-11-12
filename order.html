@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>작업 지시서 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+@page{size:A4;margin:12mm}
+.fl select{font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:9px 10px;background:#fff}
+.chk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+@media (max-width:560px){.chk{grid-template-columns:minmax(0,1fr)}}
+.chk label{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);padding:8px 10px;font-size:16px}
+.chk input{width:22px;height:22px;accent-color:var(--pri)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+h2.s{font-size:19px;margin:20px 0 8px}
+.tr{border:1px solid var(--line);border-left:6px solid var(--pri);background:#fff;padding:12px;margin-bottom:10px}
+.tr.off{opacity:.5}
+.tr.off .body{display:none}
+.tr .hd{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.tr .hd label{font-size:20px;font-weight:700;display:flex;gap:8px;align-items:center}
+.tr .hd input{width:22px;height:22px;accent-color:var(--pri)}
+.tr .body{margin-top:10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tr .body .w{grid-column:1/-1}
+@media (max-width:560px){.tr .body{grid-template-columns:minmax(0,1fr)}}
+.tr .ta{display:flex;gap:6px;flex-wrap:wrap}
+.tr .ta .btn2{height:40px;font-size:15px;padding:0 12px}
+.sheet{background:#fff;max-width:210mm;margin:18px auto 0;padding:13mm;border:1px solid var(--line);font-size:13.5px;line-height:1.5;color:#111}
+.sheet+.sheet{margin-top:12px}
+.sheet h1{font-family:'Noto Sans KR',sans-serif;font-weight:800;text-align:center;font-size:27px;letter-spacing:.3em;margin:0 0 4px;padding-left:.3em}
+.sheet .no{text-align:center;color:#444;margin-bottom:12px}
+.sheet table{border-collapse:collapse;width:100%;margin-bottom:10px}
+.sheet th,.sheet td{border:1px solid #555;padding:5px 7px;vertical-align:top}
+.sheet th{background:#f1eee7;font-weight:500;white-space:nowrap;width:84px;text-align:left}
+.sheet ol{margin:0;padding-left:20px}
+.sheet .bx{white-space:pre-wrap}
+.sheet .ck{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 16px}
+.sign{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.sign div{border:1px solid #555;height:60px;padding:4px 8px;font-size:12.5px}
+.prev{color:var(--muted);font-size:15px;margin:18px 0 0;text-align:center}
+@media print{body.app{background:#fff}.page{padding:0;max-width:none}.form,.topnav,.prev{display:none!important}.sheet{border:0;padding:0;margin:0;max-width:none}.sheet+.sheet{break-before:page;margin-top:0}.sheet.np{display:none}}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a><a class="home" href="orders.html">지시서 목록</a></div>
+  <div class="form">
+    <h1 class="t">작업 지시서</h1>
+    <p class="sub" id="sub">① 현장·시공일을 넣고 ② 목수·전기·도배 거래처별 작업을 확인한 뒤 ③ 「문자로 보내기」나 「인쇄」를 누르세요. 거래처용이라 금액은 넣지 않습니다.</p>
+    <form class="card" id="f" autocomplete="off">
+      <div class="grid2">
+        <label class="fl"><span class="need">고객명</span><input name="name" required></label>
+        <label class="fl">고객 연락처 <small>(거래처 문자에는 넣지 않음)</small><input name="phone" inputmode="tel"></label>
+        <label class="fl" style="grid-column:1/-1"><span class="need">현장주소</span><input name="addr" required></label>
+        <label class="fl"><span class="need">시공일</span><input name="workDate" type="date" required></label>
+        <label class="fl">현장 책임자 (우리 쪽)<input name="lead" placeholder="예: 이상호"></label>
+        <label class="fl">조명 색<select name="color"><option>전구색</option><option>주백색</option><option>주광색</option></select></label>
+        <label class="fl">진행 상태<select name="status"><option>예정</option><option>진행</option><option>완료</option><option>보류</option></select></label>
+      </div>
+      <h2 class="s">거래처별 작업 <small style="font-weight:400;color:var(--muted);font-size:14px">하루 순서: 목수 → 전기 → 도배 · <a href="partners.html">거래처 목록 고치기</a></small></h2>
+      <div id="trs"></div>
+      <h2 class="s">공통 주의사항·고객 요청</h2>
+      <label class="fl"><textarea name="notes" rows="3" placeholder="예: 엘리베이터 사용 예약, 오후 6시 이전 마감, 반려견 있음"></textarea></label>
+      <h2 class="s">현장 점검표</h2>
+      <div class="chk" id="chk"></div>
+      <h2 class="s">완료 메모</h2>
+      <label class="fl"><textarea name="done" rows="2" placeholder="작업을 마친 뒤 남길 내용 (추가 작업, 하자 등)"></textarea></label>
+      <div class="acts">
+        <button class="btn2 pri" type="submit">저장</button>
+        <button class="btn2" type="button" id="prt">전체 인쇄 · PDF (공종별 한 장씩)</button>
+        <a class="btn2" id="toPh" href="photos.html">현장 사진 보관함</a>
+        <button class="btn2 no" type="button" id="del" hidden>지우기</button>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+    </form>
+  </div>
+  <p class="prev">▼ 인쇄될 모양 (공종마다 한 장)</p>
+  <div id="sheets"></div>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, f = $('f'), P = new URLSearchParams(location.search), s = DECO.settings(), TR = DECO.TRADES;
+  var CK = ['차단기 내림·전기 확인', '바닥·가구 보양', '기존 조명 철거', '배선·전선 상태 확인', '천장 보강(실링팬)', '목공·우물 마감', '조명 설치·점등 시험', '색온도 고객 확인', '도배 마감·들뜸 확인', '청소·폐기물 정리'];
+  var TIME = { '목수': '08:00', '전기': '10:00', '도배': '14:00' }, PT = DECO.partners();
+  var o = P.get('id') ? DECO.getOrder(P.get('id')) : null, qid = P.get('quote');
+  if (!o && qid) o = DECO.orders().filter(function (x) { return x.quoteId === qid; })[0] || null;
+  if (!o) { o = { quoteId: qid || '', workDate: P.get('date') || DECO.today(), status: '예정', checks: {}, trades: {} };
+    TR.forEach(function (t) { o.trades[t] = { on: false, partner: '', time: TIME[t], tasks: '', mats: '' }; });
+    var q = qid ? DECO.getQuote(qid) : null;
+    if (q) { var c = q.cust || {}, lines = [], add = function (t, x) { var b = o.trades[t]; b.tasks += (b.tasks ? '\n' : '') + x; b.on = true; };
+      o.custId = q.custId || ''; o.name = c.name || ''; o.phone = c.phone || ''; o.addr = c.addr || ''; o.lead = c.staff || ''; o.notes = q.memo || '';
+      o.color = { 2700: '전구색', 4000: '주백색', 6500: '주광색' }[q.kelvin] || '전구색';
+      if (q.pkg && q.pkg !== 'none') String(q.pkgDesc || '').split(/\s*\/\s*/).forEach(function (x) { x = x.replace(/\(도배 별도\)/, '').trim(); if (x) lines.push(x); });
+      (q.items || []).forEach(function (i) { var l = i.name + (i.opt ? ' (' + i.opt + ')' : '') + ' × ' + i.qty; lines.push(l); o.trades[DECO.tradeOf(i.name)].mats += (o.trades[DECO.tradeOf(i.name)].mats ? '\n' : '') + l; });
+      (q.etc || []).forEach(function (r) { if (r.label) lines.push(r.label); });
+      lines.forEach(function (x) { add(DECO.tradeOf(x), x); });
+      var all = lines.join(' ');
+      if (/실링팬/.test(all) && !/보강/.test(all)) add('목수', '실링팬 자리 천장 보강');
+      if (/우물|커튼박스/.test(all)) add('목수', '우물·커튼박스 간접등 자리 목공 확인');
+      if (o.trades['목수'].on || /타공|우물/.test(all)) add('도배', '조명 타공·목공 부위 도배 마감');
+    }
+  }
+  o.trades = o.trades || {}; TR.forEach(function (t) { o.trades[t] = o.trades[t] || { on: false, partner: '', time: TIME[t], tasks: '', mats: '' }; });
+  $('trs').innerHTML = TR.map(function (t) { var b = o.trades[t], opts = PT.filter(function (p) { return p.trade === t; });
+    return '<div class="tr' + (b.on ? '' : ' off') + '" data-t="' + t + '"><div class="hd"><label><input type="checkbox" class="on"' + (b.on ? ' checked' : '') + '> ' + t + '</label>' +
+      '<div class="ta"><button type="button" class="btn2 pri" data-sms="' + t + '">' + t + '에 문자 보내기</button><button type="button" class="btn2" data-one="' + t + '">' + t + '만 인쇄</button></div></div>' +
+      '<div class="body"><label class="fl">거래처<select class="pt"><option value="">고르기</option>' + opts.map(function (p) { return '<option value="' + E(p.id) + '"' + (b.partner === p.id ? ' selected' : '') + '>' + E(p.name) + ' (' + E(p.phone) + ')</option>'; }).join('') + '</select>' +
+      '</label>' +
+      '<div class="fl"><span>목록에 없으면 새 거래처</span><div style="display:flex;gap:6px"><input class="pn" placeholder="이름·상호" aria-label="새 거래처 이름"><input class="pp" placeholder="휴대폰" inputmode="tel" aria-label="새 거래처 휴대폰"></div><small>넣고 「저장」을 누르면 거래처 목록에 들어갑니다.</small></div>' +
+      '<label class="fl">들어오는 시각<input type="time" class="tm" value="' + E(b.time || '') + '"></label>' +
+      '<label class="fl w">작업 내용 (한 줄에 하나씩)<textarea class="tk" rows="5">' + E(b.tasks) + '</textarea></label>' +
+      '<label class="fl w">준비 자재·장비<textarea class="mt" rows="2" placeholder="예: 다운라이트 3인치 12개, 사다리">' + E(b.mats) + '</textarea></label></div></div>'; }).join('');
+  $('chk').innerHTML = CK.map(function (c, i) { return '<label><input type="checkbox" data-i="' + i + '"' + (o.checks && o.checks[i] ? ' checked' : '') + '> ' + c + '</label>'; }).join('');
+  Array.prototype.forEach.call(f.elements, function (el) { if (el.name && o[el.name] != null) el.value = o[el.name]; });
+  if (o.id) { $('del').hidden = false; $('sub').textContent = o.no + ' · 고친 뒤 「저장」을 누르세요. 거래처용이라 금액은 넣지 않습니다.'; }
+  if (o.quoteId) $('toPh').href = 'photos.html?job=' + encodeURIComponent(o.quoteId);
+  function read() { Array.prototype.forEach.call(f.elements, function (el) { if (el.name) o[el.name] = el.value.trim(); });
+    o.checks = {}; $('chk').querySelectorAll('input').forEach(function (c) { if (c.checked) o.checks[c.dataset.i] = true; });
+    document.querySelectorAll('.tr').forEach(function (d) { var b = o.trades[d.dataset.t]; var pn = d.querySelector('.pn'), pp = d.querySelector('.pp');
+      if (pn.value.trim() && pp.value.trim() && save.busy) { var np = DECO.savePartner({ trade: d.dataset.t, name: pn.value.trim(), phone: pp.value.trim(), memo: '' });
+        if (np) { PT.push(np); var op = document.createElement('option'); op.value = np.id; op.textContent = np.name + ' (' + np.phone + ')'; d.querySelector('.pt').append(op); d.querySelector('.pt').value = np.id; pn.value = pp.value = ''; } } b.on = d.querySelector('.on').checked; b.partner = d.querySelector('.pt').value; b.time = d.querySelector('.tm').value; b.tasks = d.querySelector('.tk').value.trim(); b.mats = d.querySelector('.mt').value.trim(); d.classList.toggle('off', !b.on); });
+    o.workTime = (TR.map(function (t) { return o.trades[t].on && o.trades[t].time; }).filter(Boolean).sort()[0]) || '';
+    o.crew = TR.filter(function (t) { return o.trades[t].on; }).map(function (t) { var p = ptn(o.trades[t].partner); return t + (p ? ' ' + p.name : ''); }).join(', ');
+    return o; }
+  function ptn(id) { return PT.filter(function (p) { return p.id === id; })[0] || null; }
+  function dstr() { var d = o.workDate ? new Date(o.workDate + 'T00:00') : null; return d ? d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '. (' + '일월화수목금토'[d.getDay()] + ')' : ''; }
+  function one(t) { var b = o.trades[t], p = ptn(b.partner), tasks = b.tasks.split('\n').filter(Boolean);
+    return '<div class="sheet" data-t="' + t + '"><h1>작업 지시서</h1><div class="no">[' + t + '] ' + E(o.no || '(저장 전)') + ' · ' + E(s.company) + ' · ' + E(s.phone) + '</div>' +
+      '<table><tr><th>받는 곳</th><td>' + t + (p ? ' · ' + E(p.name) + ' (' + E(p.phone) + ')' : '') + '</td><th>현장 책임</th><td>' + E(o.lead) + '</td></tr>' +
+      '<tr><th>현장주소</th><td colspan="3">' + E(o.addr) + '</td></tr>' +
+      '<tr><th>시공일</th><td>' + dstr() + ' ' + E(b.time) + ' 도착</td><th>조명 색</th><td>' + E(o.color) + '</td></tr>' +
+      '<tr><th>같은 날 작업</th><td colspan="3">' + TR.filter(function (x) { return o.trades[x].on; }).map(function (x) { return x + ' ' + E(o.trades[x].time || ''); }).join(' → ') + '</td></tr></table>' +
+      '<table><tr><th>작업 내용</th><td>' + (tasks.length ? '<ol>' + tasks.map(function (x) { return '<li>' + E(x) + '</li>'; }).join('') + '</ol>' : '') + '</td></tr>' +
+      '<tr><th>준비 자재</th><td class="bx">' + E(b.mats) + '</td></tr><tr><th>주의사항</th><td class="bx">' + E(o.notes) + '</td></tr>' +
+      '<tr><th>완료 메모</th><td class="bx" style="height:50px"></td></tr></table>' +
+      '<div class="sign"><div>' + t + ' 작업자 (서명)</div><div>작업 끝난 시각</div><div>현장 책임 확인</div></div></div>'; }
+  function sheet() { read(); var on = TR.filter(function (t) { return o.trades[t].on; });
+    $('sheets').innerHTML = on.length ? on.map(one).join('') : '<div class="empty">위에서 공종(목수·전기·도배)을 하나 이상 켜 주세요.</div>'; }
+  function smsText(t) { var b = o.trades[t], L = ['[' + s.company + ' 작업 지시 · ' + t + ']', '날짜 : ' + dstr() + ' ' + (b.time || '') + ' 도착', '현장 : ' + o.addr];
+    if (o.lead) L.push('현장 책임 : ' + o.lead);
+    L.push('', '■ 작업 내용'); b.tasks.split('\n').filter(Boolean).forEach(function (x, i) { L.push((i + 1) + '. ' + x); });
+    if (b.mats) L.push('', '■ 준비 자재', b.mats); if (o.notes) L.push('', '■ 주의사항', o.notes);
+    L.push('', '같은 날 : ' + TR.filter(function (x) { return o.trades[x].on; }).map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → '), '문의 ' + s.phone); return L.join('\n'); }
+  f.addEventListener('input', sheet); f.addEventListener('change', sheet);
+  f.addEventListener('submit', function (e) { e.preventDefault(); save(); });
+  function save() { if (!f.reportValidity()) return null; save.busy = true; read(); save.busy = false; var r = DECO.saveOrder(o);
+    $('msg').className = 'msg' + (r ? '' : ' bad'); $('msg').textContent = r ? '저장했습니다.' : '저장하지 못했습니다.';
+    if (r) { o = r; history.replaceState(null, '', 'order.html?id=' + encodeURIComponent(o.id)); $('del').hidden = false; $('sub').textContent = o.no + ' · 고친 뒤 「저장」을 누르세요.'; sheet(); } return r; }
+  function printOnly(t) { document.querySelectorAll('#sheets .sheet').forEach(function (x) { x.classList.toggle('np', !!t && x.dataset.t !== t); }); print();
+    setTimeout(function () { document.querySelectorAll('#sheets .sheet').forEach(function (x) { x.classList.remove('np'); }); }, 500); }
+  $('prt').addEventListener('click', function () { if (save()) printOnly(''); });
+  $('trs').addEventListener('click', function (e) {
+    var one2 = e.target.closest('[data-one]'); if (one2) { if (save()) printOnly(one2.dataset.one); return; }
+    var b = e.target.closest('[data-sms]'); if (!b) return; var t = b.dataset.sms; if (!save()) return; var p = ptn(o.trades[t].partner), txt = smsText(t);
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(function () {});
+    var tel = p ? String(p.phone).replace(/[^\d+]/g, '') : '', ios = /iPhone|iPad/.test(navigator.userAgent);
+    $('msg').className = 'msg'; $('msg').textContent = t + ' 지시 내용을 복사했습니다.' + (p ? ' 문자 창이 열리면 내용을 확인하고 보내세요.' : ' 거래처를 고르지 않아 문자 창은 열지 않습니다. 붙여넣어 보내세요.');
+    if (p) location.href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt); });
+  $('del').addEventListener('click', function () { if (!confirm('이 작업 지시서를 지울까요?\n지운 지시서는 되살릴 수 없습니다.')) return; DECO.delOrder(o.id); location.href = 'orders.html'; });
+  sheet();
+})();
+</script>
+</body>
+</html>

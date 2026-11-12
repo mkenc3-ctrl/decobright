@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>홍보 글 만들기 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.sel{font:inherit;font-size:16px;height:46px;border:1px solid var(--bd);border-radius:10px;background:#fff;padding:0 10px;max-width:100%}
+.pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-top:8px}
+.pic{position:relative;border:3px solid transparent;cursor:pointer;background:#ddd;padding:0}
+.pic img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.pic span{position:absolute;left:0;bottom:0;background:rgba(0,0,0,.65);color:#fff;font-size:12px;padding:1px 5px}
+.pic[aria-pressed=true]{border-color:var(--warm)}
+.pic[aria-pressed=true]::after{content:"✔";position:absolute;top:2px;right:4px;color:#fff;background:var(--warm);font-size:13px;padding:0 4px}
+h2.s{font-size:20px;margin:24px 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.out{width:100%;font:inherit;font-size:16px;line-height:1.7;border:1px solid var(--bd);border-radius:10px;padding:12px;background:#fff;min-height:200px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.note{background:var(--warm-s);border-left:4px solid var(--warm);padding:10px 12px;font-size:15px;margin-top:14px}
+.ttl{font:inherit;font-size:18px;font-weight:700;width:100%;border:1px solid var(--bd);border-radius:10px;padding:10px 12px}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:860px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a><a class="home" href="photos.html">사진 보관함</a></div>
+  <h1 class="t">홍보 글 만들기</h1>
+  <p class="sub">① 현장을 고르고 ② 올릴 사진을 누르면 ③ 인스타그램·블로그 글이 자동으로 써집니다. 고친 뒤 복사해서 올리세요.</p>
+  <section class="card">
+    <div class="grid2">
+      <label class="fl">현장<select class="sel" id="job"></select></label>
+      <label class="fl">평형·공간<input id="size" placeholder="예: 34평 거실"></label>
+      <label class="fl">지역·단지 (호수는 빼고)<input id="place" placeholder="예: 창원 성산구 ○○아파트"></label>
+      <label class="fl">고객 한마디·특징 (있으면)<input id="extra" placeholder="예: 아이 방까지 은은하게 원하셨어요"></label>
+    </div>
+    <div class="pics" id="pics"></div>
+    <p class="msg" id="pmsg" style="margin:6px 0 0"></p>
+  </section>
+
+  <h2 class="s">제목 <button class="btn2" type="button" id="reT">다른 제목</button></h2>
+  <input class="ttl" id="title" aria-label="제목">
+
+  <h2 class="s">인스타그램 글 <span class="row" style="margin:0"><button class="btn2" type="button" id="reI">다시 쓰기</button><button class="btn2 pri" type="button" data-copy="insta">복사</button></span></h2>
+  <textarea class="out" id="insta" rows="10" aria-label="인스타그램 글"></textarea>
+
+  <h2 class="s">블로그 글 <span class="row" style="margin:0"><button class="btn2" type="button" id="reB">다시 쓰기</button><button class="btn2 pri" type="button" data-copy="blog">복사</button></span></h2>
+  <textarea class="out" id="blog" rows="22" aria-label="블로그 글"></textarea>
+
+  <div class="row">
+    <button class="btn2 pri" type="button" id="share">휴대폰에서 사진+글 공유하기</button>
+    <button class="btn2" type="button" id="dl">고른 사진 내려받기</button>
+    <a class="btn2" id="openBlog" href="#" target="_blank" rel="noopener" hidden>내 블로그 열기</a>
+  </div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="note">
+    · <b>올리기 전에 고객 동의</b>를 받으세요. 집 내부 사진은 고객 개인정보가 될 수 있어, 동·호수와 이름은 글에 넣지 않습니다.<br>
+    · 지금은 글을 <b>자동으로 써 주는 것</b>까지입니다. 인스타그램·블로그에 저절로 올라가게 하려면 회사 계정 연결(인스타그램 비즈니스 계정·메타 앱 승인)과 서버가 필요해 다음 단계로 남겨 두었습니다. 네이버 블로그는 글쓰기 연결 기능을 공식으로 열어 두지 않아 「복사 → 붙여넣기」로 올려야 합니다.
+  </div>
+</div>
+<script src="common.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, S = DECO.settings(), P = new URLSearchParams(location.search);
+  var Q = DECO.list(), photos = [], picked = {}, urls = [], seed = { t: 0, i: 0, b: 0 };
+  var pick = function (arr, k) { return arr[seed[k] % arr.length]; };
+  $('job').innerHTML = '<option value="">현장 고르기</option>' + Q.map(function (q) { return '<option value="' + E(q.id) + '">' + E(((q.cust && q.cust.name) || '이름 없음') + ' 님 · ' + ((q.cust && q.cust.addr) || q.no)) + '</option>'; }).join('');
+  if (S.blog) { $('openBlog').hidden = false; $('openBlog').href = /^https?:/.test(S.blog) ? S.blog : 'https://' + S.blog; }
+  // 주소에서 동·호수·번지를 빼고 지역·단지만 남김
+  function placeOf(a) { return String(a || '').split(/\s+/).filter(function (t) { return t && !/\d+\s*(동|호|층)$/.test(t) && !/^\d[\d-]*$/.test(t) && !/^\(.*\)$/.test(t); }).slice(0, 4).join(' '); }
+  function q() { return Q.filter(function (x) { return x.id === $('job').value; })[0] || null; }
+  function info() {
+    var x = q() || {}, names = [], tags = [];
+    if (x.pkg && x.pkg !== 'none') names.push(x.pkgName);
+    (x.items || []).forEach(function (i) { names.push(i.name.replace(/\(.*?\)/g, '').trim()); });
+    var all = [x.pkgDesc || ''].concat(names).join(' ');
+    var has = function (w) { return all.indexOf(w) >= 0; };
+    var feats = [];
+    if (has('실링팬')) { feats.push('실링팬'); tags.push('#실링팬', '#실링팬설치'); }
+    if (has('우물')) { feats.push('우물천장 간접조명'); tags.push('#우물천장', '#우물천장조명'); }
+    if (has('커튼박스')) { feats.push('커튼박스 간접등'); tags.push('#커튼박스조명'); }
+    if (has('다운라이트')) { feats.push('다운라이트'); tags.push('#매입등'); }
+    if (has('센서')) { feats.push('센서등'); tags.push('#센서등'); }
+    if (has('라인조명') || has('마그네틱')) { feats.push('라인·마그네틱 조명'); tags.push('#마그네틱조명', '#라인조명'); }
+    if (!feats.length) feats.push('천장 조명');
+    var color = { 2700: '전구색', 4000: '주백색', 6500: '주광색' }[x.kelvin] || '';
+    var area = S.area || '', place = $('place').value.trim() || area;
+    tags.push('#' + area + '인테리어', '#' + area + '조명', '#' + area + '아파트');
+    return { x: x, feats: feats, f: feats.slice(0, 3).join('·'), color: color, place: place, area: area, size: $('size').value.trim(), extra: $('extra').value.trim(), names: names, tags: tags };
+  }
+  function titles(i) { var p = i.place, z = i.size ? i.size + ' ' : '', f = i.f;
+    return [p + ' ' + z + '천장 조명, 하루 만에 끝냈습니다', p + ' ' + f + ' 시공 후기', p + ' ' + z + f + ' 시공, 전·후 비교 사진',
+      '어둡던 거실이 이렇게 바뀌었어요 — ' + p + ' ' + f + ' 시공 전·후', '이사 안 가고 하루면 끝, ' + p + ' 거실 천장 조명 바꾸기',
+      '전기·목공·도배를 하루에, ' + p + ' ' + f + ' 시공기', p + ' ' + z + '시공 사례로 보는 ' + f].map(function (t) { return t.replace(/\s+/g, ' ').trim(); }); }
+  function insta(i) { var phone = S.phone, sel = sel2();
+    var heads = ['오늘의 현장 ✨ ' + i.place + ' ' + i.f, '하루 만에 바뀐 천장 💡 ' + i.place, i.f + ', 오늘 마감했습니다 ✨'];
+    var mids = [['시공 전에는 천장 등 하나로 어둡고 밋밋했던 공간,', '하루 시공으로 은은하고 따뜻한 분위기가 됐습니다.'],
+      ['이사 없이, 짐 빼지 않고 하루 만에 끝나는 천장 조명 시공.', '전기·목공 마감까지 한 번에 진행했습니다.'],
+      ['같은 거실, 조명만 바꿨을 뿐인데', '공간이 훨씬 넓고 아늑해 보입니다.']];
+    var lines = [pick(heads, 'i'), ''].concat(pick(mids, 'i'));
+    if (i.extra) lines.push('', '💬 ' + i.extra);
+    lines.push('', '✔ 시공 내용'); i.names.slice(0, 6).forEach(function (n) { lines.push('· ' + n); });
+    if (i.color) lines.push('· 조명 색 : ' + i.color);
+    if (sel.length > 1) lines.push('', '👉 옆으로 넘겨 시공 전·후를 비교해 보세요');
+    lines.push('', '📞 상담·견적 ' + phone, '');
+    var seen = {}; lines.push((S.tags + ' ' + i.tags.join(' ')).split(/\s+/).filter(function (t) { if (!t || seen[t]) return false; seen[t] = 1; return true; }).join(' '));
+    return lines.join('\n');
+  }
+  function blog(i) { var sel = sel2(), n = 0, ph = function (stage) { var hit = sel.filter(function (p) { return p.stage === stage; }); return hit.map(function () { return '[사진 ' + (++n) + ' : ' + stage + ']'; }).join('\n'); };
+    var intro = [['안녕하세요, ' + S.company + '입니다.', '오늘은 ' + i.place + ' ' + (i.size || '') + ' 현장 이야기를 들려 드리려고 합니다.'],
+      ['안녕하세요, 하루 만에 끝나는 천장 조명 시공 ' + S.company + '입니다.', i.place + '에서 진행한 ' + i.f + ' 시공 사례를 소개합니다.']];
+    var L = pick(intro, 'b').slice();
+    L.push('', '■ 시공 전', ph('시공 전') || '[사진 : 시공 전]', '천장 가운데 등 하나만 달려 있어 저녁이면 거실 구석이 어둡고, 공간이 실제보다 좁아 보였습니다.' + (i.extra ? '\n고객님께서는 「' + i.extra + '」라고 말씀해 주셨어요.' : ''));
+    L.push('', '■ 이렇게 시공했습니다'); i.names.forEach(function (x) { L.push('· ' + x); }); if (i.color) L.push('· 조명 색은 ' + i.color + '으로 맞췄습니다.');
+    var mid = ph('시공 중'); if (mid) L.push('', mid, '기존 조명을 떼고 배선을 확인한 뒤, 필요한 곳은 천장 보강부터 했습니다.');
+    if (i.feats.indexOf('실링팬') >= 0) L.push('', '실링팬은 무게와 흔들림이 있어 천장 보강을 꼭 한 뒤 달아야 합니다. 보강 없이 달면 소음과 처짐이 생길 수 있어요.');
+    if (i.feats.indexOf('우물천장 간접조명') >= 0) L.push('', '우물천장 안쪽에 T5 간접등을 넣으면 빛이 천장을 타고 퍼져, 눈부심 없이 은은하게 밝아집니다.');
+    L.push('', '■ 시공 후', ph('시공 후') || '[사진 : 시공 후]', pick(['조명만 바꿨는데 거실이 한층 넓고 아늑해졌습니다.', '밤에 불을 켜면 호텔 같은 분위기가 납니다. 고객님도 무척 만족하셨어요.'], 'b'));
+    L.push('', '■ 하루 시공이라 가능한 것들', '· 이사·짐 빼기 없이 살면서 공사', '· 전기·목공·마감을 한 팀이 하루에', '· 사진 한 장으로 미리 보는 완성 모습과 견적');
+    L.push('', '우리 집 거실도 바꿔 보고 싶으시면 사진 한 장 보내 주세요.', '완성 예상 모습과 견적을 함께 보내 드립니다.', '', '📞 상담·견적 : ' + S.phone + (S.area ? '\n📍 ' + S.area + ' 및 인근 지역' : ''));
+    L.push('', i.tags.concat((S.tags || '').split(/\s+/)).filter(Boolean).slice(0, 12).join(' '));
+    return L.join('\n');
+  }
+  function sel2() { return photos.filter(function (p) { return picked[p.id]; }); }
+  function gen(which) { var i = info(), T = titles(i);
+    if (!which || which === 't') $('title').value = pick(T, 't');
+    if (!which || which === 'i') $('insta').value = insta(i);
+    if (!which || which === 'b') $('blog').value = $('title').value + '\n\n' + blog(i); }
+  function loadJob() {
+    var x = q(); urls.forEach(URL.revokeObjectURL); urls = []; picked = {};
+    if (x) { $('place').value = placeOf(x.cust && x.cust.addr) || S.area; var c = x.custId ? DECO.getCustomer(x.custId) : null; $('size').value = (c && c.size) || ''; }
+    DECO.photoAll().then(function (a) { photos = a.filter(function (p) { return x && p.job === x.id; });
+      var before = photos.filter(function (p) { return p.stage === '시공 전'; }).slice(0, 1);
+      photos.forEach(function (p) { if (p.stage === '시공 후' || before.indexOf(p) >= 0) picked[p.id] = true; });
+      $('pics').innerHTML = photos.map(function (p) { var u = URL.createObjectURL(p.blob); urls.push(u);
+        return '<button type="button" class="pic" data-id="' + p.id + '" aria-pressed="' + !!picked[p.id] + '"><img src="' + u + '" alt="' + E(p.stage) + '"><span>' + E(p.stage) + '</span></button>'; }).join('');
+      $('pmsg').textContent = !x ? '현장을 먼저 고르세요.' : photos.length ? '사진 ' + photos.length + '장 중 ' + sel2().length + '장 골랐습니다. 눌러서 넣고 뺄 수 있습니다.' : '이 현장에 사진이 없습니다. 사진 보관함에서 먼저 올려 주세요.';
+      gen(); });
+  }
+  $('pics').addEventListener('click', function (e) { var b = e.target.closest('.pic'); if (!b) return; picked[b.dataset.id] = !picked[b.dataset.id]; b.setAttribute('aria-pressed', String(!!picked[b.dataset.id]));
+    $('pmsg').textContent = '사진 ' + photos.length + '장 중 ' + sel2().length + '장 골랐습니다.'; gen('i'); gen('b'); });
+  $('job').addEventListener('change', loadJob);
+  ['size', 'place', 'extra'].forEach(function (id) { $(id).addEventListener('change', function () { gen(); }); });
+  $('reT').addEventListener('click', function () { seed.t++; gen('t'); gen('b'); });
+  $('reI').addEventListener('click', function () { seed.i++; gen('i'); });
+  $('reB').addEventListener('click', function () { seed.b++; gen('b'); });
+  function say(t, bad) { $('msg').textContent = t; $('msg').className = 'msg' + (bad ? ' bad' : ''); }
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-copy]'); if (!b) return; var t = $(b.dataset.copy);
+    (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(function () { say('복사했습니다. 인스타그램·블로그 글쓰기에 붙여넣으세요.'); },
+      function () { t.select(); say('자동 복사가 안 되어 글을 선택해 두었습니다. 길게 눌러 복사하세요.', true); }); });
+  function files() { return sel2().map(function (p, i) { return new File([p.blob], S.company + '_' + (i + 1) + '_' + p.stage.replace(/\W/g, '') + '.jpg', { type: 'image/jpeg' }); }); }
+  $('share').addEventListener('click', function () { var fl = files(), data = { title: $('title').value, text: $('insta').value };
+    if (fl.length && navigator.canShare && navigator.canShare({ files: fl })) data.files = fl;
+    if (!navigator.share) { say('이 기기에서는 바로 공유가 안 됩니다. 「복사」와 「사진 내려받기」로 올려 주세요.', true); return; }
+    navigator.clipboard && navigator.clipboard.writeText($('insta').value).catch(function () {});
+    navigator.share(data).then(function () { say('공유 창을 열었습니다. 인스타그램을 고르면 사진이 들어가고, 글은 붙여넣기 하세요.'); }, function () {}); });
+  $('dl').addEventListener('click', function () { var fl = files(); if (!fl.length) { say('고른 사진이 없습니다.', true); return; }
+    fl.forEach(function (f, i) { setTimeout(function () { var a = document.createElement('a'), u = URL.createObjectURL(f); a.href = u; a.download = f.name; a.click(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000); }, i * 400); });
+    say(fl.length + '장을 내려받았습니다.'); });
+  if (P.get('job')) $('job').value = P.get('job');
+  loadJob();
+})();
+</script>
+</body>
+</html>
