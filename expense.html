@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>지출 장부 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.add{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end}
+.add .w{grid-column:1/-1}
+@media (max-width:560px){.add{grid-template-columns:1fr 1fr}}
+.add input,.add select{font-size:16px;padding:9px;width:100%;box-sizing:border-box}
+.add label{display:flex;flex-direction:column;gap:3px;font-size:14px}
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.cats button{font-size:15px;padding:8px 12px;border:1px solid var(--bd);background:#fff;border-radius:999px;cursor:pointer}
+.cats button.on{background:#3a2e22;color:#fff;border-color:#3a2e22}
+.mo{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mo b{font-size:20px;min-width:120px;text-align:center}
+.mo button{width:44px;height:44px;font-size:20px;border:1px solid var(--bd);background:#fff;border-radius:10px;cursor:pointer}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:6px}
+.sum div{background:#faf6ee;border-radius:10px;padding:10px}
+.sum small{display:block;font-size:13px;color:var(--muted)}
+.sum b{font-size:19px;font-variant-numeric:tabular-nums}
+.r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:11px 2px;border-bottom:1px solid var(--line)}
+.r b{font-size:17px}
+.r small{display:block;font-size:13px;color:var(--muted)}
+.r .a{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:760px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">지출 장부</h1>
+  <p class="sub">① 무엇에 썼는지 고르고 ② 금액을 넣고 ③ 「적기」를 누릅니다. 현장 인건비·자재비는 작업 지시서 「내부 정산」에 적고, 여기에는 기름값·공구·식대처럼 공통으로 나간 돈을 적습니다.</p>
+  <div class="card">
+    <div class="cats" id="cats"></div>
+    <div class="add">
+      <label>날짜<input type="date" id="dt"></label>
+      <label>금액(원)<input type="number" id="am" inputmode="numeric" step="1000" placeholder="예: 50000"></label>
+      <label>결제<select id="pm"><option>카드</option><option>현금</option><option>계좌이체</option></select></label>
+      <label class="w">내용<input id="mm" data-mic placeholder="예: 주유, 드릴 비트 구입"></label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn2 pri" type="button" id="addB">적기</button><button class="btn2" type="button" id="csv">이달 엑셀(CSV) 받기</button></div>
+    <p class="msg" id="msg" role="status"></p>
+  </div>
+  <div class="card">
+    <div class="mo"><button type="button" id="pv" aria-label="지난달">‹</button><b id="ml"></b><button type="button" id="nx" aria-label="다음달">›</button></div>
+    <div class="sum" id="sum"></div>
+    <div id="list"></div>
+  </div>
+  <p class="sub">※ 세금 신고 때 참고용입니다. 영수증(카드 전표·현금영수증)은 따로 보관하세요.</p>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, W = DECO.won;
+  var CAT = ['기름값', '공구·장비', '식대', '차량', '소모품', '광고', '통신', '기타'], cat = CAT[0], now = new Date(), Y = now.getFullYear(), M = now.getMonth();
+  $('cats').innerHTML = CAT.map(function (c) { return '<button type="button" data-c="' + c + '">' + c + '</button>'; }).join('');
+  function cats() { [].forEach.call($('cats').children, function (b) { b.classList.toggle('on', b.dataset.c === cat); }); }
+  $('cats').onclick = function (e) { var b = e.target.closest('[data-c]'); if (b) { cat = b.dataset.c; cats(); } };
+  $('dt').value = DECO.today(); cats(); DECO.micInit && DECO.micInit();
+  function key() { return Y + '-' + String(M + 1).padStart(2, '0'); }
+  function mine() { var k = key(); return DECO.exps().filter(function (x) { return (x.d || '').slice(0, 7) === k; }).sort(function (a, b) { return b.d.localeCompare(a.d) || (b.upd || 0) - (a.upd || 0); }); }
+  function draw() { var L = mine(), t = 0, by = {}; L.forEach(function (x) { t += +x.amt || 0; by[x.cat] = (by[x.cat] || 0) + (+x.amt || 0); });
+    $('ml').textContent = Y + '년 ' + (M + 1) + '월';
+    $('sum').innerHTML = '<div><small>이달 지출 합계</small><b>' + W(t) + '</b></div>' + Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }).map(function (c) { return '<div><small>' + E(c) + '</small><b>' + W(by[c]) + '</b></div>'; }).join('');
+    $('list').innerHTML = L.length ? L.map(function (x) { return '<div class="r" data-id="' + E(x.id) + '"><div><b>' + E(x.cat) + (x.memo ? ' · ' + E(x.memo) : '') + '</b><small>' + E(x.d.slice(5).replace('-', '/')) + ' · ' + E(x.pm || '') + ' · <a href="#" data-del>지우기</a></small></div><div class="a">' + W(x.amt) + '</div></div>'; }).join('')
+      : '<p class="sub">이달 적은 지출이 없습니다.</p>'; }
+  $('pv').onclick = function () { if (--M < 0) { M = 11; Y--; } draw(); };
+  $('nx').onclick = function () { if (++M > 11) { M = 0; Y++; } draw(); };
+  $('addB').onclick = function () { var a = Math.round(+$('am').value || 0), m = $('msg');
+    if (a <= 0) { m.className = 'msg bad'; m.textContent = '금액을 넣어 주세요.'; return; }
+    var d = $('dt').value || DECO.today(); DECO.saveExp({ d: d, cat: cat, amt: a, pm: $('pm').value, memo: $('mm').value.trim() });
+    $('am').value = $('mm').value = ''; m.className = 'msg'; m.textContent = cat + ' ' + W(a) + ' 적었습니다.';
+    var p = d.split('-'); Y = +p[0]; M = +p[1] - 1; draw(); };
+  $('list').addEventListener('click', function (e) { var b = e.target.closest('[data-del]'); if (!b) return; e.preventDefault(); var id = b.closest('.r').dataset.id, x = DECO.exps().filter(function (y) { return y.id === id; })[0];
+    if (x && confirm(x.cat + ' ' + W(x.amt) + ' 을(를) 지울까요?')) { DECO.delExp(id); draw(); } });
+  $('csv').onclick = function () { var L = mine(); if (!L.length) { $('msg').className = 'msg'; $('msg').textContent = '이달 지출이 없습니다.'; return; }
+    var q = function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; };
+    var t = '﻿날짜,항목,내용,결제,금액\r\n' + L.map(function (x) { return [x.d, x.cat, x.memo, x.pm, x.amt].map(q).join(','); }).join('\r\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/csv' })); a.download = '지출장부_' + key() + '.csv'; a.click(); };
+  draw();
+})();
+</script>
+</body>
+</html>

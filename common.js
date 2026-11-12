@@ -117,6 +117,10 @@
   var KK = 'deco-stock';
   D.stock = function () { return rd(KK, []); };
   D.saveStock = function (s) { var all = rd(KK, []); if (!s.id) s.id = 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); s.upd = Date.now(); var next = all.filter(function (x) { return x.id !== s.id; }); next.push(s); return wr(KK, next) ? s : null; };
+  var KX = 'deco-exp';
+  D.exps = function () { return rd(KX, []); };
+  D.saveExp = function (x) { var all = rd(KX, []); if (!x.id) x.id = 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); x.upd = Date.now(); var next = all.filter(function (y) { return y.id !== x.id; }); next.push(x); return wr(KX, next) ? x : null; };
+  D.delExp = function (id) { return wr(KX, rd(KX, []).filter(function (y) { return y.id !== id; })); };
   D.delStock = function (id) { return wr(KK, rd(KK, []).filter(function (x) { return x.id !== id; })); };
   var KM = 'deco-memos';
   D.memos = function () { return rd(KM, []).sort(function (a, b) { return (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || b.updated - a.updated; }); };
