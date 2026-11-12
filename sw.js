@@ -1,6 +1,6 @@
 // 데코브라이트 견적 — 휴대폰 설치(홈 화면 추가)와 인터넷이 끊겼을 때 열기를 위한 서비스 워커
 // 화면 파일은 네트워크 우선(고친 판이 바로 보이도록), 실패하면 저장본 사용
-var CACHE = 'deco-v5';
+var CACHE = 'deco-v6';
 var SHELL = ['index.html', 'quote.html', 'list.html', 'print.html', 'settings.html', 'prices.html', 'photos.html', 'orders.html', 'order.html', 'customers.html', 'customer.html', 'calendar.html', 'partners.html', 'memo.html', 'sns.html', 'contract.html',
   'common.css', 'common.js', 'prices-default.js', 'real-photos.js', 'manifest.webmanifest', 'icons/icon.svg'];
 self.addEventListener('install', function (e) {
