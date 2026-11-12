@@ -121,6 +121,9 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   draw();
   // ── 수금
   var PV = 'due', OPEN = null, ST = DECO.settings();
+  function smsBtn(q, rem) { var c = q.cust || {}, tel = String(c.phone || '').replace(/[^\d+]/g, ''); if (rem <= 0 || !tel) return '';
+    var t = '[' + ST.company + '] ' + (c.name ? c.name + ' 님, ' : '') + '시공 대금 안내드립니다.\n합계 ' + W(amt(q)) + (paid(q) ? '\n받은 금액 ' + W(paid(q)) : '') + '\n남은 금액 ' + W(rem) + (ST.bank ? '\n입금 계좌: ' + ST.bank : '') + '\n문의: ' + ST.phone + '\n감사합니다.';
+    return '<a class="btn2" href="sms:' + tel + (/iPhone|iPad/.test(navigator.userAgent) ? '&' : '?') + 'body=' + encodeURIComponent(t) + '">문자로 안내</a>'; }
   function payDraw() {
     var C = Q.filter(function (q) { return DONE[q.status]; }), due = 0, mon = 0, k = now.getFullYear() * 12 + now.getMonth();
     C.forEach(function (q) { due += Math.max(0, amt(q) - paid(q)); });
@@ -128,7 +131,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     $('paySum').innerHTML = '이번 달 들어온 돈 <b>' + W(mon) + '</b> · 아직 받을 돈 <b>' + W(due) + '</b> (계약·시공·완료 견적 기준)';
     var L = C.filter(function (q) { return PV === 'all' || amt(q) - paid(q) > 0; }).sort(function (a, b) { return (amt(b) - paid(b)) - (amt(a) - paid(a)); });
     $('payList').innerHTML = L.length ? L.map(function (q) { var c = q.cust || {}, rem = amt(q) - paid(q);
-      return '<div class="pr" data-id="' + E(q.id) + '"><div class="h"><b>' + E(c.name || '이름 없음') + ' <small style="font-weight:400;font-size:14px">' + E(q.no || '') + ' · ' + E(q.status) + '</small></b><button class="btn2" type="button" data-open>입금 기록</button></div>' +
+      return '<div class="pr" data-id="' + E(q.id) + '"><div class="h"><b>' + E(c.name || '이름 없음') + ' <small style="font-weight:400;font-size:14px">' + E(q.no || '') + ' · ' + E(q.status) + '</small></b><span style="display:flex;gap:6px">' + smsBtn(q, rem) + '<button class="btn2" type="button" data-open>입금 기록</button></span></div>' +
         '<div class="m">합계 ' + W(amt(q)) + ' · 받은 돈 ' + W(paid(q)) + ' · 남은 돈 <em class="' + (rem > 0 ? '' : 'ok') + '">' + (rem > 0 ? W(rem) : '완납') + '</em></div>' +
         ((q.pays || []).length ? '<ul>' + q.pays.map(function (p, i) { return '<li>' + E(p.d) + ' ' + E(p.kind) + ' ' + W(p.amt) + (p.memo ? ' · ' + E(p.memo) : '') + ' <button type="button" data-del="' + i + '" aria-label="이 입금 기록 지우기">지우기</button></li>'; }).join('') + '</ul>' : '') +
         (OPEN === q.id ? '<div class="pf"><label class="fl">입금 날짜<input type="date" data-f="d" value="' + DECO.today() + '"></label><label class="fl">종류<select data-f="kind">' + ['계약금', '중도금', '잔금', '기타'].map(function (x) { return '<option' + (x === (paid(q) ? '잔금' : '계약금') ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label>' +
