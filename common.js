@@ -188,6 +188,9 @@
         r.onend = r.onerror = function () { b.rec = null; b.classList.remove('on'); b.textContent = '🎤 말로 입력'; };
         try { r.start(); } catch (e) { r.onend(); } }); }); }
   D.micInit = micInit;
+  // 주소 → 길찾기 링크 (카카오맵·네이버지도)
+  D.mapLinks = function (addr) { addr = String(addr || '').trim(); if (!addr) return ''; var a = encodeURIComponent(addr);
+    return '<a class="btn2" href="https://map.kakao.com/link/search/' + a + '" target="_blank" rel="noopener">카카오맵 길찾기</a><a class="btn2" href="https://map.naver.com/p/search/' + a + '" target="_blank" rel="noopener">네이버지도</a>'; };
   document.addEventListener('DOMContentLoaded', micInit);
   // 휴대폰 설치(홈 화면에 추가)용 — 인터넷 주소(https)나 내 컴퓨터(localhost)에서만 동작
   if ('serviceWorker' in navigator && /^(https:|http:\/\/localhost)/.test(location.href)) {

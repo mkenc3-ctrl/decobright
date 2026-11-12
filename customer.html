@@ -33,6 +33,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
   <div class="quick" id="quick" hidden>
     <a class="btn2 pri" id="call" href="#">전화 걸기</a>
     <a class="btn2" id="sms" href="#">문자 보내기</a>
+    <span id="maps" style="display:contents"></span>
     <a class="btn2" id="newQ" href="quote.html">이 고객 새 견적</a>
     <a class="btn2" id="newE" href="calendar.html">실측·상담 일정 잡기</a>
     <a class="btn2" id="newAS" href="calendar.html">A/S(하자) 방문 잡기</a>
@@ -76,7 +77,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     Array.prototype.forEach.call(f.elements, function (el) { if (el.name && c[el.name] != null) el.value = c[el.name]; });
     $('ttl').textContent = (c.name || '이름 없음') + ' 님'; $('quick').hidden = false; $('more').hidden = false; $('del').hidden = false;
     var tel = String(c.phone || '').replace(/[^\d+]/g, '');
-    $('call').href = 'tel:' + tel; $('sms').href = 'sms:' + tel; $('call').hidden = $('sms').hidden = !tel;
+    $('call').href = 'tel:' + tel; $('sms').href = 'sms:' + tel; $('call').hidden = $('sms').hidden = !tel; document.getElementById('maps').innerHTML = DECO.mapLinks(c.addr);
     $('newQ').href = 'quote.html?cust=' + encodeURIComponent(c.id); $('newE').href = 'calendar.html?cust=' + encodeURIComponent(c.id); $('newAS').href = 'calendar.html?kind=as&cust=' + encodeURIComponent(c.id);
     logs(); rel();
   }

@@ -61,7 +61,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
       <div class="grid2">
         <label class="fl"><span class="need">고객명</span><input name="name" required></label>
         <label class="fl">고객 연락처 <small>(거래처 문자에는 넣지 않음)</small><input name="phone" inputmode="tel"></label>
-        <label class="fl" style="grid-column:1/-1"><span class="need">현장주소</span><input name="addr" required></label>
+        <label class="fl" style="grid-column:1/-1"><span class="need">현장주소</span><input name="addr" required><span class="maps" id="maps" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"></span></label>
         <label class="fl"><span class="need">시공일</span><input name="workDate" type="date" required></label>
         <label class="fl">현장 책임자 (우리 쪽)<input name="lead" placeholder="예: 이상호"></label>
         <label class="fl">조명 색<select name="color"><option>전구색</option><option>주백색</option><option>주광색</option></select></label>
@@ -171,7 +171,15 @@ h2.s{font-size:19px;margin:20px 0 8px}
   f.addEventListener('submit', function (e) { e.preventDefault(); save(); });
   function save() { if (!f.reportValidity()) return null; save.busy = true; read(); save.busy = false; var r = DECO.saveOrder(o);
     $('msg').className = 'msg' + (r ? '' : ' bad'); $('msg').textContent = r ? '저장했습니다.' : '저장하지 못했습니다.';
-    if (r) { o = r; history.replaceState(null, '', 'order.html?id=' + encodeURIComponent(o.id)); $('del').hidden = false; $('sub').textContent = o.no + ' · 고친 뒤 「저장」을 누르세요.'; sheet(); } return r; }
+    if (r) { o = r; history.replaceState(null, '', 'order.html?id=' + encodeURIComponent(o.id)); $('del').hidden = false; $('sub').textContent = o.no + ' · 고친 뒤 「저장」을 누르세요.'; sheet(); var w = clash(); if (w) { $('msg').className = 'msg bad'; $('msg').textContent = '저장했습니다. ⚠ ' + w; } } return r; }
+  // 같은 날 다른 현장·거래처 겹침
+  function clash() { if (!o.workDate) return ''; var O = DECO.orders().filter(function (x) { return x.id !== o.id && x.workDate === o.workDate && x.status !== '완료' && x.status !== '보류'; }); if (!O.length) return '';
+    var w = ['같은 날 다른 현장이 ' + O.length + '곳 있습니다 (' + O.map(function (x) { return x.name || x.addr || x.no; }).join(', ') + ').'];
+    TR.forEach(function (t) { var b = o.trades[t]; if (!b || !b.on || !b.partner) return; var hit = O.filter(function (x) { var y = x.trades && x.trades[t]; return y && y.on && y.partner === b.partner; });
+      if (hit.length) { var p = ptn(b.partner); w.push(t + ' 거래처 ' + (p ? p.name : '') + '이(가) 같은 날 ' + hit.map(function (x) { return (x.name || x.addr) + (x.trades[t].time ? ' ' + x.trades[t].time : ''); }).join(', ') + ' 현장에도 잡혀 있습니다.'); } });
+    return w.join(' '); }
+  function maps() { $('maps').innerHTML = DECO.mapLinks(f.elements.addr.value); }
+  f.elements.addr.addEventListener('change', maps); setTimeout(maps, 0);
   function printOnly(t) { document.querySelectorAll('#sheets .sheet').forEach(function (x) { x.classList.toggle('np', !!t && x.dataset.t !== t); }); print();
     setTimeout(function () { document.querySelectorAll('#sheets .sheet').forEach(function (x) { x.classList.remove('np'); }); }, 500); }
   $('prt').addEventListener('click', function () { if (save()) printOnly(''); });

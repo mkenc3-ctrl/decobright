@@ -39,6 +39,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
 .pr ul button{border:0;background:none;color:#b5462f;font-size:14px;cursor:pointer;padding:0 4px}
 .pf{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:8px;align-items:end}
 .pf input,.pf select{font-size:16px;padding:8px;width:100%;box-sizing:border-box}
+.ponly{display:none}
+@media print{body.app::before,.topnav,.noprint,.mbar button,#pay,#pay+.card,#backup,#backup+.card,.sub{display:none!important}.ponly{display:block;font-size:13px;margin-bottom:8px}.page{max-width:none;padding:0}.card{break-inside:avoid;box-shadow:none}.kpis{grid-template-columns:repeat(4,1fr)}}
 .lg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
 </style>
 </head>
@@ -48,6 +50,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <h1 class="t">매출·계약 현황</h1>
   <p class="sub">견적을 만든 달 기준입니다. 「계약」은 상태가 계약·시공·완료인 견적입니다. 금액은 부가세 포함 합계입니다.</p>
   <div class="mbar"><button class="btn2" type="button" id="prev">‹ 지난달</button><b id="mt"></b><button class="btn2" type="button" id="next">다음달 ›</button></div>
+  <div class="noprint" style="text-align:right;margin:-4px 0 10px"><button class="btn2" type="button" id="prtM">이달 보고서 인쇄 · PDF</button></div>
+  <div class="ponly" id="ptitle"></div>
   <div class="kpis" id="kpis"></div>
   <h2 class="grp">최근 12개월</h2>
   <div class="card">
@@ -129,6 +133,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     var ks = Object.keys(g).sort(function (a, b) { return g[b].n - g[a].n; });
     $('src').innerHTML = ks.length ? '<tr><th>경로</th><th style="text-align:right">고객</th><th style="text-align:right">계약</th><th style="text-align:right">계약 금액</th></tr>' + ks.map(function (s) {
       return '<tr><td>' + E(s) + '</td><td class="n">' + g[s].n + '명</td><td class="n">' + g[s].c + '명</td><td class="n">' + W(g[s].a) + '</td></tr>'; }).join('') : '<tr><td>아직 고객이 없습니다.</td></tr>'; })();
+  $('prtM').onclick = function () { $('ptitle').textContent = DECO.settings().company + ' · ' + Y + '년 ' + (M + 1) + '월 보고서 · 출력일 ' + DECO.today(); window.print(); };
   $('prev').onclick = function () { M--; if (M < 0) { M = 11; Y--; } draw(); };
   $('next').onclick = function () { M++; if (M > 11) { M = 0; Y++; } draw(); };
   draw();
