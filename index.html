@@ -135,6 +135,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <nav class="menu tiles" aria-label="현장 작업">
     <a href="orders.html"><i aria-hidden="true">📋</i><b>작업 지시서</b><span id="ocnt">목수·전기·도배 거래처 지시·연락처, 문자 보내기</span></a>
     <a href="mats.html"><i aria-hidden="true">📦</i><b>자재 준비 목록</b><span>이번 주 시공 자재를 모아 더하고 챙긴 것 체크</span></a>
+    <a href="stock.html"><i aria-hidden="true">🧰</i><b>자재 재고</b><span>남은 수량, 모자라면 주문 알림</span></a>
     <a href="photos.html"><i aria-hidden="true">📷</i><b>작업 사진 보관함</b><span>현장별 시공 전·중·후 사진</span></a>
     <a href="sns.html"><i aria-hidden="true">✍️</i><b>홍보 글 만들기</b><span>사진으로 인스타그램·블로그 글 자동 작성</span></a>
   </nav>
@@ -189,6 +190,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
         T.push(['☎ 다시 연락: ' + ((q.cust && q.cust.name) || q.no) + ' (' + Math.floor((Date.now() - q.updated) / 864e5) + '일 전 견적)', '견적 ›', 'quote.html?id=' + encodeURIComponent(q.id)]); });
       L.filter(function (q) { return q.status === '완료' && (q.totals && q.totals.total || 0) - (q.pays || []).reduce(function (a, p) { return a + (+p.amt || 0); }, 0) > 0; }).slice(0, 3).forEach(function (q) {
         T.push(['💰 시공 끝, 잔금 받기: ' + ((q.cust && q.cust.name) || q.no), '수금 ›', 'stats.html#pay']); });
+      var low = DECO.stock().filter(function (k) { return k.min && k.qty <= k.min; }); if (low.length) T.push(['🧰 자재 주문: ' + low.slice(0, 3).map(function (k) { return k.name; }).join(', ') + (low.length > 3 ? ' 외 ' + (low.length - 3) + '개' : ''), '재고 ›', 'stock.html']);
       if (!T.length) return; document.getElementById('todo').hidden = false;
       document.getElementById('todoL').innerHTML = T.slice(0, 7).map(function (t) { return '<li><a href="' + t[2] + '"><span>' + E2(t[0]) + '</span><b>' + t[1] + '</b></a></li>'; }).join(''); })();
     var b = document.getElementById('dueBox'); if (n) { b.hidden = false; b.textContent = '💰 아직 받을 돈 ' + DECO.won(sum) + ' (' + n + '건) · 눌러서 보기 ›'; } })();

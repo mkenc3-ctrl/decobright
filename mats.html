@@ -56,7 +56,7 @@ h3.tr{font-size:17px;margin:14px 0 4px}
   function draw() {
     var r = range(), O = DECO.orders().filter(function (o) { return o.workDate >= r[0] && o.workDate <= r[1] && o.status !== '완료' && o.status !== '보류'; })
       .sort(function (a, b) { return a.workDate.localeCompare(b.workDate); });
-    var G = {}, C = ck();
+    var G = {}, C = ck(), SK = {}; DECO.stock().forEach(function (s) { SK[s.name] = s; });
     O.forEach(function (o) { Object.keys(o.trades || {}).forEach(function (t) { var b = o.trades[t]; if (!b || !b.on || !b.mats) return; G[t] = G[t] || {};
       String(b.mats).split(/\n|,/).forEach(function (l) { l = l.trim(); if (!l) return; var m = l.match(/^(.*?)\s*[×x\*]\s*(\d+(?:\.\d+)?)\s*([^\d\s]*)$/), k = m ? m[1].trim() : l, n = m ? +m[2] : 0, u = m ? m[3] : '';
         var g = G[t][k] = G[t][k] || { n: 0, u: u, free: !m, at: [] }; g.n += n; if (g.at.indexOf(o.name || o.addr || o.no) < 0) g.at.push(o.name || o.addr || o.no); }); }); });
@@ -64,7 +64,8 @@ h3.tr{font-size:17px;margin:14px 0 4px}
     $('list').innerHTML = T.length ? T.map(function (t) { L.push('', '■ ' + t);
       return '<h3 class="tr">' + E(t) + '</h3><ul class="ml">' + Object.keys(G[t]).map(function (k) { var g = G[t][k], id = t + '|' + k, q = g.free ? '' : (Math.round(g.n * 100) / 100) + (g.u || '개');
         L.push('- ' + k + (q ? ' ' + q : ''));
-        return '<li class="' + (C[id] ? 'ok' : '') + '"><input type="checkbox" data-k="' + E(id) + '"' + (C[id] ? ' checked' : '') + ' aria-label="' + E(k) + ' 챙김"><span>' + E(k) + '<small>' + E(g.at.join(', ')) + '</small></span><b>' + E(q) + '</b></li>'; }).join('') + '</ul>'; }).join('')
+        var st = SK[k], sq = st ? ' <em style="font-style:normal;font-size:13px;font-weight:700;color:' + (st.qty < g.n ? '#b5462f' : '#2f7a4a') + '">· 재고 ' + st.qty + E(st.unit || '개') + (st.qty < g.n ? ' (모자람 ' + (Math.round((g.n - st.qty) * 100) / 100) + ')' : '') + '</em>' : '';
+        return '<li class="' + (C[id] ? 'ok' : '') + '"><input type="checkbox" data-k="' + E(id) + '"' + (C[id] ? ' checked' : '') + ' aria-label="' + E(k) + ' 챙김"><span>' + E(k) + sq + '<small>' + E(g.at.join(', ')) + '</small></span><b>' + E(q) + '</b></li>'; }).join('') + '</ul>'; }).join('')
       : '<p class="sub">' + (O.length ? '이 기간 지시서에 「준비 자재」가 적혀 있지 않습니다. 지시서의 공종별 「준비 자재·장비」 칸에 적어 주세요.' : '이 기간에 잡힌 시공이 없습니다.') + '</p>';
     TXT = L.join('\n');
     $('sites').innerHTML = O.length ? O.map(function (o) { return '<a href="order.html?id=' + encodeURIComponent(o.id) + '"><b>' + E(o.workDate) + '</b> · ' + E(o.name || '') + ' ' + E(o.addr || '') + ' <small>(' + E(o.no) + ')</small></a>'; }).join('') : '<p class="sub">없음</p>';

@@ -114,6 +114,10 @@
   D.tradeOf = function (t) { if (/도배|벽지/.test(t)) return '도배'; if (/목공|보강|몰딩|세로면|목수|합판|석고|한방라운드/.test(t)) return '목수'; return '전기'; };
 
   // ---------- 메모장 ----------
+  var KK = 'deco-stock';
+  D.stock = function () { return rd(KK, []); };
+  D.saveStock = function (s) { var all = rd(KK, []); if (!s.id) s.id = 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); s.upd = Date.now(); var next = all.filter(function (x) { return x.id !== s.id; }); next.push(s); return wr(KK, next) ? s : null; };
+  D.delStock = function (id) { return wr(KK, rd(KK, []).filter(function (x) { return x.id !== id; })); };
   var KM = 'deco-memos';
   D.memos = function () { return rd(KM, []).sort(function (a, b) { return (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || b.updated - a.updated; }); };
   D.saveMemo = function (m) { var all = rd(KM, []); if (!m.id) { m.id = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); m.created = Date.now(); } m.updated = Date.now();

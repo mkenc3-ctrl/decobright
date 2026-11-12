@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>자재 재고 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line)}
+.it b{font-size:18px}
+.it small{display:block;font-size:13px;color:var(--muted)}
+.it.low b{color:#b5462f}
+.it .q{display:flex;align-items:center;gap:6px}
+.it .q button{width:44px;height:44px;font-size:22px;border:1px solid var(--bd);background:#fff;border-radius:10px;cursor:pointer}
+.it .q span{min-width:64px;text-align:center;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.add{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;align-items:end}
+@media (max-width:560px){.add{grid-template-columns:1fr 1fr}}
+.add input{font-size:16px;padding:9px;width:100%;box-sizing:border-box}
+.add label{display:flex;flex-direction:column;gap:3px;font-size:14px}
+.badge{display:inline-block;font-size:12px;font-weight:700;background:#fdf0ee;color:#b5462f;border-radius:6px;padding:1px 6px;margin-left:6px}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:760px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">자재 재고</h1>
+  <p class="sub">① 자재를 등록하고 ② 들어오면 「＋」, 쓰면 「－」를 누릅니다. ③ 「최소」보다 적어지면 빨갛게 표시되고 처음 화면 「오늘 할 일」에 「주문하기」가 뜹니다.</p>
+  <div class="card">
+    <div class="add">
+      <label>자재 이름<input id="nm" list="nmList" placeholder="예: 다운라이트 3인치"><datalist id="nmList"></datalist></label>
+      <label>지금 수량<input id="qt" type="number" inputmode="numeric" placeholder="0"></label>
+      <label>단위<input id="un" placeholder="개"></label>
+      <label>최소(이하면 주문)<input id="mn" type="number" inputmode="numeric" placeholder="예: 10"></label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn2 pri" type="button" id="addB">등록</button><button class="btn2" type="button" id="cp">주문할 것 복사</button></div>
+    <p class="msg" id="msg" role="status"></p>
+  </div>
+  <div class="card" id="list"></div>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc;
+  // 견적 항목 이름을 자재 이름 후보로
+  $('nmList').innerHTML = DECO.items().map(function (i) { return '<option value="' + E(i.name) + '">'; }).join('');
+  function draw() { var S = DECO.stock().sort(function (a, b) { return (a.qty <= (a.min || 0) ? 0 : 1) - (b.qty <= (b.min || 0) ? 0 : 1) || a.name.localeCompare(b.name); });
+    $('list').innerHTML = S.length ? S.map(function (s) { var low = s.min && s.qty <= s.min;
+      return '<div class="it' + (low ? ' low' : '') + '" data-id="' + E(s.id) + '"><div><b>' + E(s.name) + (low ? '<span class="badge">주문 필요</span>' : '') + '</b><small>최소 ' + (s.min || 0) + E(s.unit || '개') + (s.upd ? ' · ' + DECO.date(s.upd) + ' 고침' : '') + ' · <a href="#" data-del>지우기</a></small></div>' +
+        '<div class="q"><button type="button" data-d="-1" aria-label="하나 빼기">－</button><span>' + s.qty + '<small style="display:inline;font-size:13px">' + E(s.unit || '개') + '</small></span><button type="button" data-d="1" aria-label="하나 더하기">＋</button></div></div>'; }).join('')
+      : '<p class="sub">아직 등록한 자재가 없습니다. 위에서 자주 쓰는 자재를 등록해 보세요.</p>'; }
+  $('addB').onclick = function () { var n = $('nm').value.trim(); if (!n) { $('msg').className = 'msg bad'; $('msg').textContent = '자재 이름을 넣어 주세요.'; return; }
+    var hit = DECO.stock().filter(function (s) { return s.name === n; })[0] || { name: n };
+    if ($('qt').value !== '') hit.qty = Math.max(0, +$('qt').value || 0); else hit.qty = hit.qty || 0;
+    hit.unit = $('un').value.trim() || hit.unit || '개'; if ($('mn').value !== '') hit.min = Math.max(0, +$('mn').value || 0);
+    DECO.saveStock(hit); $('nm').value = $('qt').value = $('un').value = $('mn').value = ''; $('msg').className = 'msg'; $('msg').textContent = n + ' 저장했습니다.'; draw(); };
+  $('list').addEventListener('click', function (e) { var row = e.target.closest('.it'); if (!row) return; var s = DECO.stock().filter(function (x) { return x.id === row.dataset.id; })[0]; if (!s) return;
+    if (e.target.closest('[data-del]')) { e.preventDefault(); if (confirm(s.name + ' 을(를) 재고 목록에서 지울까요?')) { DECO.delStock(s.id); draw(); } return; }
+    var b = e.target.closest('[data-d]'); if (!b) return; s.qty = Math.max(0, (s.qty || 0) + (+b.dataset.d)); DECO.saveStock(s); draw(); });
+  $('cp').onclick = function () { var L = DECO.stock().filter(function (s) { return s.min && s.qty <= s.min; }); var m = $('msg');
+    if (!L.length) { m.className = 'msg'; m.textContent = '주문할 자재가 없습니다.'; return; }
+    var t = '[' + DECO.settings().company + ' 자재 주문]\n' + L.map(function (s) { return '- ' + s.name + ' (지금 ' + s.qty + (s.unit || '개') + ')'; }).join('\n');
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { m.className = 'msg'; m.textContent = '복사했습니다. 자재상에 문자나 카톡으로 붙여넣으세요.'; }, function () { m.className = 'msg'; m.textContent = t; }); };
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -179,7 +179,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     DECO.saveQuote(q); Q = DECO.list(); draw(); payDraw(); });
   payDraw();
   // ── 백업·엑셀
-  var KEYS = ['deco-quotes', 'deco-customers', 'deco-orders', 'deco-events', 'deco-partners', 'deco-memos', 'deco-settings', 'deco-prices'];
+  var KEYS = ['deco-quotes', 'deco-customers', 'deco-orders', 'deco-events', 'deco-partners', 'deco-memos', 'deco-settings', 'deco-prices', 'deco-stock'];
   function rd(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
   function stamp() { var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()); }
   function save(name, text, type) { var a = document.createElement('a'), u = URL.createObjectURL(new Blob([text], { type: type }));
