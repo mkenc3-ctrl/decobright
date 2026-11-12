@@ -138,13 +138,17 @@
     function left(ds) { return Math.round((new Date(ds + 'T00:00').getTime() - t0) / 864e5); }
     D.orders().forEach(function (o) { if (!o.workDate || o.status === '완료' || o.status === '보류') return; var n = left(o.workDate);
       if (n === 7 || n === 3 || n === 1 || n === 0) out.push({ key: o.id + '@' + n, n: n, date: o.workDate, time: o.workTime || '', what: (o.name ? o.name + ' 님 ' : '') + '현장 시공', where: o.addr || '', href: 'order.html?id=' + encodeURIComponent(o.id) }); });
+    // 견적 낸 뒤 3일·7일 지나도 상담·실측이면 다시 연락
+    D.list().forEach(function (q) { var st = q.status || '상담'; if (st !== '상담' && st !== '실측') return; var g = -left(D.ymd(new Date(q.created || q.updated)));
+      if (g === 3 || g === 7) { var c = q.cust || {}; out.push({ key: q.id + '@f' + g, n: 0, lab: '연락', date: D.today(), time: '', what: '', where: c.phone || '', href: 'quote.html?id=' + encodeURIComponent(q.id),
+        txt: (c.name ? c.name + ' 님' : '견적 ' + q.no) + ' 견적 드린 지 ' + g + '일 지났습니다. 다시 연락해 보세요.' }); } });
     // 시공 1년 뒤 무상 점검 연락 (일주일 전·당일)
     D.orders().forEach(function (o) { if (!o.workDate || o.status === '보류') return; var y = (+o.workDate.slice(0, 4) + 1) + o.workDate.slice(4), n = left(y);
       if (n === 7 || n === 0) out.push({ key: o.id + '@as' + n, n: n, date: y, time: '', what: (o.name ? o.name + ' 님 ' : '') + '시공 1년 무상 점검 연락', where: o.addr || '', href: 'order.html?id=' + encodeURIComponent(o.id) }); });
     D.events().forEach(function (e) { if (e.done) return; var n = left(e.date);
       if (n === 1 || n === 0) out.push({ key: e.id + '@' + n, n: n, date: e.date, time: e.time || '', what: e.kind, where: e.title || '', href: 'calendar.html?d=' + e.date }); });
     return out.sort(function (a, b) { return a.n - b.n; }); };
-  D.alertText = function (a) { var d = new Date(a.date + 'T00:00'), when = (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + '일월화수목금토'[d.getDay()] + '요일' + (a.time ? (function (h, m) { return ' ' + (h < 12 ? '오전 ' : '오후 ') + (h % 12 || 12) + '시' + (m ? ' ' + m + '분' : ''); })(+a.time.slice(0, 2), +a.time.slice(3, 5)) : '');
+  D.alertText = function (a) { if (a.txt) return a.txt; var d = new Date(a.date + 'T00:00'), when = (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + '일월화수목금토'[d.getDay()] + '요일' + (a.time ? (function (h, m) { return ' ' + (h < 12 ? '오전 ' : '오후 ') + (h % 12 || 12) + '시' + (m ? ' ' + m + '분' : ''); })(+a.time.slice(0, 2), +a.time.slice(3, 5)) : '');
     var left = a.n === 0 ? '오늘입니다' : a.n === 1 ? '내일입니다' : a.n === 3 ? '3일 남았습니다' : '일주일 남았습니다';
     return when + ', ' + a.what + ' 일정이 ' + left + '.'; };
   D.speak = function (text) { try { if (!('speechSynthesis' in window)) return false; speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; u.rate = .95;

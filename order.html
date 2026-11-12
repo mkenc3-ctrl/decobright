@@ -73,6 +73,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
         <button class="btn2 pri" type="submit">저장</button>
         <button class="btn2" type="button" id="prt">전체 인쇄 · PDF (공종별 한 장씩)</button>
         <a class="btn2" id="toPh" href="photos.html">현장 사진 보관함</a>
+        <button class="btn2" type="button" id="thx">고객에게 완료 인사·후기 부탁 문자</button>
         <button class="btn2 no" type="button" id="del" hidden>지우기</button>
       </div>
       <p class="msg" id="msg" role="status"></p>
@@ -166,6 +167,11 @@ h2.s{font-size:19px;margin:20px 0 8px}
     var tel = p ? String(p.phone).replace(/[^\d+]/g, '') : '', ios = /iPhone|iPad/.test(navigator.userAgent);
     $('msg').className = 'msg'; $('msg').textContent = t + ' 지시 내용을 복사했습니다.' + (p ? ' 문자 창이 열리면 내용을 확인하고 보내세요.' : ' 거래처를 고르지 않아 문자 창은 열지 않습니다. 붙여넣어 보내세요.');
     if (p) location.href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt); });
+  $('thx').addEventListener('click', function () { if (!save()) return; var s = DECO.settings(), tel = String(o.phone || '').replace(/[^\d+]/g, ''), ios = /iPhone|iPad/.test(navigator.userAgent);
+    var txt = '[' + s.company + '] ' + (o.name ? o.name + ' 님, ' : '') + '간접조명·실링팬 시공을 잘 마쳤습니다. 믿고 맡겨 주셔서 감사합니다.\n\n사용하시다 불편한 점은 언제든 연락 주세요. 시공 후 1년 동안 무상 점검해 드립니다.\n\n만족하셨다면 주변 분들께 소개 한마디 부탁드립니다. 큰 힘이 됩니다.' + (s.blog ? '\n시공 사례: ' + s.blog : '') + '\n문의: ' + s.phone;
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(function () {});
+    $('msg').className = 'msg'; $('msg').textContent = '인사 문자를 복사했습니다.' + (tel ? ' 문자 창이 열리면 확인하고 보내세요.' : ' 고객 전화번호가 없어 문자 창은 열지 않습니다.');
+    if (tel) location.href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt); });
   $('del').addEventListener('click', function () { if (!confirm('이 작업 지시서를 지울까요?\n지운 지시서는 되살릴 수 없습니다.')) return; DECO.delOrder(o.id); location.href = 'orders.html'; });
   sheet();
 })();

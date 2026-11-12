@@ -187,7 +187,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
   var A = DECO.alerts(), KS = 'deco-spoken';
   if (!A.length) return;
   $('alert').hidden = false;
-  $('alist').innerHTML = A.map(function (a) { return '<li><a href="' + a.href + '"><b>' + (a.n === 0 ? '오늘' : a.n === 1 ? '내일' : a.n === 3 ? '3일 전' : '일주일 전') + '</b> · ' + E(DECO.alertText(a)) + (a.where ? ' (' + E(a.where) + ')' : '') + '</a></li>'; }).join('');
+  $('alist').innerHTML = A.map(function (a) { return '<li><a href="' + a.href + '"><b>' + (a.lab ? a.lab : a.n === 0 ? '오늘' : a.n === 1 ? '내일' : a.n === 3 ? '3일 전' : '일주일 전') + '</b> · ' + E(DECO.alertText(a)) + (a.where ? ' (' + E(a.where) + ')' : '') + '</a></li>'; }).join('');
   var text = '데코브라이트 알림입니다. ' + A.map(DECO.alertText).join(' ');
   function heard() { try { var o = JSON.parse(localStorage.getItem(KS) || '{}'); A.forEach(function (a) { o[a.key + '#' + td] = 1; }); localStorage.setItem(KS, JSON.stringify(o)); } catch (e) {} }
   function fresh() { try { var o = JSON.parse(localStorage.getItem(KS) || '{}'); return A.some(function (a) { return !o[a.key + '#' + td]; }); } catch (e) { return true; } }
