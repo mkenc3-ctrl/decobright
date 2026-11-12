@@ -49,6 +49,8 @@ h2.s{font-size:19px;margin:20px 0 8px}
 .cost .pd{flex-direction:row;align-items:center;gap:6px;font-size:14px}
 .cost .sum{grid-column:1/-1;font-size:16px;font-weight:700}
 @media print{.cost{display:none}}
+.stars{display:flex;gap:4px;margin-bottom:6px}.stars button{font-size:30px;line-height:1;border:0;background:none;cursor:pointer;color:#d8cbb6;padding:2px}.stars button.on{color:#E0952B}
+@media print{.rv,.stars{display:none}}
 </style>
 </head>
 <body class="app">
@@ -76,6 +78,10 @@ h2.s{font-size:19px;margin:20px 0 8px}
       <div class="chk" id="chk"></div>
       <h2 class="s">내부 정산 <small style="font-weight:400;font-size:14px">(거래처 문자·인쇄에는 안 나갑니다)</small></h2>
       <div class="cost" id="cost"></div>
+      <h2 class="s">고객 후기 <small style="font-weight:400;font-size:14px">(시공 뒤 고객 반응)</small></h2>
+      <div class="rv"><div class="stars" id="stars" role="radiogroup" aria-label="별점"></div>
+        <label class="fl">고객 한마디<textarea id="rvt" data-mic rows="2" placeholder="예: 거실이 호텔 같아졌어요. 실링팬 바람도 조용해요."></textarea></label>
+        <label style="display:flex;gap:6px;align-items:center;font-size:15px;margin-top:6px"><input type="checkbox" id="rvok" style="width:22px;height:22px"> 홍보 글(블로그·인스타)에 써도 된다고 하셨음</label></div>
       <h2 class="s">완료 메모</h2>
       <label class="fl"><textarea name="done" data-mic rows="2" placeholder="작업을 마친 뒤 남길 내용 (추가 작업, 하자 등)"></textarea></label>
       <div class="acts">
@@ -133,11 +139,15 @@ h2.s{font-size:19px;margin:20px 0 8px}
   function costSum() { var t = 0; $('cost').querySelectorAll('[data-c]').forEach(function (i) { t += +i.value || 0; }); var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, sup = q && q.totals ? (q.totals.supply || 0) : 0;
     $('csum').textContent = '비용 합계 ' + DECO.won(t) + (sup ? ' · 견적 공급가 ' + DECO.won(sup) + ' · 남는 돈 ' + DECO.won(sup - t) : ''); }
   costDraw(); $('cost').addEventListener('input', costSum);
+  function starDraw(v) { $('stars').dataset.v = v || 0; $('stars').innerHTML = [1, 2, 3, 4, 5].map(function (i) { return '<button type="button" role="radio" aria-checked="' + (i === +v) + '" aria-label="별 ' + i + '개" data-s="' + i + '" class="' + (i <= v ? 'on' : '') + '">★</button>'; }).join(''); }
+  starDraw(o.review && o.review.star); $('rvt').value = (o.review && o.review.text) || ''; $('rvok').checked = !!(o.review && o.review.ok);
+  $('stars').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (b) starDraw(+b.dataset.s === +$('stars').dataset.v ? 0 : +b.dataset.s); });
   $('chk').innerHTML = CK.map(function (c, i) { return '<label><input type="checkbox" data-i="' + i + '"' + (o.checks && o.checks[i] ? ' checked' : '') + '> ' + c + '</label>'; }).join('');
   Array.prototype.forEach.call(f.elements, function (el) { if (el.name && o[el.name] != null) el.value = o[el.name]; });
   if (o.id) { $('del').hidden = false; $('sub').textContent = o.no + ' · 고친 뒤 「저장」을 누르세요. 거래처용이라 금액은 넣지 않습니다.'; }
   if (o.quoteId) $('toPh').href = 'photos.html?job=' + encodeURIComponent(o.quoteId);
   function read() { Array.prototype.forEach.call(f.elements, function (el) { if (el.name) o[el.name] = el.value.trim(); });
+    var rs = +($('stars').dataset.v || 0), rt = $('rvt').value.trim(); o.review = (rs || rt) ? { star: rs, text: rt, ok: $('rvok').checked, at: (o.review && o.review.at) || Date.now() } : null;
     o.cost = {}; o.costPaid = {}; $('cost').querySelectorAll('[data-c]').forEach(function (i) { var v = Math.round(+i.value || 0); if (v) o.cost[i.dataset.c] = v; }); $('cost').querySelectorAll('[data-p]').forEach(function (i) { if (i.checked) o.costPaid[i.dataset.p] = true; });
     o.checks = {}; $('chk').querySelectorAll('input').forEach(function (c) { if (c.checked) o.checks[c.dataset.i] = true; });
     document.querySelectorAll('.tr').forEach(function (d) { var b = o.trades[d.dataset.t]; var pn = d.querySelector('.pn'), pp = d.querySelector('.pp');

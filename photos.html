@@ -60,6 +60,7 @@
     <select id="vstage" aria-label="구분"></select>
     <input id="vmemo" placeholder="메모 (예: 거실 우물 마감)" aria-label="메모">
     <button class="btn2 pri" type="button" id="vsave">메모 저장</button>
+    <button class="btn2 pri" type="button" id="vshare" hidden>카톡·문자로 보내기</button>
     <button class="btn2" type="button" id="vdown">내려받기</button>
     <button class="btn2 pri" type="button" id="vkeep" hidden>보관함에 저장</button>
     <button class="btn2 no" type="button" id="vdel">지우기</button>
@@ -140,6 +141,11 @@
   $('vclose').addEventListener('click', close);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('view').hidden) close(); });
   $('vsave').addEventListener('click', function () { cur.stage = $('vstage').value; cur.memo = $('vmemo').value.trim(); DECO.photoPut(cur).then(function () { close(); say('메모를 저장했습니다.'); load(); }); });
+  function canShare() { try { return !!(navigator.canShare && navigator.canShare({ files: [new File([new Blob(['x'], { type: 'image/jpeg' })], 'a.jpg', { type: 'image/jpeg' })] })); } catch (e) { return false; } }
+  $('vshare').hidden = !canShare();
+  $('vshare').addEventListener('click', function () { var b = baBlob || (cur && cur.blob); if (!b) return; var s = DECO.settings();
+    var f = new File([b], (cur ? '현장사진_' + cur.stage.replace('·', '') : '시공전후') + '.jpg', { type: 'image/jpeg' });
+    navigator.share({ files: [f], title: s.company + ' 시공 사진', text: s.company + ' ' + (s.phone || '') }).catch(function () {}); });
   $('vkeep').addEventListener('click', function () { if (!baBlob) return; var j = $('job').value === '*' ? '' : $('job').value;
     DECO.photoAdd({ job: j, stage: '시공 후', memo: '전·후 비교', blob: baBlob, taken: Date.now() }).then(function () { close(); say('비교 사진을 「' + jobName(j) + ' · 시공 후」에 저장했습니다.'); load(); }); });
   $('vdown').addEventListener('click', function () { var a = document.createElement('a'); a.href = vu; if (!cur) { a.download = '데코브라이트_시공전후_' + DECO.today().replace(/-/g, '') + '.jpg'; a.click(); return; } a.download = '데코브라이트_' + jobName(cur.job).split(' · ')[0] + '_' + cur.stage.replace('·', '') + '_' + DECO.date(cur.taken || cur.added).replace(/\D+/g, '') + '.jpg'; a.click(); });

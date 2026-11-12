@@ -66,6 +66,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card"><p class="sub" style="margin-top:0">작업 지시서 시공일이 이달인 현장입니다. 지시서 「내부 정산」에 적은 인건비·자재비를 뺍니다. 매출은 부가세를 뺀 공급가입니다.</p><table class="tb" id="pf"></table></div>
   <h2 class="grp">아직 안 준 돈 (거래처 인건비·자재비)</h2>
   <div class="card"><table class="tb" id="unpaid"></table></div>
+  <h2 class="grp">고객 후기</h2>
+  <div class="card"><p class="sub" style="margin-top:0" id="rvSum"></p><div id="rvList"></div></div>
   <h2 class="grp" id="pay">받을 돈 (수금 관리)</h2>
   <div class="card">
     <p class="sub" style="margin-top:0" id="paySum"></p>
@@ -126,6 +128,13 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     DECO.orders().forEach(function (o) { var c = o.cost || {}, pd = o.costPaid || {}; Object.keys(c).forEach(function (t) { if (pd[t] || !c[t]) return; var who = (o.trades && o.trades[t] && PT[o.trades[t].partner]) || (t === '자재' ? '자재비' : t === '기타' ? '기타 비용' : t + ' (거래처 미지정)');
       G[who] = G[who] || { a: 0, at: [] }; G[who].a += +c[t]; G[who].at.push((o.workDate || '').slice(5) + ' ' + (o.name || '')); }); });
     var ks = Object.keys(G); $('unpaid').innerHTML = ks.length ? '<tr><th>누구</th><th>현장</th><th style="text-align:right">금액</th></tr>' + ks.map(function (w) { return '<tr><td>' + E(w) + '</td><td style="font-size:13px">' + E(G[w].at.join(', ')) + '</td><td class="n">' + W(G[w].a) + '</td></tr>'; }).join('') : '<tr><td>안 준 돈이 없습니다. (지시서 「내부 정산」의 「지급함」을 체크하면 빠집니다)</td></tr>'; }
+  (function () { var R = DECO.orders().filter(function (o) { return o.review && (o.review.star || o.review.text); }).sort(function (a, b) { return (b.workDate || '').localeCompare(a.workDate || ''); });
+    var st = R.filter(function (o) { return o.review.star; }), avg = st.length ? (st.reduce(function (s, o) { return s + o.review.star; }, 0) / st.length).toFixed(1) : '-';
+    $('rvSum').textContent = R.length ? '후기 ' + R.length + '건 · 평균 별점 ' + avg + ' / 5 · 홍보 사용 허락 ' + R.filter(function (o) { return o.review.ok; }).length + '건' : '아직 후기가 없습니다. 작업 지시서 아래 「고객 후기」에 별점과 한마디를 남겨 주세요.';
+    $('rvList').innerHTML = R.slice(0, 10).map(function (o) { var r = o.review; return '<div class="pr"><div class="h"><b>' + '★★★★★'.slice(0, r.star || 0) + '<span style="color:#d8cbb6">' + '★★★★★'.slice(r.star || 0) + '</span> ' + E(o.name || '') + ' <small style="font-weight:400;font-size:13px">' + E(o.workDate || '') + (r.ok ? ' · 홍보 사용 가능' : '') + '</small></b>' +
+      (r.text && r.ok ? '<button class="btn2" type="button" data-cp="' + E(r.text) + '">글 복사</button>' : '') + '</div>' + (r.text ? '<div class="m">“' + E(r.text) + '”</div>' : '') + '</div>'; }).join('');
+    $('rvList').addEventListener('click', function (e) { var b = e.target.closest('[data-cp]'); if (!b) return; var t = '“' + b.dataset.cp + '” - 실제 고객 후기';
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { b.textContent = '복사했습니다'; }, function () {}); }); })();
   // 경로별 (전체 고객)
   (function () { var C = DECO.customers(), g = {};
     C.forEach(function (c) { var s = c.source || '모름'; g[s] = g[s] || { n: 0, c: 0, a: 0 }; g[s].n++;
