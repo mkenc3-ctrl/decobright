@@ -67,59 +67,75 @@ h2.s{font-size:20px;margin:24px 0 8px;display:flex;justify-content:space-between
   var pick = function (arr, k) { return arr[seed[k] % arr.length]; };
   $('job').innerHTML = '<option value="">현장 고르기</option>' + Q.map(function (q) { return '<option value="' + E(q.id) + '">' + E(((q.cust && q.cust.name) || '이름 없음') + ' 님 · ' + ((q.cust && q.cust.addr) || q.no)) + '</option>'; }).join('');
   if (S.blog) { $('openBlog').hidden = false; $('openBlog').href = /^https?:/.test(S.blog) ? S.blog : 'https://' + S.blog; }
-  // 주소에서 동·호수·번지를 빼고 지역·단지만 남김
-  function placeOf(a) { return String(a || '').split(/\s+/).filter(function (t) { return t && !/\d+\s*(동|호|층)$/.test(t) && !/^\d[\d-]*$/.test(t) && !/^\(.*\)$/.test(t); }).slice(0, 4).join(' '); }
+  // 주소에서 단지(현장) 이름만 뽑음: 동·호수·번지·행정구역은 뺌
+  function toks(a) { return String(a || '').split(/\s+/).filter(function (t) { return t && !/\d+\s*(동|호|층)$/.test(t) && !/^\d[\d-]*$/.test(t) && !/^\(.*\)$/.test(t); }); }
+  function placeOf(a) { var t = toks(a), s = t.filter(function (w) { return !/(도|시|군|구|읍|면|리|로|길|동)$/.test(w); }); return s.length ? s[s.length - 1] : t.slice(0, 3).join(' '); }
+  function cityOf(a) { var c = toks(a).filter(function (w) { return /(시|군)$/.test(w) && !/도$/.test(w); })[0]; return c ? c.replace(/(특례시|광역시|특별시|시|군)$/, '') : ''; }
   function q() { return Q.filter(function (x) { return x.id === $('job').value; })[0] || null; }
   function info() {
-    var x = q() || {}, names = [], tags = [];
+    var x = q() || {}, names = [];
     if (x.pkg && x.pkg !== 'none') names.push(x.pkgName);
     (x.items || []).forEach(function (i) { names.push(i.name.replace(/\(.*?\)/g, '').trim()); });
-    var all = [x.pkgDesc || ''].concat(names).join(' ');
+    var all = [x.pkgDesc || ''].concat(names).join(' ') + ' ' + $('extra').value;
     var has = function (w) { return all.indexOf(w) >= 0; };
-    var feats = [];
-    if (has('실링팬')) { feats.push('실링팬'); tags.push('#실링팬', '#실링팬설치'); }
-    if (has('우물')) { feats.push('우물천장 간접조명'); tags.push('#우물천장', '#우물천장조명'); }
-    if (has('커튼박스')) { feats.push('커튼박스 간접등'); tags.push('#커튼박스조명'); }
-    if (has('다운라이트')) { feats.push('다운라이트'); tags.push('#매입등'); }
-    if (has('센서')) { feats.push('센서등'); tags.push('#센서등'); }
-    if (has('라인조명') || has('마그네틱')) { feats.push('라인·마그네틱 조명'); tags.push('#마그네틱조명', '#라인조명'); }
-    if (!feats.length) feats.push('천장 조명');
-    var color = { 2700: '전구색', 4000: '주백색', 6500: '주광색' }[x.kelvin] || '';
-    var area = S.area || '', place = $('place').value.trim() || area;
-    tags.push('#' + area + '인테리어', '#' + area + '조명', '#' + area + '아파트');
-    return { x: x, feats: feats, f: feats.slice(0, 3).join('·'), color: color, place: place, area: area, size: $('size').value.trim(), extra: $('extra').value.trim(), names: names, tags: tags };
+    var city = cityOf(x.cust && x.cust.addr) || S.area || '', work = [], space = ['LIVING ROOM'], feat = [];
+    if (has('무몰딩') || has('라운드')) { work.push('무몰딩 목공(코너 라운드)'); feat.push('round'); }
+    if (has('우물')) { work.push('우물천장 간접조명'); feat.push('well'); }
+    if (has('커튼박스')) { work.push('커튼박스 간접조명'); feat.push('curtain'); }
+    if (has('실링팬')) { work.push('실링팬'); feat.push('fan'); }
+    if (has('COB')) { work.push('COB 매립등'); feat.push('cob'); } else if (has('다운라이트') || has('매립')) { work.push('매립등'); feat.push('down'); }
+    if (has('욕실') || has('거울장')) { work.push('욕실 간접조명'); space.push('BATHROOM'); feat.push('bath'); }
+    if (has('현관') || has('신발장')) { work.push('신발장 간접조명'); space.push('ENTRANCE'); feat.push('entr'); }
+    if (has('스위치') || has('무선')) { work.push('무선 스위치'); feat.push('sw'); }
+    if (has('라인조명') || has('마그네틱')) work.push('라인·마그네틱 조명');
+    if (!work.length) work.push('천장 조명');
+    var short = work.slice(0, 2).join('·').replace('무몰딩 목공(코너 라운드)', '무몰딩 라운드');
+    var place = $('place').value.trim() || city;
+    var tags = ['#' + city + '간접조명', '#' + city + '실링팬', '#' + city + '데코브라이트'];
+    if (feat.indexOf('well') >= 0) tags.push('#우물천장간접조명'); if (feat.indexOf('round') >= 0) tags.push('#무몰딩우물천장');
+    if (feat.indexOf('fan') >= 0) tags.push('#실링팬시공'); tags.push('#간접조명시공');
+    return { x: x, feat: feat, work: work, space: space, short: short, city: city, place: place, size: $('size').value.trim(), extra: $('extra').value.trim(), names: names, tags: tags, has: function (k) { return feat.indexOf(k) >= 0; } };
   }
-  function titles(i) { var p = i.place, z = i.size ? i.size + ' ' : '', f = i.f;
-    return [p + ' ' + z + '천장 조명, 하루 만에 끝냈습니다', p + ' ' + f + ' 시공 후기', p + ' ' + z + f + ' 시공, 전·후 비교 사진',
-      '어둡던 거실이 이렇게 바뀌었어요 — ' + p + ' ' + f + ' 시공 전·후', '이사 안 가고 하루면 끝, ' + p + ' 거실 천장 조명 바꾸기',
-      '전기·목공·도배를 하루에, ' + p + ' ' + f + ' 시공기', p + ' ' + z + '시공 사례로 보는 ' + f].map(function (t) { return t.replace(/\s+/g, ' ').trim(); }); }
-  function insta(i) { var phone = S.phone, sel = sel2();
-    var heads = ['오늘의 현장 ✨ ' + i.place + ' ' + i.f, '하루 만에 바뀐 천장 💡 ' + i.place, i.f + ', 오늘 마감했습니다 ✨'];
-    var mids = [['시공 전에는 천장 등 하나로 어둡고 밋밋했던 공간,', '하루 시공으로 은은하고 따뜻한 분위기가 됐습니다.'],
-      ['이사 없이, 짐 빼지 않고 하루 만에 끝나는 천장 조명 시공.', '전기·목공 마감까지 한 번에 진행했습니다.'],
-      ['같은 거실, 조명만 바꿨을 뿐인데', '공간이 훨씬 넓고 아늑해 보입니다.']];
-    var lines = [pick(heads, 'i'), ''].concat(pick(mids, 'i'));
-    if (i.extra) lines.push('', '💬 ' + i.extra);
-    lines.push('', '✔ 시공 내용'); i.names.slice(0, 6).forEach(function (n) { lines.push('· ' + n); });
-    if (i.color) lines.push('· 조명 색 : ' + i.color);
-    if (sel.length > 1) lines.push('', '👉 옆으로 넘겨 시공 전·후를 비교해 보세요');
-    lines.push('', '📞 상담·견적 ' + phone, '');
-    var seen = {}; lines.push((S.tags + ' ' + i.tags.join(' ')).split(/\s+/).filter(function (t) { if (!t || seen[t]) return false; seen[t] = 1; return true; }).join(' '));
-    return lines.join('\n');
+  // 블로그 제목 형식: [지역 데코브라이트] 현장, 핵심 내용
+  function titles(i) { var c = i.city, p = i.place, f = i.short, z = i.size ? i.size + ' ' : '', co = S.company;
+    return ['[' + c + ' ' + co + '] ' + p + ', ' + z + f + ' 시공후기',
+      '[' + c + ' 간접조명 실링팬 ' + co + '] ' + p + ', ' + (i.has('round') ? '라운드 우물천장이 포인트' : f + '이 포인트'),
+      '[' + c + ' ' + co + '] ' + p + ', ' + f + ' 시공 전후 비교',
+      '[' + c + ' ' + co + '] ' + p + ', ' + (i.x.status === '신축' ? '신축 아파트 ' : '') + '간접조명 실링팬 시공후기',
+      '[' + c + ' ' + co + '] ' + p + ' ' + z + '거실, 빛으로 바꾼 천장'].map(function (t) { return t.replace(/\s+/g, ' ').replace(/\[\s/, '[').trim(); }); }
+  function insta(i) { var sel = sel2();
+    var L = [pick(['DECO BRIGHT PROJECT NOTE ◆ ' + i.place, '[' + i.city + ' ' + S.company + '] ' + i.place], 'i'), '',
+      'WORK. ' + i.work.join(', '), ''];
+    L = L.concat(pick([['같은 밝기라도 어디에서 빛이 내려오고', '어느 면을 비추는지에 따라', '공간의 인상은 달라집니다.'],
+      ['메인 조명 하나 대신', '천장과 벽을 나누어 밝히면', '저녁의 거실이 달라집니다.'],
+      ['기존 천장 구조는 살리고', '공간마다 필요한 빛을 나누어', '편안한 분위기를 만들었습니다.']], 'i'));
+    if (i.extra) L.push('', i.extra);
+    if (sel.length > 1) L.push('', '👉 옆으로 넘겨 시공 전후를 비교해 보세요');
+    L.push('', '20년 경력 전기기사가 직접 시공합니다.', '무료 견적 & 실측 상담 ' + S.phone, '');
+    var seen = {}; L.push(i.tags.concat((S.tags || '').split(/\s+/)).filter(function (t) { if (!t || t === '#' || seen[t]) return false; seen[t] = 1; return true; }).join(' '));
+    return L.join('\n');
   }
-  function blog(i) { var sel = sel2(), n = 0, ph = function (stage) { var hit = sel.filter(function (p) { return p.stage === stage; }); return hit.map(function () { return '[사진 ' + (++n) + ' : ' + stage + ']'; }).join('\n'); };
-    var intro = [['안녕하세요, ' + S.company + '입니다.', '오늘은 ' + i.place + ' ' + (i.size || '') + ' 현장 이야기를 들려 드리려고 합니다.'],
-      ['안녕하세요, 하루 만에 끝나는 천장 조명 시공 ' + S.company + '입니다.', i.place + '에서 진행한 ' + i.f + ' 시공 사례를 소개합니다.']];
-    var L = pick(intro, 'b').slice();
-    L.push('', '■ 시공 전', ph('시공 전') || '[사진 : 시공 전]', '천장 가운데 등 하나만 달려 있어 저녁이면 거실 구석이 어둡고, 공간이 실제보다 좁아 보였습니다.' + (i.extra ? '\n고객님께서는 「' + i.extra + '」라고 말씀해 주셨어요.' : ''));
-    L.push('', '■ 이렇게 시공했습니다'); i.names.forEach(function (x) { L.push('· ' + x); }); if (i.color) L.push('· 조명 색은 ' + i.color + '으로 맞췄습니다.');
-    var mid = ph('시공 중'); if (mid) L.push('', mid, '기존 조명을 떼고 배선을 확인한 뒤, 필요한 곳은 천장 보강부터 했습니다.');
-    if (i.feats.indexOf('실링팬') >= 0) L.push('', '실링팬은 무게와 흔들림이 있어 천장 보강을 꼭 한 뒤 달아야 합니다. 보강 없이 달면 소음과 처짐이 생길 수 있어요.');
-    if (i.feats.indexOf('우물천장 간접조명') >= 0) L.push('', '우물천장 안쪽에 T5 간접등을 넣으면 빛이 천장을 타고 퍼져, 눈부심 없이 은은하게 밝아집니다.');
-    L.push('', '■ 시공 후', ph('시공 후') || '[사진 : 시공 후]', pick(['조명만 바꿨는데 거실이 한층 넓고 아늑해졌습니다.', '밤에 불을 켜면 호텔 같은 분위기가 납니다. 고객님도 무척 만족하셨어요.'], 'b'));
-    L.push('', '■ 하루 시공이라 가능한 것들', '· 이사·짐 빼기 없이 살면서 공사', '· 전기·목공·마감을 한 팀이 하루에', '· 사진 한 장으로 미리 보는 완성 모습과 견적');
-    L.push('', '우리 집 거실도 바꿔 보고 싶으시면 사진 한 장 보내 주세요.', '완성 예상 모습과 견적을 함께 보내 드립니다.', '', '📞 상담·견적 : ' + S.phone + (S.area ? '\n📍 ' + S.area + ' 및 인근 지역' : ''));
-    L.push('', i.tags.concat((S.tags || '').split(/\s+/)).filter(Boolean).slice(0, 12).join(' '));
+  function blog(i) { var sel = sel2(), n = 0, ph = function (stage) { return sel.filter(function (p) { return p.stage === stage; }).map(function () { return '[사진 ' + (++n) + ' : ' + stage + ']'; }).join('\n'); };
+    var L = ['DECO BRIGHT PROJECT NOTE', '', 'SITE. ' + i.place, '', 'SPACE. ' + i.space.join(', '), '', 'WORK. ' + i.work.join(', '), '', 'DESIGN & ELECTRICAL. ' + S.company, '', '', '안녕하세요.', '', '간접조명 & 실링팬 전문 브랜드', '', S.company + '입니다.', ''];
+    L = L.concat(pick([['오늘 소개할 현장은', '', i.place + ' 조명 시공입니다.'],
+      ['오늘 보여드릴 ' + i.place + '는', '', (i.has('round') ? '각진 우물천장에 코너 라운드를 만들고,' : '기존 천장 구조를 바탕으로'), '', '간접조명으로 거실의 인상을 바꾼 현장이에요.']], 'b'));
+    if (i.extra) L.push('', i.extra);
+    L.push('', '', 'BEFORE', '', ph('시공 전') || '[사진 : 시공 전]', '', '기존 거실은 중앙 메인등 하나로', '', '천장 전체를 밝히는 구조였습니다.', '', '같은 밝기라도 어디에서 빛이 내려오고', '', '어느 면을 비추는지에 따라 공간의 인상은 달라집니다.', '', '◆');
+    L.push('', '', 'PROCESS', '', ph('시공 중') || '[사진 : 시공 중]', '', '작업을 시작하기 전 바닥과 가구를 보양하고', '', '기존 배선 상태와 조명 회로부터 점검했습니다.');
+    if (i.has('round')) L.push('', '라운드 목공은 곡선 자체만큼', '', '직선과 만나는 부분이 중요합니다.', '', '연결 부위가 꺾여 보이면', '', '조명이 켜졌을 때도 그 형태가 드러나거든요.');
+    if (i.has('fan')) L.push('', '실링팬은 단순히 전원만 연결하는 제품이 아닙니다.', '', '회전할 때 흔들림이 생기지 않도록', '', '설치 위치와 천장 내부의 고정 상태를 확인했습니다.');
+    L.push('', '◆', '', '', 'LIVING ROOM', '', ph('시공 후') || '[사진 : 시공 후]');
+    if (i.has('well')) L.push('', '우물천장 안쪽에 들어간 간접조명은', '', '천장 면을 따라 넓게 번집니다.', '', '광원이 시야에 바로 들어오지 않으면서도', '', '거실 전체에 깊이감이 생겨요.');
+    if (i.has('fan')) L.push('', '중앙에는 실링팬을 설치했습니다.', '', '천장과 색을 맞춰', '', '기기만 도드라지는 느낌을 줄였어요.');
+    if (i.has('curtain')) L.push('', '창 위에는 커튼박스 간접조명을 더했습니다.', '', '중앙 천장에서 시작된 밝기가', '', '창가까지 이어져 가장자리도 어둡게 묻히지 않아요.');
+    if (i.has('cob') || i.has('down')) L.push('', '아트월에는 ' + (i.has('cob') ? 'COB ' : '') + '매립등의 빛이', '', '일정한 간격으로 내려옵니다.', '', '벽면에 밝은 부분과 그림자가 생겨', '', '마감의 질감이 은은하게 드러납니다.');
+    if (i.has('sw')) L.push('', '무선으로도 조절하실 수 있도록', '', '무선 스위치와 리모컨까지.');
+    if (i.has('bath')) L.push('', '', 'BATHROOM', '', '욕실에는 거울장 아래로 간접조명을 시공했습니다.', '', '장 밑으로 생기기 쉬운 그림자를 밝히고', '', '세면대 주변까지 빛이 닿습니다.');
+    if (i.has('entr')) L.push('', '', 'ENTRANCE', '', '현관에는 신발장 아래로 간접조명을 넣었습니다.', '', '바닥 가까이에서 퍼지는 빛이', '', '집에 들어서는 자리를 은은하게 밝혀줍니다.');
+    L.push('', '', '조명은 제품의 개수보다', '', '공간에 맞는 위치와 밝기, 배선 구성이 중요합니다.', '', S.company + '는 20년 전기기사 경력을 바탕으로', '', '목공 형태와 조명 배치, 실링팬 설치 조건을 함께 살핍니다.', '',
+      '우리 집에도 가능할지 고민되신다면', '', '현재 천장 사진과 함께 카카오톡 채널로 문의해 주세요.', '', '공간과 예산에 맞는 시공 방향을 안내해 드리겠습니다.', '', '',
+      'DECO BRIGHT', '', 'Premium Lighting & Ceiling Fan', '', '◆', '', '무료 견적 & 실측 상담', '', '방문접수 / 출장 / 예약가능', '', S.phone, '', (S.bizName || S.company), (S.addr || ''), '');
+    var seen = {}; L.push(i.tags.concat((S.tags || '').split(/\s+/)).filter(function (t) { if (!t || t === '#' || seen[t]) return false; seen[t] = 1; return true; }).join(' '));
     return L.join('\n');
   }
   function sel2() { return photos.filter(function (p) { return picked[p.id]; }); }
