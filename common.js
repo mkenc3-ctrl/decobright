@@ -11,6 +11,10 @@
     area: '창원', tags: '#데코브라이트 #데코브라이트간접조명 #데코브라이트실링팬 #경남간접조명 #경남실링팬 #창원간접조명 #김해간접조명 #부산간접조명 #창원실링팬 #부산실링팬 #우물천장간접조명 #실링팬시공 #간접조명시공 #창원인테리어', blog: 'blog.naver.com/decobright',
     terms: '실측과 현장 여건(천장 구조, 배선, 실링팬 모델)에 따라 금액이 달라질 수 있으며 방문 확인 후 확정됩니다.' };
   function pad(n) { return (n < 10 ? '0' : '') + n; }
+  // 기기마다 다른 글자 하나(A~Z) — 두 기기가 같은 날 번호를 만들어도 겹치지 않게
+  function dev() { try { var v = localStorage.getItem('deco-dev'); if (!v) { v = 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]; localStorage.setItem('deco-dev', v); } return v; } catch (e) { return 'X'; } }
+  function nextNo(all, pre) { var n = all.filter(function (x) { return x.no && x.no.indexOf(pre) === 0; }).length + 1, no;
+    do { no = pre + pad(n++) + dev(); } while (all.some(function (x) { return x.no === no; })); return no; }
   var D = {
     won: function (n) { return Math.round(n || 0).toLocaleString('ko-KR') + '원'; },
     esc: function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); },
@@ -23,8 +27,7 @@
       var all = rd(KQ, []), now = Date.now(), old = q.id ? all.filter(function (x) { return x.id === q.id; })[0] : null;
       if (!old) {
         var d = new Date(now), day = String(d.getFullYear()).slice(2) + pad(d.getMonth() + 1) + pad(d.getDate());
-        var n = all.filter(function (x) { return x.no && x.no.indexOf('DB-' + day) === 0; }).length + 1;
-        q.id = 'q' + now.toString(36) + Math.random().toString(36).slice(2, 5); q.no = 'DB-' + day + '-' + pad(n); q.created = now;
+                q.id = 'q' + now.toString(36) + Math.random().toString(36).slice(2, 5); q.no = nextNo(all, 'DB-' + day + '-'); q.created = now;
       } else { q.no = old.no; q.created = old.created; }
       q.updated = now;
       var next = all.filter(function (x) { return x.id !== q.id; }); next.push(q);
@@ -65,7 +68,7 @@
   D.getOrder = function (id) { return rd(KO, []).filter(function (o) { return o.id === id; })[0] || null; };
   D.saveOrder = function (o) { var all = rd(KO, []), now = Date.now(), old = o.id ? all.filter(function (x) { return x.id === o.id; })[0] : null;
     if (!old) { var d = new Date(now), day = String(d.getFullYear()).slice(2) + pad(d.getMonth() + 1) + pad(d.getDate());
-      o.id = 'w' + now.toString(36) + Math.random().toString(36).slice(2, 5); o.no = '작업-' + day + '-' + pad(all.filter(function (x) { return x.no && x.no.indexOf('작업-' + day) === 0; }).length + 1); o.created = now; }
+      o.id = 'w' + now.toString(36) + Math.random().toString(36).slice(2, 5); o.no = nextNo(all, '작업-' + day + '-'); o.created = now; }
     else { o.no = old.no; o.created = old.created; }
     o.updated = now; var next = all.filter(function (x) { return x.id !== o.id; }); next.push(o); return wr(KO, next) ? o : null; };
   D.delOrder = function (id) { return wr(KO, rd(KO, []).filter(function (x) { return x.id !== id; })); };

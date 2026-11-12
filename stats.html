@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>매출·계약 현황 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.mbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0 12px}
+.mbar b{font-size:22px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:700px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px 14px}
+.kpi small{display:block;color:var(--mut,#7a6d5c);font-size:14px}
+.kpi b{display:block;font-size:24px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:14px;color:var(--mut,#7a6d5c)}
+.bars{display:flex;flex-direction:column;gap:6px}
+.bar{display:grid;grid-template-columns:64px 1fr 110px;gap:8px;align-items:center;font-size:14px}
+.bar .t{height:18px;background:#efe6d8;border-radius:6px;overflow:hidden;position:relative}
+.bar .t i{position:absolute;inset:0 auto 0 0;background:var(--warm,#E0952B);border-radius:6px}
+.bar .t i.q{background:#d8cbb6}
+.bar .n{text-align:right;font-variant-numeric:tabular-nums}
+.bar.cur{font-weight:800}
+table.tb{width:100%;border-collapse:collapse;font-size:15px}
+table.tb th,table.tb td{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:left}
+table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
+.lg{display:flex;gap:14px;font-size:13px;color:var(--mut,#7a6d5c);margin-bottom:6px}
+.lg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:900px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">매출·계약 현황</h1>
+  <p class="sub">견적을 만든 달 기준입니다. 「계약」은 상태가 계약·시공·완료인 견적입니다. 금액은 부가세 포함 합계입니다.</p>
+  <div class="mbar"><button class="btn2" type="button" id="prev">‹ 지난달</button><b id="mt"></b><button class="btn2" type="button" id="next">다음달 ›</button></div>
+  <div class="kpis" id="kpis"></div>
+  <h2 class="grp">최근 12개월</h2>
+  <div class="card">
+    <div class="lg"><span><i style="background:#d8cbb6"></i>견적 금액</span><span><i style="background:#E0952B"></i>계약 금액</span></div>
+    <div class="bars" id="bars"></div>
+  </div>
+  <h2 class="grp">이달 견적 상태</h2>
+  <div class="card"><table class="tb" id="st"></table></div>
+  <h2 class="grp">고객을 알게 된 경로 (전체)</h2>
+  <div class="card"><table class="tb" id="src"></table></div>
+  <h2 class="grp" id="backup">자료 백업 · 엑셀 내려받기</h2>
+  <div class="card">
+    <p class="sub" style="margin-top:0">① 「전체 자료 백업」을 눌러 파일을 받아 두면 ② 휴대폰을 바꾸거나 자료가 지워져도 ③ 「백업 파일 되살리기」로 다시 넣을 수 있습니다. 사진은 서버 보관함에 따로 저장됩니다.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn2 pri" type="button" id="bk">전체 자료 백업 (파일 받기)</button>
+      <button class="btn2" type="button" id="csvQ">견적 목록 엑셀</button>
+      <button class="btn2" type="button" id="csvC">고객 목록 엑셀</button>
+      <button class="btn2" type="button" id="csvO">작업 지시서 엑셀</button>
+      <label class="btn2" style="cursor:pointer">백업 파일 되살리기<input type="file" id="rs" accept=".json,application/json" hidden></label>
+    </div>
+    <p class="msg" id="bmsg" role="status"></p>
+  </div>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, W = DECO.won, E = DECO.esc;
+  var DONE = { '계약': 1, '시공': 1, '완료': 1 }, now = new Date(), Y = now.getFullYear(), M = now.getMonth();
+  var Q = DECO.list();
+  function amt(q) { return (q.totals && q.totals.total) || q.total || 0; }
+  function ym(t) { var d = new Date(t || 0); return d.getFullYear() * 12 + d.getMonth(); }
+  function man(n) { return n >= 10000 ? Math.round(n / 10000).toLocaleString('ko-KR') + '만원' : W(n); }
+  function draw() {
+    var k = Y * 12 + M, mq = Q.filter(function (q) { return ym(q.created || q.updated) === k; }), mc = mq.filter(function (q) { return DONE[q.status]; });
+    var sum = function (a) { return a.reduce(function (s, q) { return s + amt(q); }, 0); };
+    var done = mq.filter(function (q) { return q.status === '완료'; });
+    $('mt').textContent = Y + '년 ' + (M + 1) + '월';
+    $('kpis').innerHTML = [
+      ['견적', mq.length + '건', man(sum(mq))],
+      ['계약', mc.length + '건', man(sum(mc))],
+      ['계약률', mq.length ? Math.round(mc.length / mq.length * 100) + '%' : '-', mq.length ? mc.length + ' / ' + mq.length + '건' : '견적 없음'],
+      ['시공 완료', done.length + '건', man(sum(done))]
+    ].map(function (x) { return '<div class="kpi"><small>' + x[0] + '</small><b>' + x[1] + '</b><span>' + x[2] + '</span></div>'; }).join('');
+    // 12개월 막대
+    var rows = [], max = 1;
+    for (var i = 11; i >= 0; i--) { var kk = Y * 12 + M - i, a = Q.filter(function (q) { return ym(q.created || q.updated) === kk; });
+      var r = { k: kk, q: sum(a), c: sum(a.filter(function (q) { return DONE[q.status]; })) }; max = Math.max(max, r.q, r.c); rows.push(r); }
+    $('bars').innerHTML = rows.map(function (r) { var y = Math.floor(r.k / 12), m = r.k % 12 + 1;
+      return '<div class="bar' + (r.k === k ? ' cur' : '') + '"><span>' + String(y).slice(2) + '.' + m + '월</span><div class="t"><i class="q" style="width:' + (r.q / max * 100) + '%"></i><i style="width:' + (r.c / max * 100) + '%"></i></div><span class="n">' + man(r.c) + '</span></div>'; }).join('');
+    // 상태별
+    $('st').innerHTML = '<tr><th>상태</th><th class="n" style="text-align:right">건수</th><th style="text-align:right">금액</th></tr>' + DECO.STATUS.map(function (s) {
+      var a = mq.filter(function (q) { return (q.status || '상담') === s; }); return '<tr><td>' + s + '</td><td class="n">' + a.length + '</td><td class="n">' + W(sum(a)) + '</td></tr>'; }).join('');
+  }
+  // 경로별 (전체 고객)
+  (function () { var C = DECO.customers(), g = {};
+    C.forEach(function (c) { var s = c.source || '모름'; g[s] = g[s] || { n: 0, c: 0, a: 0 }; g[s].n++;
+      var qs = Q.filter(function (q) { return q.custId === c.id && DONE[q.status]; }); if (qs.length) g[s].c++; g[s].a += qs.reduce(function (t, q) { return t + amt(q); }, 0); });
+    var ks = Object.keys(g).sort(function (a, b) { return g[b].n - g[a].n; });
+    $('src').innerHTML = ks.length ? '<tr><th>경로</th><th style="text-align:right">고객</th><th style="text-align:right">계약</th><th style="text-align:right">계약 금액</th></tr>' + ks.map(function (s) {
+      return '<tr><td>' + E(s) + '</td><td class="n">' + g[s].n + '명</td><td class="n">' + g[s].c + '명</td><td class="n">' + W(g[s].a) + '</td></tr>'; }).join('') : '<tr><td>아직 고객이 없습니다.</td></tr>'; })();
+  $('prev').onclick = function () { M--; if (M < 0) { M = 11; Y--; } draw(); };
+  $('next').onclick = function () { M++; if (M > 11) { M = 0; Y++; } draw(); };
+  draw();
+  // ── 백업·엑셀
+  var KEYS = ['deco-quotes', 'deco-customers', 'deco-orders', 'deco-events', 'deco-partners', 'deco-memos', 'deco-settings', 'deco-prices'];
+  function rd(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+  function stamp() { var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()); }
+  function save(name, text, type) { var a = document.createElement('a'), u = URL.createObjectURL(new Blob([text], { type: type }));
+    a.href = u; a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(u); a.remove(); }, 1500); }
+  function msg(t, bad) { var m = $('bmsg'); m.className = 'msg' + (bad ? ' bad' : ''); m.textContent = t; }
+  function csv(rows) { return '﻿' + rows.map(function (r) { return r.map(function (v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\r\n'); }
+  function dt(t) { return t ? DECO.ymd(new Date(t)) : ''; }
+  $('bk').onclick = function () { var o = { app: 'decobright', ver: 1, at: new Date().toISOString(), data: {} }, n = 0;
+    KEYS.forEach(function (k) { var v = rd(k); if (v != null) { o.data[k] = v; if (Array.isArray(v)) n += v.length; } });
+    save('데코브라이트_백업_' + stamp() + '.json', JSON.stringify(o), 'application/json'); msg('백업 파일을 받았습니다 (자료 ' + n + '건). 메일이나 카카오톡 「나에게 보내기」로 보관해 두세요.'); };
+  $('csvQ').onclick = function () { var r = [['견적번호', '만든 날', '고객', '전화', '주소', '상태', '패키지', '공급가', '부가세', '합계']];
+    Q.forEach(function (q) { var c = q.cust || {}, t = q.totals || {}; r.push([q.no, dt(q.created), c.name, c.phone, c.addr, q.status || '상담', q.pkgName, t.supply, t.vat, amt(q)]); });
+    save('견적목록_' + stamp() + '.csv', csv(r), 'text/csv'); msg('견적 ' + Q.length + '건을 엑셀 파일로 받았습니다.'); };
+  $('csvC').onclick = function () { var C = DECO.customers(), r = [['이름', '전화', '주소', '알게 된 경로', '견적 수', '계약 금액', '메모', '등록일']];
+    C.forEach(function (c) { var qs = Q.filter(function (q) { return q.custId === c.id; }); r.push([c.name, c.phone, c.addr, c.source, qs.length, qs.filter(function (q) { return DONE[q.status]; }).reduce(function (s, q) { return s + amt(q); }, 0), c.memo, dt(c.created)]); });
+    save('고객목록_' + stamp() + '.csv', csv(r), 'text/csv'); msg('고객 ' + C.length + '명을 엑셀 파일로 받았습니다.'); };
+  $('csvO').onclick = function () { var O = DECO.orders(), r = [['지시서 번호', '시공일', '고객', '전화', '주소', '공정', '메모']];
+    O.forEach(function (o) { r.push([o.no, o.workDate, o.name, o.phone, o.addr, Object.keys(o.trades || {}).filter(function (t) { return o.trades[t] && o.trades[t].on; }).join('·'), o.notes]); });
+    save('작업지시서_' + stamp() + '.csv', csv(r), 'text/csv'); msg('지시서 ' + O.length + '건을 엑셀 파일로 받았습니다.'); };
+  $('rs').onchange = function () { var f = this.files[0]; this.value = ''; if (!f) return;
+    f.text().then(function (t) { var o = JSON.parse(t); if (!o || o.app !== 'decobright' || !o.data) throw 0;
+      var add = 0, up = 0;
+      KEYS.forEach(function (k) { var b = o.data[k]; if (b == null) return; var cur = rd(k);
+        if (!Array.isArray(b)) { if (!cur || !Object.keys(cur).length) { localStorage.setItem(k, JSON.stringify(b)); window.DECO_SYNC && DECO_SYNC.changed(k, b); up++; } return; }
+        cur = Array.isArray(cur) ? cur : []; var m = {}; cur.forEach(function (x) { m[x.id] = x; });
+        b.forEach(function (x) { if (!x || !x.id) return; var h = m[x.id]; if (!h) { m[x.id] = x; add++; } else if ((x.updated || 0) > (h.updated || 0)) { m[x.id] = x; up++; } });
+        var v = Object.keys(m).map(function (id) { return m[id]; }); localStorage.setItem(k, JSON.stringify(v)); window.DECO_SYNC && DECO_SYNC.changed(k, v); });
+      msg('되살렸습니다: 새 자료 ' + add + '건, 더 새것으로 바꾼 자료 ' + up + '건. 지금 있는 자료는 지우지 않았습니다.');
+      setTimeout(function () { location.reload(); }, 2500);
+    }).catch(function () { msg('데코브라이트 백업 파일이 아닙니다. 「데코브라이트_백업_날짜.json」 파일을 골라 주세요.', true); });
+  };
+})();
+</script>
+</body>
+</html>
