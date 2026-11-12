@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>같이 쓰기 로그인 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.st{font-size:17px;padding:12px 14px;border-radius:10px;background:#fff;border:1px solid var(--bd);margin:10px 0}
+.st.ok{background:#f1f8f1;border-color:#9cc9a4}
+.st.bad{background:#fdf0ee;border-color:#e3a59b}
+.big{font-size:18px;padding:12px 18px}
+ol.how{padding-left:22px;font-size:16px;line-height:1.8}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:620px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">같이 쓰기 로그인</h1>
+  <p class="sub">로그인하면 사장님·동업자 휴대폰과 컴퓨터에서 <b>같은 견적·고객·지시서·일정</b>을 봅니다. 비밀번호 없이 이메일로 받은 링크를 누르면 됩니다.</p>
+  <div class="st" id="st" role="status">확인 중…</div>
+
+  <form class="card" id="f">
+    <ol class="how">
+      <li>아래에 이메일을 넣고 「로그인 링크 받기」를 누릅니다.</li>
+      <li>메일함에 온 <b>Supabase</b> 메일에서 「Log In」(로그인) 글자를 누릅니다.</li>
+      <li>이 앱 처음 화면이 열리면 끝입니다. 한 번 하면 그 기기는 계속 로그인되어 있습니다.</li>
+    </ol>
+    <label class="fl"><span class="need">이메일</span><input id="em" type="email" required placeholder="예: decobright@naver.com" autocomplete="email" inputmode="email"></label>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn2 pri big" type="submit" id="go">로그인 링크 받기</button>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+    <p class="sub" style="font-size:14px">※ 휴대폰에서 로그인하려면 <b>휴대폰에서</b> 링크를 받아 휴대폰에서 눌러 주세요. 팀원 명단에 있는 이메일만 자료를 볼 수 있습니다.</p>
+  </form>
+
+  <div class="card" id="inBox" hidden>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn2 pri big" type="button" id="now">지금 맞추기</button>
+      <a class="btn2 big" href="index.html">처음 화면으로</a>
+      <button class="btn2" type="button" id="out">로그아웃</button>
+    </div>
+    <p class="sub" style="font-size:14px;margin-top:10px">현장 사진은 아직 기기마다 따로 저장됩니다. (다음 단계에서 함께 보기로 바꿉니다)</p>
+  </div>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function show(S) {
+    var st = $('st'), u = S.user;
+    $('f').hidden = !!u; $('inBox').hidden = !u;
+    if (!S.client) { st.className = 'st'; st.textContent = S.err || '준비 중…'; return; }
+    if (!u) { st.className = 'st'; st.textContent = '지금은 로그인 전입니다. 자료는 이 기기에만 저장됩니다.'; return; }
+    if (S.member === false) { st.className = 'st bad'; st.textContent = u.email + ' 은(는) 팀원 명단에 없습니다. 사장님께 등록을 부탁하세요.'; return; }
+    if (S.err) { st.className = 'st bad'; st.textContent = S.err; return; }
+    var q = DECO_SYNC.pending();
+    st.className = 'st ok'; st.textContent = '로그인됨 · ' + u.email + (S.busy ? ' · 맞추는 중…' : q ? ' · 보낼 것 ' + q + '건' : ' · 서버와 모두 맞췄습니다');
+  }
+  DECO_SYNC.on(show);
+  $('f').addEventListener('submit', function (e) {
+    e.preventDefault(); var em = $('em').value.trim(), m = $('msg'); if (!em) return;
+    if (!DECO_SYNC.state().client) { m.className = 'msg bad'; m.textContent = '아직 준비 중입니다. 잠시 뒤 다시 눌러 주세요.'; return; }
+    $('go').disabled = true; m.className = 'msg'; m.textContent = '보내는 중…';
+    DECO_SYNC.login(em).then(function (r) {
+      $('go').disabled = false;
+      if (r.error) { m.className = 'msg bad'; m.textContent = /rate|seconds/i.test(r.error.message) ? '잠시 뒤 다시 눌러 주세요. (짧은 시간에 여러 번 보낼 수 없습니다)' : '보내지 못했습니다: ' + r.error.message; return; }
+      m.className = 'msg'; m.textContent = em + ' 메일함을 확인해 주세요. 메일이 안 보이면 스팸함도 봐 주세요.';
+    });
+  });
+  $('now').addEventListener('click', function () { DECO_SYNC.sync(); });
+  $('out').addEventListener('click', function () { DECO_SYNC.logout().then(function () { location.reload(); }); });
+})();
+</script>
+</body>
+</html>

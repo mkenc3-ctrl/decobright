@@ -68,6 +68,8 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
 .lb p{color:#fff;font-size:17px;font-weight:700;margin:12px 0 0;text-align:center}
 .lb .x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:14px;background:#fff;border:0;border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer}
 @media (min-width:700px){.cases button{flex-basis:30%}}
+.syncbox{display:block;margin:-4px 0 12px;padding:10px 14px;border-radius:12px;background:#fff;border:1px solid var(--bd,#e6dccd);color:var(--ink,#2b2420);text-decoration:none;font-size:15px}
+.syncbox.on{border-color:#9cc9a4;background:#f1f8f1}
 </style>
 </head>
 <body class="app home">
@@ -79,6 +81,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
     <h1 class="t">간접 조명 · 실링팬 업무</h1>
     <div class="area">창원 · 김해 · 부산 · 경남</div>
   </div>
+  <a class="syncbox" id="syncBox" href="login.html">☁ 같이 쓰기 준비 중…</a>
   <section class="alert" id="alert" hidden aria-live="polite">
     <div class="h"><span>🔔 다가오는 작업 알림</span><span><button class="btn2 pri" type="button" id="say">🔊 소리로 듣기</button> <button class="btn2" type="button" id="noti">휴대폰 알림 켜기</button></span></div>
     <ul id="alist"></ul>
@@ -121,6 +124,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;background:linear
   <p class="inst">※ 지금은 견적이 <b>이 기기에만</b> 저장됩니다. 다른 기기에서 보려면 견적서를 PDF로 저장해 보내 주세요.</p>
 </div>
 <script src="common.js"></script>
+<script src="sync.js"></script>
 <script>
 (function () {
   var CASES = [['round-wide','무몰딩 라운드 우물 · 간접조명'],['square-warm','사각 우물 간접조명 · 실링팬'],['round-fan','라운드 우물 · 화이트 실링팬'],['curtain-fan','커튼박스 간접조명 · 실링팬'],['cove-kitchen','우물 간접조명 · 주방 매립등'],['room-fan','방 커튼박스 · 실링팬'],['line','마그네틱 라인조명'],['bath','욕실 거울장 간접조명']];
