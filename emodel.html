@@ -4,10 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>e모델하우스 · 데코브라이트</title>
-<meta name="description" content="집에 가지 않아도 간접조명·실링팬 시공 후 모습을 미리 켜 보는 온라인 모델하우스">
+<meta name="description" content="간접조명·실링팬 실제 시공 현장을 사진과 영상으로 둘러보세요. 불 켜기, 빛 색 바꾸기도 직접 해 볼 수 있습니다.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="데코브라이트 e모델하우스">
+<meta property="og:description" content="간접조명·실링팬 실제 시공 현장을 사진과 영상으로 둘러보세요.">
+<meta property="og:image" content="https://mkenc3-ctrl.github.io/decobright/img/m/ka-warm.jpg">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
 <link rel="stylesheet" href="common.css">
 <link rel="manifest" href="manifest.webmanifest">
+<script>if (/[?&]c=1/.test(location.search)) { document.title = '데코브라이트 e모델하우스'; var mf = document.querySelector('link[rel=manifest]'); if (mf) mf.remove(); }</script>
 <link rel="icon" href="icons/icon.svg">
 <style>
 .hero{background:#1d1714;color:#fbf2e4;border-radius:14px;padding:18px 18px 14px;margin-bottom:12px}
@@ -118,6 +123,20 @@ body.cust .cbar a{flex:1}
     <h1><em>e</em>모델하우스</h1>
     <p id="heroP">실제로 시공한 집에서 불을 켜 보고, 빛 색을 바꿔 보고, 방마다 둘러보세요. 마음에 드는 패키지와 금액도 볼 수 있습니다.</p>
   </div>
+  <div class="own owner" style="margin:0 0 14px;border-style:solid;border-color:#f0cf9e;background:var(--warm-s)">
+    <b>📢 손님에게 보여 줄 주소</b>
+    <div style="font-size:17px;font-weight:700;word-break:break-all;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px" id="hUrl">https://mkenc3-ctrl.github.io/decobright/house.html</div>
+    <div class="acts" style="margin-top:0"><button class="btn2 pri" type="button" id="hCopy">주소 복사 (문자·카톡에 붙여넣기)</button><button class="btn2" type="button" id="hQr">QR 코드 보기</button><a class="btn2" href="house.html" target="_blank" rel="noopener">손님 화면 미리보기</a></div>
+    <p class="msg" id="hMsg" role="status" style="margin-bottom:0">손님은 앱 메뉴 없이 e모델하우스만 봅니다. 아래 「상담할 때 쓰기」에서는 고른 패키지와 금액을 담아 보낼 수도 있습니다.</p>
+  </div>
+  <div id="qrm" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#fff;border-radius:16px;padding:20px;text-align:center;max-width:340px;width:100%">
+      <b style="font-size:20px">데코브라이트 e모델하우스</b>
+      <div id="qrc" style="display:flex;justify-content:center;margin:14px 0"></div>
+      <p class="sub" style="margin:0 0 12px">휴대폰 카메라로 비추면 바로 열립니다.<br>화면을 찍어 두거나 명함·전단에 넣어 쓰세요.</p>
+      <button class="btn2 pri" type="button" id="qrX">닫기</button>
+    </div>
+  </div>
 
   <h2 class="grp" style="margin-top:6px">① 실제 현장에서 불 켜 보기</h2>
   <div class="ltab" id="ltab"><button type="button" data-m="on" class="on">💡 불 켜기 · 끄기</button><button type="button" data-m="col">🎨 빛 색 바꾸기</button></div>
@@ -216,6 +235,16 @@ body.cust .cbar a{flex:1}
   if (Q.get('k')) best = PK.filter(function (x) { return x.id === Q.get('k'); })[0] || null;
 
   // ── 고객에게 보내기 ──
+  // ── 손님용 주소 · QR ──
+  var HU = $('hUrl').textContent;
+  $('hCopy').onclick = function () { var m = $('hMsg'), t = '[' + S.company + '] 간접조명·실링팬 실제 시공 현장을 둘러보세요 (e모델하우스)\n' + HU;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { m.textContent = '복사했습니다. 손님에게 문자·카톡으로 붙여넣으세요.'; }, function () { m.textContent = t; }); };
+  $('hQr').onclick = function () { $('qrm').hidden = false; if ($('qrc').childNodes.length) return;
+    function mk() { new QRCode($('qrc'), { text: HU, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M }); }
+    if (window.QRCode) return mk(); var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'; sc.onload = mk;
+    sc.onerror = function () { $('qrc').textContent = '인터넷 연결을 확인해 주세요.'; }; document.head.appendChild(sc); };
+  $('qrX').onclick = function () { $('qrm').hidden = true; };
+  $('qrm').onclick = function (e) { if (e.target === this) this.hidden = true; };
   $('share').onclick = function () { var m = $('msg'), p = $('showPr').checked ? PIDS.map(function (id) { var x = PK.filter(function (q) { return q.id === id; })[0]; return Math.round(x.price / 1000); }).concat(IIDS.map(function (id) { return Math.round((IT[id] || 0) / 1000); })).join('.') : 'x';
     var u = 'https://mkenc3-ctrl.github.io/decobright/emodel.html?c=1&p=' + p + (best ? '&k=' + best.id : '');
     var t = '[' + S.company + '] 실제 시공 현장을 둘러보세요 (e모델하우스)\n' + u;
