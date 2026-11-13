@@ -105,6 +105,24 @@ body.cust .cbar a{flex:1}
 .strip button{flex:0 0 84px;height:84px;padding:0;border:3px solid transparent;border-radius:10px;overflow:hidden;cursor:pointer;background:#222}
 .strip button.on{border-color:var(--warm)}
 .strip img{width:100%;height:100%;object-fit:cover;display:block}
+.qnav{display:flex;gap:6px;overflow-x:auto;position:sticky;top:0;z-index:20;background:var(--paper);padding:8px 0;margin:-4px 0 6px;-webkit-overflow-scrolling:touch}
+.qnav a{flex:0 0 auto;font-size:15px;font-weight:700;color:var(--ink);text-decoration:none;background:#fff;border:1px solid var(--bd);border-radius:999px;padding:8px 13px}
+h2.grp[id]{scroll-margin-top:62px}
+.exv img{cursor:zoom-in}
+.ask .ag{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.ask .ag{grid-template-columns:minmax(0,1fr)}}
+.ask label{display:flex;flex-direction:column;gap:4px;font-size:15px;font-weight:700}
+.ask label small{font-weight:400;color:var(--muted)}
+.ask input,.ask select{font:inherit;font-size:17px;padding:10px;border:1px solid var(--bd);border-radius:10px;background:#fff;width:100%;box-sizing:border-box}
+.ck2{display:flex;flex-wrap:wrap;gap:6px}
+.ck2 label{flex-direction:row;align-items:center;gap:6px;font-weight:500;border:1px solid var(--bd);border-radius:999px;padding:7px 12px;background:#fff;cursor:pointer}
+.ck2 input{width:20px;height:20px;padding:0}
+.ck2 label:has(input:checked){background:var(--pri-s);border-color:var(--warm)}
+.faq details{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+.faq summary{cursor:pointer;font-size:17px;font-weight:700;padding:14px 16px;list-style:none}
+.faq summary::before{content:'Q. ';color:var(--acc)}
+.faq details[open] summary{border-bottom:1px solid var(--line)}
+.faq p{margin:0;padding:12px 16px 14px;font-size:16px;line-height:1.6}
 .vgal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media (max-width:620px){.vgal{grid-template-columns:minmax(0,1fr)}}
 .vgal figure{margin:0;background:#1d1714;border-radius:12px;overflow:hidden}
@@ -138,7 +156,8 @@ body.cust .cbar a{flex:1}
     </div>
   </div>
 
-  <h2 class="grp" style="margin-top:6px">① 실제 현장에서 불 켜 보기</h2>
+  <nav class="qnav" aria-label="바로 가기"><a href="#s1">💡 불 켜기</a><a href="#s2">🏠 전시실</a><a href="#s3">🎬 영상</a><a href="#s4">💰 금액</a><a href="#s5">📝 상담 신청</a><a href="#s6">❓ 묻고 답하기</a></nav>
+  <h2 class="grp" id="s1" style="margin-top:6px">① 실제 현장에서 불 켜 보기</h2>
   <div class="ltab" id="ltab"><button type="button" data-m="on" class="on">💡 불 켜기 · 끄기</button><button type="button" data-m="col">🎨 빛 색 바꾸기</button></div>
   <div class="lbox">
     <div class="real port" id="realOn"><img src="img/m/kb-off.jpg" alt="조명 끈 거실" data-s="off" class="show"><img src="img/m/kb-on.jpg" alt="우물 간접등 켠 거실" data-s="on"></div>
@@ -148,13 +167,13 @@ body.cust .cbar a{flex:1}
       <p class="sub" id="lcap" style="margin:0">실제 시공한 집에서 찍은 사진입니다. 단추를 눌러 우물 간접등을 켜 보세요.</p></div>
   </div>
 
-  <h2 class="grp">② 실제 시공 전시실 <small id="exN" style="font-size:15px;color:var(--muted);font-weight:500"></small></h2>
+  <h2 class="grp" id="s2">② 실제 시공 전시실 <small id="exN" style="font-size:15px;color:var(--muted);font-weight:500"></small></h2>
   <p class="sub">방을 넘겨 보며 <b style="color:var(--acc)">●</b> 점을 누르면 어떤 조명인지 알려 드립니다.</p>
   <div class="exv" id="exv"><img id="exI" alt=""><div id="hs"></div><button type="button" class="nav pv" id="exP" aria-label="이전 방">‹</button><button type="button" class="nav nx" id="exX" aria-label="다음 방">›</button><span class="extag" id="exT"></span></div>
   <div class="hsInfo" id="hsInfo" aria-live="polite"></div>
   <div class="strip" id="strip"></div>
 
-  <h2 class="grp">③ 영상관</h2>
+  <h2 class="grp" id="s3">③ 영상관</h2>
   <p class="sub">실제 현장에서 찍은 영상입니다. 짧은 영상은 화면에 보이면 저절로 돌아갑니다(소리 없음).</p>
   <div class="vgal">
     <figure><video class="auto" muted loop playsinline preload="metadata" poster="img/m/kb-off.jpg" src="img/m/v-on.mp4"></video><figcaption>💡 불이 켜지는 순간 <small>7초</small></figcaption></figure>
@@ -163,7 +182,7 @@ body.cust .cbar a{flex:1}
     <figure><video controls playsinline preload="none" poster="img/m/tour.jpg" src="img/m/tour.mp4"></video><figcaption>🚪 집 한 바퀴 둘러보기 <small>31초</small></figcaption></figure>
   </div>
 
-  <h2 class="grp">④ 패키지와 금액</h2>
+  <h2 class="grp" id="s4">④ 패키지와 금액</h2>
   <p class="sub">패키지를 누르면 아래에 금액이 나옵니다.</p>
   <div class="pk" id="pk"></div>
 
@@ -199,7 +218,34 @@ body.cust .cbar a{flex:1}
     <li><b>시공</b><br>보통 하루, 큰 공사는 이틀 걸립니다.</li>
     <li><b>1년 점검</b><br>시공 부위 하자는 1년 동안 무상 점검합니다.</li>
   </ol>
-  <p class="sub" style="margin-top:14px">※ 위 방 그림은 이해를 돕기 위한 예시입니다. 실제 모양·밝기·금액은 현장 실측 후 정해집니다. 시공 기간은 현장에 따라 달라질 수 있습니다.</p>
+
+  <h2 class="grp" id="s5">⑤ 간단 상담 신청</h2>
+  <div class="card ask">
+    <p class="sub" style="margin-top:0">아래를 고르고 「문자로 상담 신청」을 누르면 내용이 담긴 문자 창이 열립니다. 보내기 전에 내용을 확인하실 수 있습니다.</p>
+    <div class="ag">
+      <label>성함 <small>(선택)</small><input id="aNm" autocomplete="name" placeholder="예: 김OO"></label>
+      <label>사시는 곳<input id="aAd" placeholder="예: 창원 의창구 OO아파트"></label>
+      <label>평형<select id="aPy"><option value="">고르세요</option><option>20평대</option><option>30평대</option><option>40평대 이상</option><option>잘 모름</option></select></label>
+      <label>희망 시기<select id="aWh"><option value="">고르세요</option><option>한 달 안</option><option>1~3달 안</option><option>입주 전</option><option>아직 모름</option></select></label>
+    </div>
+    <b style="display:block;margin:12px 0 6px">관심 있는 것 <small style="font-weight:400;color:var(--muted)">(여러 개 고를 수 있습니다)</small></b>
+    <div class="ck2" id="aCk"></div>
+    <label class="fl" style="margin-top:10px">전화 받기 편한 시간 <small>(선택)</small><input id="aTm" placeholder="예: 평일 저녁 6시 이후"></label>
+    <div class="acts"><a class="btn2 pri" id="aSend" href="#">💬 문자로 상담 신청</a><button class="btn2" type="button" id="fam">👪 가족에게 이 화면 보내기</button></div>
+    <p class="msg" id="aMsg" role="status"></p>
+    <p class="sub" style="margin:6px 0 0;font-size:13px">적어 주신 내용은 상담 연락에만 씁니다. 이 화면에는 저장되지 않습니다.</p>
+  </div>
+
+  <h2 class="grp" id="s6">⑥ 자주 묻는 질문</h2>
+  <div class="faq">
+    <details><summary>공사는 며칠 걸리나요?</summary><p>보통 하루면 끝납니다. 우물 목공(천장 모양 새로 만들기)이 있으면 이틀 정도 걸립니다. 정확한 기간은 실측 후 알려 드립니다.</p></details>
+    <details><summary>살면서도 공사할 수 있나요?</summary><p>네, 살고 계신 집에서도 합니다. 공사하는 곳 아래 가구는 미리 옮기거나 덮어서 보호합니다.</p></details>
+    <details><summary>빛 색을 나중에 바꿀 수 있나요?</summary><p>색을 바꾸는 조명을 쓰면 위 영상처럼 스위치로 하얀 빛·중간 빛·따뜻한 빛을 바꿀 수 있습니다. 쓰시는 제품에 따라 다르니 상담 때 말씀해 주세요.</p></details>
+    <details><summary>실링팬을 달면 천장이 괜찮나요?</summary><p>실링팬 자리는 천장을 보강한 뒤 답니다. 보강이 필요한지는 실측 때 확인합니다.</p></details>
+    <details><summary>전기요금이 많이 나오지 않나요?</summary><p>LED 조명을 쓰기 때문에 전기 사용량이 크지 않습니다.</p></details>
+    <details><summary>시공 후 고장 나면 어떻게 하나요?</summary><p>시공 부위 하자는 1년 동안 무상으로 점검·보수합니다. 제품 자체 고장은 제조사 보증을 따릅니다.</p></details>
+  </div>
+  <p class="sub" style="margin-top:14px">※ 사진과 영상은 실제 시공 현장입니다. 금액은 참고용이며 정확한 모양·금액·기간은 현장 실측 후 정해집니다.</p>
 
   <div class="cbar"><a class="btn2 pri" id="cTel" href="#">📞 전화 상담</a><a class="btn2" id="cSms" href="#">💬 문자 문의</a></div>
 </div>
@@ -257,6 +303,21 @@ body.cust .cbar a{flex:1}
   $('gal').innerHTML = CASES.map(function (c) { return '<button type="button" data-n="' + c[0] + '" data-t="' + c[1] + '"><img src="img/' + c[0] + '.jpg" alt="' + c[1] + '" loading="lazy"><span>' + c[1] + '</span></button>'; }).join('');
   $('gal').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; $('lbi').src = 'img/' + b.dataset.n + '.jpg'; $('lbt').textContent = b.dataset.t; $('lb').hidden = false; });
   $('lb').onclick = function () { this.hidden = true; };
+  // 전시실 사진 크게 보기
+  $('exI').onclick = function () { $('lbi').src = this.src; $('lbt').textContent = EX[ex][1]; $('lb').hidden = false; };
+  // ── ⑤ 상담 신청 (문자) ──
+  var AK = ['우물 간접등', '커튼박스 간접등', '다운라이트', '실링팬', '라인조명', '욕실 간접등', '현관 센서등'];
+  $('aCk').innerHTML = AK.map(function (k) { return '<label><input type="checkbox" value="' + k + '">' + k + '</label>'; }).join('');
+  var HOUSE = 'https://mkenc3-ctrl.github.io/decobright/house.html';
+  function askText() { var v = function (id) { return $(id).value.trim(); }, ck = [].filter.call($('aCk').querySelectorAll('input'), function (i) { return i.checked; }).map(function (i) { return i.value; });
+    return ['[e모델하우스 상담 신청]', v('aNm') ? '성함: ' + v('aNm') : '', v('aAd') ? '사는 곳: ' + v('aAd') : '', v('aPy') ? '평형: ' + v('aPy') : '', ck.length ? '관심: ' + ck.join(', ') : '', best ? '본 패키지: ' + best.name : '', v('aWh') ? '희망 시기: ' + v('aWh') : '', v('aTm') ? '편한 시간: ' + v('aTm') : ''].filter(Boolean).join('\n'); }
+  $('aSend').onclick = function (e) { var t = askText(), m = $('aMsg');
+    if (t.split('\n').length < 2) { e.preventDefault(); m.className = 'msg bad'; m.textContent = '사시는 곳이나 관심 있는 것을 하나 이상 골라 주세요.'; return; }
+    var tel = String(S.phone || '').replace(/[^\d]/g, ''), ios = /iPhone|iPad/.test(navigator.userAgent); this.href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(t);
+    m.className = 'msg'; m.textContent = '문자 창이 열리면 「보내기」를 눌러 주세요. 문자 창이 안 열리면 ' + (S.phone || '') + ' 으로 전화 주세요.'; };
+  $('fam').onclick = function () { var m = $('aMsg'), t = S.company + ' e모델하우스 — 간접조명·실링팬 실제 시공 현장';
+    if (navigator.share) { navigator.share({ title: t, text: t, url: HOUSE }).catch(function () {}); return; }
+    (navigator.clipboard ? navigator.clipboard.writeText(t + '\n' + HOUSE) : Promise.reject()).then(function () { m.className = 'msg'; m.textContent = '주소를 복사했습니다. 가족 카톡방에 붙여넣으세요.'; }, function () { m.className = 'msg'; m.textContent = HOUSE; }); };
   // ── ① 실사: 불 켜기 · 빛 색 ──
   function showS(box, s) { [].forEach.call($(box).children, function (im) { im.classList.toggle('show', im.dataset.s === s); }); }
   var lit = false;
