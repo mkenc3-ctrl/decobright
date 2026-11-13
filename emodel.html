@@ -15,7 +15,21 @@
 <script>if (/[?&]c=1/.test(location.search)) { document.title = '데코브라이트 e모델하우스'; var mf = document.querySelector('link[rel=manifest]'); if (mf) mf.remove(); }</script>
 <link rel="icon" href="icons/icon.svg">
 <style>
-.hero{background:#1d1714;color:#fbf2e4;border-radius:14px;padding:18px 18px 14px;margin-bottom:12px}
+.hero{background:#1d1714;color:#fbf2e4;border-radius:14px;padding:18px 18px 14px;margin-bottom:12px;position:relative;overflow:hidden;min-height:150px;display:flex;flex-direction:column;justify-content:flex-end}
+.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(29,23,20,.1),rgba(29,23,20,.85))}
+.hero>*:not(video){position:relative;z-index:1}
+.ltab button{font-size:16px!important}
+.real.cmp img{opacity:1;transition:none}
+.real.cmp .af{clip-path:inset(0 0 0 50%)}
+.real.cmp .ln{position:absolute;top:0;bottom:0;left:50%;width:3px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.5)}
+.real.cmp .lb{position:absolute;top:8px;background:rgba(0,0,0,.6);color:#fff;font-size:14px;padding:3px 8px;border-radius:6px}
+.real.cmp input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.qnav button{flex:0 0 auto;font:inherit;font-size:15px;font-weight:800;background:var(--pri);color:#fff;border:0;border-radius:999px;padding:8px 13px;cursor:pointer}
+body.big .page{font-size:118%}
+body.big .sub,body.big .faq p,body.big .hsInfo,body.big .ask label,body.big .steps li{font-size:19px}
+body.big .faq summary{font-size:20px}
+body.big .pk button span{font-size:16px}
 .hero h1{margin:0 0 4px;font-size:26px;font-weight:800;letter-spacing:-.01em}
 .hero h1 em{font-style:normal;color:#f0b05a}
 .hero p{margin:0;color:#d9c9b4;font-size:15px}
@@ -149,6 +163,7 @@ body.tv .page,body.tv .cbar{display:none!important}
 <div class="page" style="max-width:860px">
   <div class="topnav owner"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
   <div class="hero">
+    <video autoplay muted loop playsinline preload="auto" poster="img/m/kb-off.jpg" aria-hidden="true"><source src="img/m/v-on.mp4" type="video/mp4"></video>
     <h1><em>e</em>모델하우스</h1>
     <p id="heroP">실제로 시공한 집에서 불을 켜 보고, 빛 색을 바꿔 보고, 방마다 둘러보세요. 마음에 드는 패키지와 금액도 볼 수 있습니다.</p>
   </div>
@@ -167,12 +182,13 @@ body.tv .page,body.tv .cbar{display:none!important}
     </div>
   </div>
 
-  <nav class="qnav" aria-label="바로 가기"><a href="#s1">💡 불 켜기</a><a href="#s2">🏠 전시실</a><a href="#s3">🎬 영상</a><a href="#s4">💰 금액</a><a href="#s5">📝 상담 신청</a><a href="#s6">❓ 묻고 답하기</a></nav>
+  <nav class="qnav" aria-label="바로 가기"><a href="#s1">💡 불 켜기</a><a href="#s2">🏠 전시실</a><a href="#s3">🎬 영상</a><a href="#s4">💰 금액</a><a href="#s5">📝 상담 신청</a><a href="#s6">❓ 묻고 답하기</a><button type="button" id="bigT" aria-pressed="false">가 글씨 크게</button></nav>
   <h2 class="grp" id="s1" style="margin-top:6px">① 실제 현장에서 불 켜 보기</h2>
-  <div class="ltab" id="ltab"><button type="button" data-m="on" class="on">💡 불 켜기 · 끄기</button><button type="button" data-m="col">🎨 빛 색 바꾸기</button></div>
+  <div class="ltab" id="ltab"><button type="button" data-m="on" class="on">💡 불 켜기 · 끄기</button><button type="button" data-m="col">🎨 빛 색 바꾸기</button><button type="button" data-m="cmp">↔ 밀어서 비교</button></div>
   <div class="lbox">
     <div class="real port" id="realOn"><img src="img/m/kb-off.jpg" alt="조명 끈 거실" data-s="off" class="show"><img src="img/m/kb-on.jpg" alt="우물 간접등 켠 거실" data-s="on"></div>
     <div class="real wide" id="realCol" hidden><img src="img/m/ka-off.jpg" alt="조명 끈 거실" data-s="off"><img src="img/m/ka-cool.jpg" alt="주광색" data-s="cool" class="show"><img src="img/m/ka-mid.jpg" alt="주백색" data-s="mid"><img src="img/m/ka-warm.jpg" alt="전구색" data-s="warm"></div>
+    <div class="real wide cmp" id="realCmp" hidden><img src="img/m/ka-off.jpg" alt="조명 끈 거실" loading="lazy"><img src="img/m/ka-warm.jpg" alt="간접등 켠 거실" class="af" id="cmpA" loading="lazy"><span class="ln" id="cmpL"></span><span class="lb" style="left:8px">끄면</span><span class="lb" style="right:8px">켜면</span><input type="range" min="0" max="100" value="50" id="cmpR" aria-label="끈 모습과 켠 모습 비교"></div>
     <div class="lctl"><button type="button" class="bigb" id="swOn">💡 불 켜기</button>
       <div class="seg" id="colSeg" hidden><button type="button" data-c="off">끄기</button><button type="button" data-c="cool" class="on">주광색 (하얀 빛)</button><button type="button" data-c="mid">주백색 (중간)</button><button type="button" data-c="warm">전구색 (따뜻한 빛)</button></div>
       <p class="sub" id="lcap" style="margin:0">실제 시공한 집에서 찍은 사진입니다. 단추를 눌러 우물 간접등을 켜 보세요.</p></div>
@@ -333,10 +349,15 @@ body.tv .page,body.tv .cbar{display:none!important}
   // ── ① 실사: 불 켜기 · 빛 색 ──
   function showS(box, s) { [].forEach.call($(box).children, function (im) { im.classList.toggle('show', im.dataset.s === s); }); }
   var lit = false;
-  $('ltab').addEventListener('click', function (e) { var b = e.target.closest('[data-m]'); if (!b) return; var col = b.dataset.m === 'col';
+  $('ltab').addEventListener('click', function (e) { var b = e.target.closest('[data-m]'); if (!b) return; var m = b.dataset.m;
     [].forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); });
-    $('realOn').hidden = col; $('swOn').hidden = col; $('realCol').hidden = !col; $('colSeg').hidden = !col;
-    $('lcap').textContent = col ? '같은 거실에서 우물 간접등 빛 색만 바꿔 찍은 실제 사진입니다. 스위치 하나로 바꿀 수 있습니다.' : '실제 시공한 집에서 찍은 사진입니다. 단추를 눌러 우물 간접등을 켜 보세요.'; });
+    $('realOn').hidden = $('swOn').hidden = m !== 'on'; $('realCol').hidden = $('colSeg').hidden = m !== 'col'; $('realCmp').hidden = m !== 'cmp';
+    $('lcap').textContent = { on: '실제 시공한 집에서 찍은 사진입니다. 단추를 눌러 우물 간접등을 켜 보세요.', col: '같은 거실에서 우물 간접등 빛 색만 바꿔 찍은 실제 사진입니다. 스위치 하나로 바꿀 수 있습니다.', cmp: '가운데 선을 좌우로 밀어 보세요. 왼쪽은 끈 모습, 오른쪽은 켠 모습입니다.' }[m]; });
+  // 글씨 크게 (이 기기에 기억)
+  function big(on) { document.body.classList.toggle('big', on); $('bigT').textContent = on ? '가 글씨 보통' : '가 글씨 크게'; $('bigT').setAttribute('aria-pressed', on); try { localStorage.setItem('deco-em-big', on ? '1' : ''); } catch (e) {} }
+  try { if (localStorage.getItem('deco-em-big')) big(true); } catch (e) {}
+  $('bigT').onclick = function () { big(!document.body.classList.contains('big')); };
+  $('cmpR').oninput = function () { $('cmpA').style.clipPath = 'inset(0 0 0 ' + this.value + '%)'; $('cmpL').style.left = this.value + '%'; };
   $('swOn').onclick = function () { lit = !lit; showS('realOn', lit ? 'on' : 'off'); this.textContent = lit ? '🌙 불 끄기' : '💡 불 켜기'; this.classList.toggle('off', lit); };
   $('colSeg').addEventListener('click', function (e) { var b = e.target.closest('[data-c]'); if (!b) return; [].forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); }); showS('realCol', b.dataset.c); });
 
