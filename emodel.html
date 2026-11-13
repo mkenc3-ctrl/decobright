@@ -116,7 +116,7 @@ body.cust .cbar a{flex:1}
   <div class="topnav owner"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
   <div class="hero">
     <h1><em>e</em>모델하우스</h1>
-    <p id="heroP">실제로 시공한 집에서 불을 켜 보고, 빛 색을 바꿔 보고, 방마다 둘러보세요. 아래에서는 원하는 구성을 직접 꾸며 볼 수도 있습니다.</p>
+    <p id="heroP">실제로 시공한 집에서 불을 켜 보고, 빛 색을 바꿔 보고, 방마다 둘러보세요. 마음에 드는 패키지와 금액도 볼 수 있습니다.</p>
   </div>
 
   <h2 class="grp" style="margin-top:6px">① 실제 현장에서 불 켜 보기</h2>
@@ -144,12 +144,9 @@ body.cust .cbar a{flex:1}
     <figure><video controls playsinline preload="none" poster="img/m/tour.jpg" src="img/m/tour.mp4"></video><figcaption>🚪 집 한 바퀴 둘러보기 <small>31초</small></figcaption></figure>
   </div>
 
-  <h2 class="grp">④ 그림으로 직접 꾸며 보기</h2>
-  <p class="sub">원하는 조명을 켜고 끄면 맞는 패키지와 금액이 나옵니다.</p>
-  <div class="rooms" id="rooms"><button type="button" data-r="living">🛋 거실</button><button type="button" data-r="bed">🛏 안방</button></div>
-  <div class="stage"><svg id="room" viewBox="0 0 800 500" role="img" aria-label="가상 방 미리보기"></svg><span class="tag" id="tag"></span><button type="button" class="play" id="play">▶ 불 켜 보기</button></div>
-
-  <div class="ctl" id="ctl"></div>
+  <h2 class="grp">④ 패키지와 금액</h2>
+  <p class="sub">패키지를 누르면 아래에 금액이 나옵니다.</p>
+  <div class="pk" id="pk"></div>
 
   <div class="est" aria-live="polite">
     <div><small id="eHd">이 구성에 맞는 패키지</small><div class="nm" id="eNm"></div><small id="eDs"></small></div>
@@ -160,16 +157,13 @@ body.cust .cbar a{flex:1}
     <b>상담할 때 쓰기</b>
     <label><input type="checkbox" id="showPr" checked> 고객 화면에 금액 보이기 (끄면 「상담 후 안내」로 보입니다)</label>
     <div class="acts" style="margin-top:0">
-      <a class="btn2 pri" id="toQ" href="quote.html">이 구성으로 견적서 만들기</a>
-      <button class="btn2" type="button" id="share">지금 구성 그대로 고객에게 보내기</button>
+      <a class="btn2 pri" id="toQ" href="quote.html">이 패키지로 견적서 만들기</a>
+      <button class="btn2" type="button" id="share">고객에게 e모델하우스 링크 보내기</button>
       <a class="btn2" href="quote.html">고객 집 천장 사진에 직접 붙여 보기</a>
     </div>
     <p class="msg" id="msg" role="status" style="margin-bottom:0"></p>
   </div>
 
-  <h2 class="grp">패키지 전시관</h2>
-  <p class="sub">패키지를 누르면 위 거실에 바로 켜집니다.</p>
-  <div class="pk" id="pk"></div>
 
   <h2 class="grp">실제 시공 전·후</h2>
   <p class="sub">가운데 선을 좌우로 밀어 보세요. 왼쪽이 시공 전, 오른쪽이 시공 후입니다.</p>
@@ -198,155 +192,34 @@ body.cust .cbar a{flex:1}
 (function () {
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, W = DECO.won, S = DECO.settings(), Q = new URLSearchParams(location.search);
   var cust = Q.get('c') === '1'; if (cust) document.body.classList.add('cust');
-  var st = { room: 'living', shape: 'round', cove: 1, inN: 8, tvN: 6, curtain: 1, fan: 1, fanC: 'wood', k: 3000, dim: 85, night: 1 };
-  var ORD = ['room', 'shape', 'cove', 'inN', 'tvN', 'curtain', 'fan', 'fanC', 'k', 'dim', 'night'];
-  var KC = { 3000: ['#ffb357', '전구색'], 4000: ['#ffe2a8', '주백색'], 6500: ['#e3efff', '주광색'] };
-  var FC = { wood: ['#7a5a3c', '#5a4330', '우드'], white: ['#ece7df', '#a9a198', '화이트'], black: ['#2e2a26', '#1b1816', '블랙'] };
 
   // ── 가격: 이 기기 가격표, 고객 링크로 열면 사장님 가격(p=)으로 덮어씀 ──
   var PK = DECO.pkgs().filter(function (p) { return p.id !== 'none' && p.f; }), IT = {}; DECO.items().forEach(function (i) { IT[i.id] = i.price || 0; });
   var PIDS = PK.map(function (p) { return p.id; }), IIDS = ['i1', 'i3', 'i4', 'i6', 'i7', 'i8', 'i5', 'i14'], hidePr = false;
   if (cust && Q.get('p')) { if (Q.get('p') === 'x') hidePr = true; else { var pv = Q.get('p').split('.'); PK.forEach(function (p, i) { if (pv[i]) p.price = +pv[i] * 1000; }); IIDS.forEach(function (id, i) { var v = pv[PIDS.length + i]; if (v) IT[id] = +v * 1000; }); } }
   PK.sort(function (a, b) { return a.price - b.price; });
-  // 받은 구성(s=)
-  if (Q.get('s')) { var sv = Q.get('s').split('.'); ORD.forEach(function (k, i) { var v = sv[i]; if (v == null || v === '') return; st[k] = isNaN(+v) ? v : +v; });
-    if (!KC[st.k]) st.k = 3000; if (!FC[st.fanC]) st.fanC = 'wood'; if (st.room !== 'bed') st.room = 'living'; st.dim = Math.min(100, Math.max(20, st.dim || 85)); }
-
-  function ctlDef() { var bed = st.room === 'bed'; return [
-    ['shape', bed ? '안방 우물 모양' : '우물 모양', [['square', '사각'], ['round', '라운드']]],
-    ['cove', '우물 간접등', [[0, '끔'], [1, '한 줄'], [2, '두 줄']]],
-    ['inN', '우물 다운라이트', bed ? [[0, '끔'], [4, '4개'], [8, '8개']] : [[0, '끔'], [8, '8개'], [12, '12개']]],
-    ['tvN', bed ? '침대 머리맡 다운라이트' : 'TV·소파 다운라이트', bed ? [[0, '끔'], [3, '3개']] : [[0, '끔'], [6, '6개']]],
-    ['curtain', '커튼박스 간접등', [[0, '끔'], [1, '켬']]],
-    ['fan', '실링팬', [[0, '없음'], [1, '있음']]],
-    ['fanC', '실링팬 색', [['wood', '우드'], ['white', '화이트'], ['black', '블랙']]],
-    ['k', '빛 색', [[3000, '전구색'], [4000, '주백색'], [6500, '주광색']]],
-    ['dim', '밝기', null],
-    ['night', '시간', [[1, '밤'], [0, '낮']]]]; }
-  function ctl() { $('ctl').innerHTML = ctlDef().map(function (c) { if (!c[2]) return '<div class="row"><b>' + c[1] + '</b><div class="dim"><input type="range" id="dimR" min="20" max="100" step="5" value="' + st.dim + '" aria-label="밝기"><span id="dimV">' + st.dim + '%</span></div></div>';
-      return '<div class="row" data-row="' + c[0] + '"><b>' + c[1] + '</b><div class="seg" data-k="' + c[0] + '">' + c[2].map(function (o) { return '<button type="button" data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div></div>'; }).join('');
-    $('dimR').oninput = function () { st.dim = +this.value; $('dimV').textContent = st.dim + '%'; draw(); }; }
-  $('ctl').addEventListener('click', function (e) { var b = e.target.closest('[data-v]'); if (!b) return; var k = b.parentNode.dataset.k, v = b.dataset.v; st[k] = isNaN(+v) ? v : +v; pin = null; draw(); });
-  $('rooms').addEventListener('click', function (e) { var b = e.target.closest('[data-r]'); if (!b || b.dataset.r === st.room) return; st.room = b.dataset.r; pin = null;
-    if (st.room === 'bed') { st.inN = st.inN ? 4 : 0; st.tvN = st.tvN ? 3 : 0; st.cove = Math.min(st.cove, 1); } else { st.inN = st.inN ? 8 : 0; st.tvN = st.tvN ? 6 : 0; } ctl(); draw(); });
-
-  function cone(x, y, x2, y2, w, op) { return '<polygon points="' + (x - 4) + ',' + y + ' ' + (x + 4) + ',' + y + ' ' + (x2 + w) + ',' + y2 + ' ' + (x2 - w) + ',' + y2 + '" fill="url(#cone)" opacity="' + op + '"/><circle cx="' + x + '" cy="' + y + '" r="3.6" fill="' + LC + '"/><circle cx="' + x + '" cy="' + y + '" r="8" fill="' + LC + '" opacity=".35" filter="url(#bl2)"/>'; }
-  var LC = '#ffb357';
-  // ── 가상 방 그리기 (한 점 투시) ──
-  function draw() {
-    [].forEach.call(document.querySelectorAll('.seg'), function (g) { [].forEach.call(g.children, function (b) { b.classList.toggle('on', String(st[g.dataset.k]) === b.dataset.v); }); });
-    [].forEach.call($('rooms').children, function (b) { b.classList.toggle('on', b.dataset.r === st.room); });
-    var fr = document.querySelector('[data-row="fanC"]'); if (fr) fr.hidden = !st.fan;
-    var n = st.night, bed = st.room === 'bed', D = st.dim / 100, on = function (x) { return x ? 1 : 0; }; LC = KC[st.k][0]; var L = LC;
-    var wall = n ? '#2a2420' : (bed ? '#ece3e0' : '#efe7da'), wallS = n ? '#211c19' : (bed ? '#e2d6d2' : '#e4dacb'), ceil = n ? '#1e1a17' : '#f6f1e8', floor = n ? '#2b2119' : (bed ? '#c9a27a' : '#b98d62'), sky = n ? '#14203a' : '#bfe0f5';
-    var anyL = st.cove || st.inN || st.tvN || st.curtain, lift = n && anyL ? (.12 + .05 * (on(st.cove) + on(st.curtain)) + .03 * (on(st.inN) + on(st.tvN))) * D : 0;
-    var h = [], lt = [];
-    h.push('<defs>',
-      '<filter id="bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>',
-      '<filter id="bl2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>',
-      '<linearGradient id="cw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + L + '" stop-opacity=".85"/><stop offset="1" stop-color="' + L + '" stop-opacity="0"/></linearGradient>',
-      '<linearGradient id="cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + L + '" stop-opacity=".55"/><stop offset="1" stop-color="' + L + '" stop-opacity="0"/></linearGradient>',
-      '<radialGradient id="pool"><stop offset="0" stop-color="' + L + '" stop-opacity=".55"/><stop offset="1" stop-color="' + L + '" stop-opacity="0"/></radialGradient>',
-      '<radialGradient id="amb" cx=".5" cy=".2" r=".8"><stop offset="0" stop-color="' + L + '" stop-opacity="' + lift + '"/><stop offset="1" stop-color="' + L + '" stop-opacity="0"/></radialGradient>',
-      '</defs>');
-    h.push('<polygon points="0,0 800,0 640,130 160,130" fill="' + ceil + '"/>',
-      '<polygon points="0,0 160,130 160,370 0,500" fill="' + wallS + '"/>',
-      '<polygon points="800,0 640,130 640,370 800,500" fill="' + wallS + '"/>',
-      '<polygon points="0,500 160,370 640,370 800,500" fill="' + floor + '"/>',
-      '<rect x="160" y="130" width="480" height="240" fill="' + wall + '"/>');
-    for (var i = 1; i < 8; i++) h.push('<line x1="' + (160 + i * 60) + '" y1="370" x2="' + (i * 100) + '" y2="500" stroke="#000" stroke-opacity=".08"/>');
-    // 창문 + 커튼 (안방은 오른쪽으로 비켜 작게)
-    var wx = bed ? 430 : 250, ww = bed ? 170 : 300, cx0 = wx - 14, cx1 = wx + ww + 14, curC = n ? '#4a3f37' : (bed ? '#cdb9b0' : '#d9cbb6');
-    h.push('<rect x="' + wx + '" y="160" width="' + ww + '" height="180" fill="' + sky + '"/>',
-      '<line x1="' + (wx + ww / 2) + '" y1="160" x2="' + (wx + ww / 2) + '" y2="340" stroke="' + (n ? '#3a3a3a' : '#fff') + '" stroke-width="4"/>',
-      n ? '<circle cx="' + (wx + ww - 45) + '" cy="190" r="10" fill="#f4f1d6" opacity=".8"/>' : '',
-      '<path d="M' + cx0 + ' 142 q12 100 0 214 h46 q-14 -110 0 -214z" fill="' + curC + '"/>',
-      '<path d="M' + cx1 + ' 142 q-12 100 0 214 h-46 q14 -110 0 -214z" fill="' + curC + '"/>',
-      '<rect x="' + (cx0 - 16) + '" y="132" width="' + (cx1 - cx0 + 32) + '" height="9" fill="' + (n ? '#151210' : '#e6ddcf') + '"/>');
-    if (st.curtain) lt.push('<rect x="' + (cx0 - 16) + '" y="132" width="' + (cx1 - cx0 + 32) + '" height="' + (n ? 150 : 60) + '" fill="url(#cw)" opacity="' + (n ? 1 : .35) + '"/>', '<line x1="' + (cx0 - 14) + '" y1="134" x2="' + (cx1 + 14) + '" y2="134" stroke="' + L + '" stroke-width="4" filter="url(#bl2)"/>');
-    if (!bed) {
-      // 거실: TV(왼벽) · 소파
-      h.push('<polygon points="40,190 120,212 120,300 40,316" fill="#0b0b0c" stroke="#333" stroke-width="2"/>',
-        n ? '<polygon points="44,196 116,216 116,296 44,310" fill="#18324a" opacity=".55"/>' : '',
-        '<polygon points="30,330 130,312 130,322 30,342" fill="' + (n ? '#3b2f28' : '#8a6a50') + '"/>',
-        '<polygon points="560,352 760,352 790,440 530,440" fill="' + (n ? '#3c342f' : '#8f8579') + '"/>',
-        '<polygon points="575,310 745,310 760,360 560,360" fill="' + (n ? '#4a413b' : '#a49a8d') + '"/>');
-      if (st.tvN) { [[60, 22], [100, 30], [140, 38]].forEach(function (p) { lt.push(cone(p[0], p[1], p[0] + 7, 250, 27, n ? .5 : .15)); });
-        [[650, 22], [700, 30], [745, 38]].forEach(function (p) { lt.push(cone(p[0], p[1], p[0], 330, 26, n ? .45 : .12)); }); }
-    } else {
-      // 안방: 붙박이장(왼벽) · 침대(뒷벽 가운데)
-      h.push('<polygon points="20,120 140,152 140,360 20,410" fill="' + (n ? '#3a312b' : '#e8e0d4') + '" stroke="' + (n ? '#2a2420' : '#cfc4b4') + '" stroke-width="2"/>',
-        '<line x1="80" y1="136" x2="80" y2="385" stroke="' + (n ? '#2a2420' : '#cfc4b4') + '" stroke-width="2"/>',
-        '<rect x="250" y="268" width="170" height="80" rx="6" fill="' + (n ? '#4a3a30' : '#9a7a5e') + '"/>',
-        '<polygon points="250,340 420,340 470,450 190,450" fill="' + (n ? '#5a514b' : '#f2ede6') + '"/>',
-        '<polygon points="190,450 470,450 470,462 190,462" fill="' + (n ? '#3a332e' : '#d8cfc3') + '"/>',
-        '<rect x="266" y="322" width="62" height="24" rx="8" fill="' + (n ? '#6b625b' : '#fff') + '"/><rect x="342" y="322" width="62" height="24" rx="8" fill="' + (n ? '#6b625b' : '#fff') + '"/>',
-        '<polygon points="240,392 452,392 470,450 190,450" fill="' + (n ? '#4c443e' : '#d9c7b5') + '"/>',
-        '<rect x="196" y="318" width="40" height="40" fill="' + (n ? '#3a2f28' : '#8a6a50') + '"/><rect x="434" y="318" width="40" height="40" fill="' + (n ? '#3a2f28' : '#8a6a50') + '"/>');
-      if (st.tvN) [290, 335, 380].forEach(function (x) { lt.push(cone(x, 126, x, 300, 30, n ? .55 : .15)); });
-    }
-    // 우물
-    var cx = 400, cy = bed ? 58 : 62, rx = bed ? 135 : 170, ry = bed ? 30 : 34, shp;
-    if (st.shape === 'round') shp = function (d, a) { return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + (rx - d) + '" ry="' + (ry - d * .2) + '" ' + a + '/>'; };
-    else shp = function (d, a) { var t = cy - ry + d * .2, b = cy + ry - d * .2, w1 = rx - d - 26, w2 = rx - d; return '<polygon points="' + (cx - w1) + ',' + t + ' ' + (cx + w1) + ',' + t + ' ' + (cx + w2) + ',' + b + ' ' + (cx - w2) + ',' + b + '" ' + a + '/>'; };
-    h.push(shp(0, 'fill="' + (n ? '#171412' : '#ece5d9') + '" stroke="' + (n ? '#2d2723' : '#d6ccbd') + '" stroke-width="3"'));
-    if (st.cove) { lt.push(shp(-6, 'fill="none" stroke="' + L + '" stroke-width="16" opacity="' + (n ? .75 : .3) + '" filter="url(#bl)"'), shp(0, 'fill="none" stroke="' + L + '" stroke-width="3"'));
-      if (st.cove > 1) lt.push(shp(22, 'fill="none" stroke="' + L + '" stroke-width="12" opacity="' + (n ? .6 : .25) + '" filter="url(#bl)"'), shp(22, 'fill="none" stroke="' + L + '" stroke-width="2.5"'));
-      if (n) lt.push(shp(-30, 'fill="' + L + '" opacity=".08" filter="url(#bl)"')); }
-    if (st.inN) { for (var j = 0; j < st.inN; j++) { var a = Math.PI * 2 * j / st.inN + .2, px = cx + Math.cos(a) * (rx - 40), py = cy + Math.sin(a) * (ry - 9);
-        lt.push(cone(px, py, px + (px - 400) * .5, 380 + (py - cy) * 2.4, 22, n ? .17 : .06)); }
-      if (n) lt.push('<ellipse cx="400" cy="' + (bed ? 440 : 430) + '" rx="' + (bed ? 220 : 260) + '" ry="44" fill="url(#pool)"/>'); }
-    if (lift) lt.push('<rect width="800" height="500" fill="url(#amb)"/>');
-    h.push('<g opacity="' + (.25 + .75 * D).toFixed(2) + '">' + lt.join('') + '</g>');
-    // 밤에 어두운 정도(밝기 낮추면 방도 조금 어두워짐)
-    if (n && anyL) h.push('<rect width="800" height="500" fill="#000" opacity="' + ((1 - D) * .35).toFixed(2) + '"/>');
-    if (n && !anyL) h.push('<rect width="800" height="500" fill="#000" opacity=".35"/>');
-    // 실링팬
-    if (st.fan) { var fc = FC[st.fanC][n ? 1 : 0], fy = bed ? 108 : 116, sp = bed ? .85 : 1;
-      h.push('<line x1="400" y1="' + cy + '" x2="400" y2="' + (fy - 4) + '" stroke="' + fc + '" stroke-width="4"/>',
-        '<g transform="translate(400 ' + fy + ') scale(' + sp + ' ' + (.22 * sp) + ')"><g><animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="2.4s" repeatCount="indefinite"/>' +
-        [0, 72, 144, 216, 288].map(function (r) { return '<path transform="rotate(' + r + ')" d="M0 -10 C40 -26 120 -24 150 -8 C120 6 40 8 0 10z" fill="' + fc + '" stroke="#000" stroke-opacity=".15"/>'; }).join('') + '</g></g>',
-        '<ellipse cx="400" cy="' + (fy + 1) + '" rx="16" ry="7" fill="' + fc + '"/>',
-        '<ellipse cx="400" cy="' + (fy + 8) + '" rx="10" ry="5" fill="' + L + '" opacity="' + (anyL ? .9 * D + .1 : .4) + '"/>'); }
-    $('room').innerHTML = h.join('');
-    $('tag').textContent = (bed ? '안방' : '거실') + ' · ' + (n ? '밤' : '낮') + ' · ' + KC[st.k][1] + ' · 밝기 ' + st.dim + '%';
-    est();
-  }
-
-  // ── 금액 맞추기 ──
-  var best = null, pin = null;
-  function itemSum() { var s = IT.i1 * (st.inN + st.tvN); if (st.curtain) s += IT.i3; if (st.cove) s += st.cove > 1 ? IT.i4 : IT.i3; if (st.fan) s += IT.i6 + IT.i7 + IT.i8; return s; }
-  function desc() { var L = []; if (st.cove) L.push((st.shape === 'round' ? '라운드' : '사각') + ' 우물 간접등 ' + (st.cove > 1 ? '두 줄' : '한 줄')); if (st.inN) L.push('우물 다운라이트 ' + st.inN + '개');
-    if (st.tvN) L.push((st.room === 'bed' ? '침대 머리맡' : 'TV·소파') + ' 다운라이트 ' + st.tvN + '개'); if (st.curtain) L.push('커튼박스 간접등'); if (st.fan) L.push(FC[st.fanC][2] + ' 실링팬'); return L.join(', '); }
-  function est() { var bed = st.room === 'bed', none = !st.cove && !st.inN && !st.tvN && !st.curtain && !st.fan;
-    best = bed ? null : (PK.filter(function (p) { var f = p.f; return f.inN >= st.inN && f.tvN >= st.tvN && f.cove >= st.cove && (!st.curtain || f.curtain) && (!st.fan || f.fan); })[0] || null); if (pin && !bed) best = pin;
-    var amt = none ? 0 : best ? best.price : itemSum(), hide = cust ? hidePr : false;
-    $('eHd').textContent = bed ? '안방 대략 금액 (항목 단가 합)' : best ? '이 구성에 맞는 패키지' : '항목별 대략 금액';
-    $('eNm').textContent = none ? '조명을 하나 이상 켜 보세요' : best ? best.name : (bed ? '안방 조명' : '맞춤 구성');
-    $('eDs').textContent = none ? '' : best ? best.desc : desc();
-    $('ePr').textContent = none ? '—' : hide ? '상담 후 안내' : (best ? '' : '약 ') + W(amt);
-    $('eVat').textContent = hide ? '현장 실측 후 정확히 알려 드립니다' : '공급가 · 부가세 별도' + (best ? '' : ' · 참고용');
+  // ── 패키지 고르기 ──
+  var best = null;
+  function est() { var hide = cust && hidePr;
+    $('eHd').textContent = best ? '고르신 패키지' : '패키지를 골라 보세요';
+    $('eNm').textContent = best ? best.name : '위에서 패키지를 누르세요';
+    $('eDs').textContent = best ? best.desc : '';
+    $('ePr').textContent = !best ? '—' : hide ? '상담 후 안내' : W(best.price);
+    $('eVat').textContent = hide ? '현장 실측 후 정확히 알려 드립니다' : '공급가 · 부가세 별도';
     [].forEach.call($('pk').children, function (b) { b.classList.toggle('on', !!best && b.dataset.p === best.id); });
     $('toQ').href = 'quote.html' + (best ? '?pkg=' + best.id : '');
-    var t = '[e모델하우스 문의] ' + (bed ? '안방' : '거실') + ' · ' + (best ? best.name + ' · ' : '') + desc() + ' · ' + KC[st.k][1] + ' 구성으로 상담 받고 싶습니다.';
+    var t = '[e모델하우스 문의] ' + (best ? best.name + ' 구성으로' : '간접조명·실링팬 시공') + ' 상담 받고 싶습니다.';
     var tel = String(S.phone || '').replace(/[^\d]/g, ''), ios = /iPhone|iPad/.test(navigator.userAgent);
     $('cTel').href = 'tel:' + tel; $('cSms').href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(t); }
   $('pk').innerHTML = PK.map(function (p) { return '<button type="button" data-p="' + E(p.id) + '"><b>' + E(p.name) + '</b><i class="pp">' + (cust && hidePr ? '상담 후 안내' : W(p.price)) + '</i><span>' + E(p.desc) + '</span></button>'; }).join('');
-  $('pk').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b) return; var p = PK.filter(function (x) { return x.id === b.dataset.p; })[0], f = p.f;
-    if (st.room !== 'living') { st.room = 'living'; ctl(); }
-    st.inN = f.inN >= 12 ? 12 : f.inN ? 8 : 0; st.tvN = f.tvN ? 6 : 0; st.cove = Math.min(2, f.cove || 0); st.curtain = f.curtain ? 1 : 0; st.fan = f.fan ? 1 : 0; st.night = 1; pin = p; draw();
-    $('rooms').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-
-  // ── 불 켜 보기 연출 ──
-  $('play').onclick = function () { var b = this, keep = {}, K = ['cove', 'curtain', 'inN', 'tvN', 'fan'], keepPin = pin; K.forEach(function (k) { keep[k] = st[k]; st[k] = 0; }); st.night = 1; b.disabled = true; draw();
-    var seq = K.filter(function (k) { return keep[k]; }), i = 0;
-    (function step() { if (i >= seq.length) { pin = keepPin; draw(); b.disabled = false; return; } st[seq[i]] = keep[seq[i]]; i++; draw(); setTimeout(step, 750); })(); };
+  $('pk').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b) return; best = PK.filter(function (x) { return x.id === b.dataset.p; })[0] || null; est(); });
+  if (Q.get('k')) best = PK.filter(function (x) { return x.id === Q.get('k'); })[0] || null;
 
   // ── 고객에게 보내기 ──
   $('share').onclick = function () { var m = $('msg'), p = $('showPr').checked ? PIDS.map(function (id) { var x = PK.filter(function (q) { return q.id === id; })[0]; return Math.round(x.price / 1000); }).concat(IIDS.map(function (id) { return Math.round((IT[id] || 0) / 1000); })).join('.') : 'x';
-    var u = 'https://mkenc3-ctrl.github.io/decobright/emodel.html?c=1&s=' + ORD.map(function (k) { return st[k]; }).join('.') + '&p=' + p;
-    var t = '[' + S.company + '] 상담하신 구성을 미리 켜 볼 수 있습니다 (e모델하우스)\n' + u;
-    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { m.className = 'msg'; m.textContent = '복사했습니다. 고객에게 문자·카톡으로 붙여넣으세요. 고객이 열면 지금 이 구성 그대로 보입니다.'; }, function () { m.className = 'msg'; m.textContent = t; }); };
+    var u = 'https://mkenc3-ctrl.github.io/decobright/emodel.html?c=1&p=' + p + (best ? '&k=' + best.id : '');
+    var t = '[' + S.company + '] 실제 시공 현장을 둘러보세요 (e모델하우스)\n' + u;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { m.className = 'msg'; m.textContent = '복사했습니다. 고객에게 문자·카톡으로 붙여넣으세요.' + (best ? ' 고른 패키지(' + best.name + ')가 함께 표시됩니다.' : ''); }, function () { m.className = 'msg'; m.textContent = t; }); };
 
   // ── 시공 전·후 · 사례 ──
   if (window.REAL_B && window.REAL_A) { $('bB').src = REAL_B; $('bA').src = REAL_A;
@@ -355,7 +228,6 @@ body.cust .cbar a{flex:1}
   $('gal').innerHTML = CASES.map(function (c) { return '<button type="button" data-n="' + c[0] + '" data-t="' + c[1] + '"><img src="img/' + c[0] + '.jpg" alt="' + c[1] + '" loading="lazy"><span>' + c[1] + '</span></button>'; }).join('');
   $('gal').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; $('lbi').src = 'img/' + b.dataset.n + '.jpg'; $('lbt').textContent = b.dataset.t; $('lb').hidden = false; });
   $('lb').onclick = function () { this.hidden = true; };
-  if (cust && Q.get('s')) $('heroP').textContent = S.company + '에서 상담하신 구성을 그대로 켜 두었습니다. 단추를 눌러 바꿔 보시고, 마음에 드시면 아래 「문자 문의」를 눌러 주세요.';
   // ── ① 실사: 불 켜기 · 빛 색 ──
   function showS(box, s) { [].forEach.call($(box).children, function (im) { im.classList.toggle('show', im.dataset.s === s); }); }
   var lit = false;
@@ -409,7 +281,7 @@ body.cust .cbar a{flex:1}
   var AV = document.querySelectorAll('video.auto');
   if ('IntersectionObserver' in window) { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var p = e.target.play(); if (p && p.catch) p.catch(function () {}); } else e.target.pause(); }); }, { threshold: .4 });
     [].forEach.call(AV, function (v) { io.observe(v); }); } else [].forEach.call(AV, function (v) { v.controls = true; });
-  ctl(); draw();
+  est();
 })();
 </script>
 </body>
