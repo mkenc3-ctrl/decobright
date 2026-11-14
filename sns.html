@@ -51,6 +51,7 @@ h2.s{font-size:20px;margin:24px 0 8px;display:flex;justify-content:space-between
   <div class="row">
     <button class="btn2 pri" type="button" id="share">휴대폰에서 사진+글 공유하기</button>
     <button class="btn2" type="button" id="dl">고른 사진 내려받기</button>
+    <button class="btn2" type="button" id="ba" style="font-weight:800">🖼 전·후 비교 그림 만들기</button>
     <a class="btn2" id="openBlog" href="#" target="_blank" rel="noopener" hidden>내 블로그 열기</a>
   </div>
   <p class="msg" id="msg" role="status"></p>
@@ -179,6 +180,17 @@ h2.s{font-size:20px;margin:24px 0 8px;display:flex;justify-content:space-between
   $('dl').addEventListener('click', function () { var fl = files(); if (!fl.length) { say('고른 사진이 없습니다.', true); return; }
     fl.forEach(function (f, i) { setTimeout(function () { var a = document.createElement('a'), u = URL.createObjectURL(f); a.href = u; a.download = f.name; a.click(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000); }, i * 400); });
     say(fl.length + '장을 내려받았습니다.'); });
+  // 시공 전 1장 + 시공 후 1장을 위아래로 붙인 홍보 그림 (고른 사진 우선)
+  $('ba').addEventListener('click', function () { var sl = sel2(), pick = function (st) { return sl.filter(function (p) { return p.stage === st; })[0] || photos.filter(function (p) { return p.stage === st; })[0]; }, A = pick('시공 전'), B = pick('시공 후');
+    if (!A || !B) { say('이 현장에 「시공 전」과 「시공 후」 사진이 한 장씩은 있어야 합니다.', true); return; }
+    var ld = function (p) { return new Promise(function (ok, no) { var u = URL.createObjectURL(p.blob), im = new Image(); im.onload = function () { ok(im); setTimeout(function () { URL.revokeObjectURL(u); }, 1000); }; im.onerror = no; im.src = u; }); };
+    say('그림을 만드는 중…'); Promise.all([ld(A), ld(B)]).then(function (I) { var W = 1080, H = 1350, top = 110, bot = 90, h = (H - top - bot - 12) / 2, c = document.createElement('canvas'), g = c.getContext('2d'), F = "'Noto Sans KR', sans-serif";
+      c.width = W; c.height = H; g.fillStyle = '#2A1F17'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#F4B94A'; g.font = '800 46px ' + F; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText((S.company || '데코브라이트') + ' 시공 전·후', W / 2, top / 2);
+      I.forEach(function (im, i) { var y = top + i * (h + 12), r = Math.max(W / im.width, h / im.height), sw = W / r, sh = h / r; g.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, 0, y, W, h);
+        g.fillStyle = i ? 'rgba(201,138,30,.92)' : 'rgba(0,0,0,.65)'; g.fillRect(24, y + 24, 230, 70); g.fillStyle = '#fff'; g.font = '800 40px ' + F; g.fillText(i ? '시공 후' : '시공 전', 24 + 115, y + 59); });
+      g.fillStyle = '#E8DCCB'; g.font = '700 34px ' + F; g.fillText([S.area ? S.area + ' 천장 조명' : '천장 조명 시공', S.phone || ''].filter(Boolean).join(' · '), W / 2, H - bot / 2);
+      c.toBlob(function (bl) { DECO.shareImg(bl, (S.company || 'deco') + '_전후비교.jpg', $('insta').value).then(function (t) { say(t); }); }, 'image/jpeg', .9); }).catch(function () { say('사진을 열지 못했습니다.', true); }); });
   if (P.get('job')) $('job').value = P.get('job');
   loadJob();
 })();

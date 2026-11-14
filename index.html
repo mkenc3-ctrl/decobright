@@ -111,6 +111,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
   <a class="syncbox" id="balBox" href="stats.html#pay" hidden style="border-color:#2E6A4E;background:#E8F3EC;font-weight:700"></a>
+  <a class="syncbox" id="goalBox" href="stats.html" hidden style="border-color:#8A5A12;background:#FFF6E5;font-weight:700"></a>
   <div class="syncbox" id="asBox" hidden style="border-color:#B42318;background:#FDECEC;font-weight:700"></div>
   <a class="syncbox" id="okBox" href="list.html" hidden style="border-color:#2E6A4E;background:#E8F3EC;font-weight:700"></a>
   <a class="syncbox" id="upBox" href="photos.html?new=1" hidden style="border-color:#E0952B;background:#FCEBD2;font-weight:700"></a>
@@ -139,7 +140,12 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
         var rem = ((q.totals && q.totals.total) || 0) - (q.pays || []).reduce(function (s, p) { return s + (+p.amt || 0); }, 0); if (rem > 0 && !L.some(function (x) { return x.id === q.id; })) L.push({ id: q.id, n: o.name || (q.cust && q.cust.name) || '고객', r: rem, d: o.workDate || '' }); });
       if (!L.length) { b.hidden = true; return; } b.hidden = false;
       b.textContent = '💰 잔금 받을 고객 ' + L.length + '명: ' + L.slice(0, 3).map(function (x) { return x.n + ' 님 ' + DECO.won(x.r) + (x.d ? ' (시공 ' + x.d.slice(5).replace('-', '/') + ')' : ''); }).join(', ') + (L.length > 3 ? ' 외' : '') + ' · 눌러서 받기 ›'; }
-    window.addEventListener('load', function () { bal(); asb(); setTimeout(asb, 8000); setInterval(asb, 60000); chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
+    // 이달 매출 목표 (회사 정보 설정의 목표, 직원 기기는 숨김)
+    function goal() { var b = document.getElementById('goalBox'); if (!b || !window.DECO) return; var g = (+DECO.settings().goal || 0) * 10000; if (!g || (DECO.staff && DECO.staff())) { b.hidden = true; return; }
+      var k = DECO.today().slice(0, 7), sale = 0, n = 0; DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null; if (q && q.totals) { sale += q.totals.supply || 0; n++; } });
+      var p = Math.round(sale / g * 100), d = new Date(), last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate() - d.getDate(); b.hidden = false;
+      b.innerHTML = '🎯 이달 매출 목표 ' + DECO.won(g) + ' 중 <b>' + DECO.won(sale) + ' (' + p + '%)</b> · 현장 ' + n + '곳' + '<div style="height:14px;background:#EADFCB;border-radius:7px;margin:8px 0 4px;overflow:hidden"><div style="height:100%;width:' + Math.min(100, p) + '%;background:' + (p >= 100 ? '#2E6A4E' : '#C98A1E') + '"></div></div><small style="font-weight:500">' + (p >= 100 ? '목표를 넘었습니다 👏' : '남은 금액 ' + DECO.won(g - sale) + ' · 이달 ' + last + '일 남음') + ' (시공일 기준 공급가)</small>'; }
+    window.addEventListener('load', function () { bal(); goal(); asb(); setTimeout(asb, 8000); setInterval(asb, 60000); chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
   </script>
   <section class="todo" id="todo" hidden aria-label="오늘 할 일"><h2>✅ 오늘 할 일</h2><ul id="todoL"></ul></section>
   <button type="button" class="syncbox brief" id="kEvening" style="background:#2B2440;border-color:#2B2440;color:#fff">🌙 오늘 마감 보고 카톡 <small style="color:#ddd">(저녁에 하루 정리)</small></button>
@@ -177,6 +183,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <h2 class="grp">기타</h2>
   <nav class="menu tiles" aria-label="기타">
     <a href="stats.html"><i aria-hidden="true">📊</i><b>매출·계약 현황</b><span>월별 매출, 받을 돈(수금), 자료 백업·엑셀</span></a>
+    <a href="reply.html"><i aria-hidden="true">💬</i><b>자주 쓰는 답장</b><span>가격·시공 기간·입금 안내 등 바로 보내기</span></a>
     <a href="memo.html"><i aria-hidden="true">📝</i><b>메모장</b><span>할 일·자재·전화 내용</span></a>
     <a href="prices.html"><i aria-hidden="true">🏷️</i><b>가격표 관리</b><span>패키지·항목 단가 고치기, 새 항목 추가</span></a>
     <a href="settings.html"><i aria-hidden="true">⚙️</i><b>회사 정보 설정</b><span>상호·연락처·계좌·계약 안내 문구</span></a>

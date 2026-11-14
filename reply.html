@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>자주 쓰는 답장 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.ed{display:flex;flex-direction:column;gap:8px}
+.ed input,.ed textarea{font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;width:100%}
+.ed input{font-weight:700}
+.r{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.L{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.rp{background:#fff;border:1px solid var(--line);border-left:5px solid var(--warm);border-radius:12px;padding:12px 14px}
+.rp b{font-size:18px}
+.rp p{margin:6px 0 10px;font-size:16px;white-space:pre-wrap;color:var(--ink2)}
+.kk{background:#FEE500!important;border-color:#FEE500!important;color:#191919!important;font-weight:800}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">자주 쓰는 답장</h1>
+  <p class="sub">손님이 자주 묻는 말에 바로 보낼 답장입니다. 「💬 카톡 보내기」를 누르면 복사되어 붙여넣기만 하면 됩니다.<br>글 안의 <b>{회사} {전화} {계좌} {지역}</b> 은 회사 정보 설정 값으로 저절로 바뀝니다.</p>
+  <section class="card ed" id="ed" hidden>
+    <input id="tt" placeholder="제목 (예: 가격 문의 답장)" aria-label="제목">
+    <textarea id="bd" rows="7" placeholder="보낼 내용" aria-label="내용"></textarea>
+    <div class="r">
+      <button class="btn2 pri" type="button" id="sv">저장</button>
+      <button class="btn2" type="button" id="cc">닫기</button>
+      <button class="btn2 no" type="button" id="dl" hidden>이 답장 지우기</button>
+    </div>
+  </section>
+  <div class="r"><button class="btn2 pri" type="button" id="nw">+ 새 답장 만들기</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="L" id="list"></div>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, K = 'deco-reply', cur = null;
+  var DEF = [
+    { id: 'r1', title: '가격 문의', body: '안녕하세요, {회사}입니다 😊\n천장 조명 공사는 집 크기와 원하시는 조명 종류에 따라 금액이 달라집니다.\n집 평수와 원하시는 곳(거실·주방·방)을 알려 주시거나, 천장 사진을 보내 주시면 바로 견적을 보내 드리겠습니다.\n📞 {전화}' },
+    { id: 'r2', title: '시공 기간·시간', body: '보통 30평대 아파트 기준으로 하루(아침 8시 ~ 오후) 안에 끝납니다.\n목수 작업 → 전기 작업 → 도배 마무리 순서로 진행하고, 작업이 끝나면 청소까지 해 드립니다.' },
+    { id: 'r3', title: '실측 방문 안내', body: '정확한 견적을 위해 실측 방문을 해 드립니다 (무료).\n편하신 날짜와 시간을 알려 주시면 맞춰 찾아뵙겠습니다.\n방문 시간은 20~30분 정도 걸립니다.' },
+    { id: 'r4', title: '계약금·입금 안내', body: '계약금 입금 후 시공 날짜가 확정됩니다.\n입금 계좌: {계좌}\n입금하신 뒤 성함을 알려 주시면 확인해 드리겠습니다. 감사합니다.' },
+    { id: 'r5', title: '하자 보증(A/S)', body: '{회사} 시공은 1년 무상 점검을 해 드립니다.\n조명이 깜빡이거나 꺼지는 등 문제가 생기면 사진과 함께 연락 주세요. 빠르게 찾아뵙겠습니다.\n📞 {전화}' },
+    { id: 'r6', title: '시공 사례 보기', body: '{지역} 지역 시공 사례는 아래 블로그에서 보실 수 있습니다.\n마음에 드시는 사진을 보내 주시면 같은 느낌으로 견적 드리겠습니다.' }
+  ];
+  function rd() { try { var a = JSON.parse(localStorage.getItem(K) || 'null'); return Array.isArray(a) ? a.filter(function (x) { return x && x.id && !x._del; }) : null; } catch (e) { return null; } }
+  function all() { var a = rd(); return a && (a.length || localStorage.getItem('deco-reply-init')) ? a : DEF.slice(); }
+  function wr(L) { try { localStorage.setItem(K, JSON.stringify(L)); localStorage.setItem('deco-reply-init', '1'); window.DECO_SYNC && DECO_SYNC.changed && DECO_SYNC.changed(K, L); return true; } catch (e) { return false; } }
+  function fill(t) { var S = DECO.settings(); return String(t || '').replace(/\{회사\}/g, S.company || '데코브라이트').replace(/\{전화\}/g, S.phone || '').replace(/\{계좌\}/g, S.bank || '(계좌는 회사 정보 설정에 적어 주세요)').replace(/\{지역\}/g, S.area || '') + (/\{지역\}|블로그/.test(t) && S.blog ? '\n' + (/^http/.test(S.blog) ? '' : 'https://') + S.blog : ''); }
+  function say(t, bad) { $('msg').className = 'msg' + (bad ? ' bad' : ''); $('msg').textContent = t; }
+  function draw() { var L = all(); $('list').innerHTML = L.length ? L.map(function (r) { return '<div class="rp"><b>' + E(r.title || '(제목 없음)') + '</b><p>' + E(fill(r.body)) + '</p><div class="r"><button class="btn2 kk" type="button" data-k="' + E(r.id) + '">💬 카톡 보내기</button><button class="btn2" type="button" data-e="' + E(r.id) + '">고치기</button></div></div>'; }).join('') : '<div class="empty">답장이 없습니다. 「+ 새 답장 만들기」를 눌러 주세요.</div>'; }
+  function open(r) { cur = r; $('ed').hidden = false; $('tt').value = r ? r.title : ''; $('bd').value = r ? r.body : ''; $('dl').hidden = !r; window.scrollTo({ top: 0, behavior: 'smooth' }); $(r ? 'bd' : 'tt').focus(); }
+  $('nw').addEventListener('click', function () { open(null); });
+  $('cc').addEventListener('click', function () { $('ed').hidden = true; cur = null; });
+  $('sv').addEventListener('click', function () { var t = $('tt').value.trim(), b = $('bd').value.trim(); if (!t || !b) return say('제목과 내용을 적어 주세요.', true);
+    var L = all(), r = cur ? L.filter(function (x) { return x.id === cur.id; })[0] : null; if (r) { r.title = t; r.body = b; r.at = Date.now(); } else L.push({ id: 'r' + Date.now().toString(36), title: t, body: b, at: Date.now() });
+    if (wr(L)) { $('ed').hidden = true; cur = null; draw(); say('저장했습니다.'); } else say('저장하지 못했습니다.', true); });
+  $('dl').addEventListener('click', function () { if (!cur || !confirm('「' + cur.title + '」 답장을 지울까요?')) return; wr(all().filter(function (x) { return x.id !== cur.id; })); $('ed').hidden = true; cur = null; draw(); say('지웠습니다.'); });
+  $('list').addEventListener('click', function (e) { var k = e.target.closest('[data-k]'), ed = e.target.closest('[data-e]'), L = all();
+    if (k) { var r = L.filter(function (x) { return x.id === k.dataset.k; })[0]; if (r) DECO.kakao(fill(r.body), r.title + ' 답장'); }
+    if (ed) open(L.filter(function (x) { return x.id === ed.dataset.e; })[0]); });
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 (function () {
   var URL = 'https://dypvqgaayumrhaiphatu.supabase.co', KEY = 'sb_publishable_5-LUZwZQ3VwBxDKDA_nJpw_ddF6QKdE';
   var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js';
-  var MAP = { 'deco-quotes': 'quotes', 'deco-customers': 'customers', 'deco-orders': 'orders', 'deco-events': 'events', 'deco-partners': 'partners', 'deco-memos': 'memos', 'deco-settings': 'settings', 'deco-prices': 'prices', 'deco-stock': 'stock', 'deco-exp': 'exp', 'deco-okq': 'okq', 'deco-chk': 'chk', 'deco-asreq': 'asreq', 'deco-rvq': 'rvq', 'deco-qtpl': 'qtpl', 'deco-seen': 'seen' };
+  var MAP = { 'deco-quotes': 'quotes', 'deco-customers': 'customers', 'deco-orders': 'orders', 'deco-events': 'events', 'deco-partners': 'partners', 'deco-memos': 'memos', 'deco-settings': 'settings', 'deco-prices': 'prices', 'deco-stock': 'stock', 'deco-exp': 'exp', 'deco-okq': 'okq', 'deco-chk': 'chk', 'deco-asreq': 'asreq', 'deco-rvq': 'rvq', 'deco-qtpl': 'qtpl', 'deco-reply': 'reply', 'deco-seen': 'seen' };
   // 임시(2026-11-12): 로그인 없이 같이 쓰기. 나중에 팀 코드로 바꿀 때 false 로
   var OPEN = true;
   var OBJ = { 'deco-settings': 1, 'deco-prices': 1 }, REV = {};

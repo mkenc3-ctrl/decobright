@@ -3,7 +3,7 @@
   var KQ = 'deco-quotes', KS = 'deco-settings';
   function rd(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function wr(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return false; } try { window.DECO_SYNC && window.DECO_SYNC.changed(k, v); } catch (e) {} return true; }
-  var DEF = { company: '데코브라이트', bizName: '데코브라이트 간접조명 실링팬', ceo: '이상호 외 1명', bizno: '480-38-01362', addr: '경상남도 창원시 의창구 봉곡로120번길 1(봉곡동)',
+  var DEF = { goal: '', company: '데코브라이트', bizName: '데코브라이트 간접조명 실링팬', ceo: '이상호 외 1명', bizno: '480-38-01362', addr: '경상남도 창원시 의창구 봉곡로120번길 1(봉곡동)',
     bizType: '건설업, 도매 및 소매업', bizItem: '일반 전기 공사업, 그 외 기타 건축 마무리 공사업, 전구·램프 및 조명장치 도매업, 전기용품 및 조명장치 소매업', phone: '010-5854-2143', email: '', bank: '', staff: '', validDays: 30,
     slogan: '간접 조명 · 실링팬 전문 브랜드', deposit: 500000, vat: 'separate',
     refund: '계약금은 시공 일정 확정으로 인해 반환이 불가합니다.',
