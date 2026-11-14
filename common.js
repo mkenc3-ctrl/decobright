@@ -182,6 +182,35 @@
     im.onerror = function () { URL.revokeObjectURL(u); no(new Error('사진을 열 수 없음')); }; im.src = u; }); };
   D.today = function () { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
 
+  // ── 카톡에 붙여넣기 좋은 글 ──
+  // D.kfmt({ title, info:[['👤','고객','홍길동 님'],...], secs:[['작업 내용',[...]],...], total:['💰 합계 : 1,000원', ...], foot:['※ ...'] })
+  D.KL = '━━━━━━━━━━━━━━';
+  D.kfmt = function (o) { var s = D.settings(), L = [D.KL, (o.icon || '📋') + ' ' + s.company + ' ' + o.title, D.KL];
+    (o.info || []).forEach(function (r) { if (r && r[2] !== '' && r[2] != null) L.push(r[0] + ' ' + r[1] + ' : ' + r[2]); });
+    (o.secs || []).forEach(function (x) { var ls = (x[1] || []).filter(function (t) { return t != null && String(t).trim() !== ''; }); if (!ls.length) return;
+      L.push('', '▶ ' + x[0]); ls.forEach(function (t) { String(t).split('\n').forEach(function (u) { if (!u.trim()) return; L.push(/^\s*(\d+[.)]|·|-|※|\()/.test(u) ? ' ' + u.trim() : ' · ' + u.trim()); }); }); });
+    if (o.total && o.total.length) { L.push('', D.KL); o.total.forEach(function (t) { if (t) L.push(t); }); L.push(D.KL); } else L.push('');
+    (o.foot || []).forEach(function (t) { if (t) L.push(t); });
+    L.push('📞 ' + s.company + ' ' + (s.phone || ''));
+    return L.join('\n').replace(/\n{3,}/g, '\n\n'); };
+  // 미리보기 창: 고쳐서 복사 / 카톡·문자로 보내기
+  D.kakao = function (text, title) {
+    if (!document.getElementById('kkSt')) { var st = document.createElement('style'); st.id = 'kkSt';
+      st.textContent = '#kk{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:flex-end;justify-content:center}#kk>div{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));box-sizing:border-box}#kk b{font-size:19px}#kk p{margin:6px 0 10px;color:#7A6E66;font-size:15px}#kk textarea{width:100%;box-sizing:border-box;min-height:46vh;font-size:15px;line-height:1.6;font-family:inherit;border:1px solid #CDBBA3;border-radius:10px;padding:10px;background:#FFFBEA}#kk .r{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}#kk .r button{flex:1 1 140px;font:inherit;font-size:17px;font-weight:800;height:54px;border-radius:12px;border:1px solid #CDBBA3;background:#fff;cursor:pointer}#kk .r .y{background:#FEE500;border-color:#FEE500;color:#191919}#kk .r .k{background:#3B2F2A;border-color:#3B2F2A;color:#fff}#kk .m{min-height:22px;font-weight:700;color:#2E6A4E;margin:8px 0 0}@media(min-width:600px){#kk{align-items:center}#kk>div{border-radius:16px}}';
+      document.head.appendChild(st); }
+    var old = document.getElementById('kk'); if (old) old.remove();
+    var w = document.createElement('div'); w.id = 'kk'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-modal', 'true');
+    w.innerHTML = '<div><b>💬 ' + D.esc(title || '카톡으로 보내기') + '</b><p>카톡에 붙여넣으면 이렇게 보입니다. 고칠 곳이 있으면 여기서 고친 뒤 누르세요.</p><textarea aria-label="보낼 내용"></textarea>' +
+      '<div class="r"><button type="button" class="y" data-a="cp">📋 복사하기</button>' + (navigator.share ? '<button type="button" class="k" data-a="sh">💬 카톡·문자 고르기</button>' : '') + '<button type="button" data-a="x">닫기</button></div><p class="m" role="status"></p></div>';
+    document.body.appendChild(w); var ta = w.querySelector('textarea'), m = w.querySelector('.m'); ta.value = text;
+    function cp() { var t = ta.value; return (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { m.textContent = '✔ 복사했습니다. 카톡 대화방 입력칸을 길게 눌러 「붙여넣기」 하세요.'; },
+      function () { ta.focus(); ta.select(); try { document.execCommand('copy'); m.textContent = '✔ 복사했습니다. 카톡 대화방에 붙여넣기 하세요.'; } catch (e) { m.textContent = '글을 길게 눌러 「전체 선택 → 복사」 해 주세요.'; } }); }
+    w.addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (e.target === w || (b && b.dataset.a === 'x')) { w.remove(); return; } if (!b) return;
+      if (b.dataset.a === 'cp') cp();
+      if (b.dataset.a === 'sh') { cp(); navigator.share({ text: ta.value }).catch(function () {}); } });
+    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { w.remove(); document.removeEventListener('keydown', esc); } });
+    cp(); return w; };
+
   window.DECO = D;
   // 말로 입력: data-mic 가 붙은 칸 옆에 🎤 버튼 (안드로이드 크롬·삼성 인터넷 등 지원 브라우저만)
   function micInit() { var SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return;

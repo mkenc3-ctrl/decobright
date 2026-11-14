@@ -36,7 +36,7 @@ h3.tr{font-size:17px;margin:14px 0 4px}
   <div class="card">
     <div id="list"></div>
     <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-      <button class="btn2 pri" type="button" id="cp">목록 복사 (문자·카톡에 붙여넣기)</button>
+      <button class="btn2 pri" type="button" id="cp" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 카톡으로 보내기</button>
       <button class="btn2" type="button" id="pr">인쇄</button>
       <button class="btn2" type="button" id="clr">체크 모두 풀기</button>
     </div>
@@ -75,7 +75,10 @@ h3.tr{font-size:17px;margin:14px 0 4px}
   $('list').addEventListener('change', function (e) { var k = e.target.dataset.k; if (!k) return; var c = ck(); if (e.target.checked) c[k] = 1; else delete c[k]; setCk(c); e.target.closest('li').classList.toggle('ok', e.target.checked); });
   $('clr').onclick = function () { setCk({}); draw(); };
   $('pr').onclick = function () { window.print(); };
-  $('cp').onclick = function () { var m = $('msg');
+  $('cp').onclick = function () { var L = TXT.split('\n'), secs = [], cur = null; L.slice(1).forEach(function (l) { if (/^■ /.test(l)) { cur = [l.slice(2), []]; secs.push(cur); } else if (cur && l.trim()) cur[1].push(l.replace(/^- /, '')); });
+    if (!secs.length) { $('msg').textContent = '보낼 자재가 없습니다.'; return; }
+    DECO.kakao(DECO.kfmt({ icon: '🧰', title: '자재 준비', info: [['📅', '기간', L[0].replace(/^\[자재 준비\]\s*/, '')]], secs: secs, foot: ['빠진 것 있으면 알려 주세요.'] }), '자재 준비 카톡'); };
+  var cpOld = function () { var m = $('msg');
     function fb() { var t = document.createElement('textarea'); t.value = TXT; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); m.textContent = '복사했습니다. 문자나 카톡에 붙여넣으세요.'; } catch (e) { m.textContent = '복사하지 못했습니다.'; } t.remove(); }
     if (navigator.clipboard) navigator.clipboard.writeText(TXT).then(function () { m.textContent = '복사했습니다. 문자나 카톡에 붙여넣으세요.'; }, fb); else fb(); };
   draw();

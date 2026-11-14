@@ -88,6 +88,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
         <button class="btn2 pri" type="submit">저장</button>
         <button class="btn2" type="button" id="prt">전체 인쇄 · PDF (공종별 한 장씩)</button>
         <a class="btn2" id="toPh" href="photos.html">현장 사진 보관함</a>
+        <button class="btn2" type="button" id="kAll" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 전체 지시 카톡 (단톡방용)</button>
         <button class="btn2" type="button" id="thx">고객에게 완료 인사·후기 부탁 문자</button>
         <button class="btn2 no" type="button" id="del" hidden>지우기</button>
       </div>
@@ -126,7 +127,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
   o.trades = o.trades || {}; TR.forEach(function (t) { o.trades[t] = o.trades[t] || { on: false, partner: '', time: TIME[t], tasks: '', mats: '' }; });
   $('trs').innerHTML = TR.map(function (t) { var b = o.trades[t], opts = PT.filter(function (p) { return p.trade === t; });
     return '<div class="tr' + (b.on ? '' : ' off') + '" data-t="' + t + '"><div class="hd"><label><input type="checkbox" class="on"' + (b.on ? ' checked' : '') + '> ' + t + '</label>' +
-      '<div class="ta"><button type="button" class="btn2 pri" data-sms="' + t + '">' + t + '에 문자 보내기</button><button type="button" class="btn2" data-one="' + t + '">' + t + '만 인쇄</button></div></div>' +
+      '<div class="ta"><button type="button" class="btn2" data-kk="' + t + '" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 ' + t + ' 카톡</button><button type="button" class="btn2 pri" data-sms="' + t + '">' + t + '에 문자 보내기</button><button type="button" class="btn2" data-one="' + t + '">' + t + '만 인쇄</button></div></div>' +
       '<div class="body"><label class="fl">거래처<select class="pt"><option value="">고르기</option>' + opts.map(function (p) { return '<option value="' + E(p.id) + '"' + (b.partner === p.id ? ' selected' : '') + '>' + E(p.name) + ' (' + E(p.phone) + ')</option>'; }).join('') + '</select>' +
       '</label>' +
       '<div class="fl"><span>목록에 없으면 새 거래처</span><div style="display:flex;gap:6px"><input class="pn" placeholder="이름·상호" aria-label="새 거래처 이름"><input class="pp" placeholder="휴대폰" inputmode="tel" aria-label="새 거래처 휴대폰"></div><small>넣고 「저장」을 누르면 거래처 목록에 들어갑니다.</small></div>' +
@@ -179,6 +180,21 @@ h2.s{font-size:19px;margin:20px 0 8px}
     if (o.layout && (t === '전기' || t === '목수')) { L.push('', '■ 조명 배치'); (o.layout.list || []).forEach(function (x) { L.push('· ' + x); }); L.push('(배치도 그림은 인쇄본·사진으로 따로 보냅니다)'); }
     if (b.mats) L.push('', '■ 준비 자재', b.mats); if (MS.length) L.push('', '■ 실측 (cm)', MS.join('\n')); if (o.notes) L.push('', '■ 주의사항', o.notes);
     L.push('', '같은 날 : ' + TR.filter(function (x) { return o.trades[x].on; }).map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → '), '문의 ' + s.phone); return L.join('\n'); }
+  // 카톡에 붙여넣기 좋은 지시서 (공종 하나 또는 전체)
+  function kOrder(ts) { var on = TR.filter(function (x) { return o.trades[x].on; }), secs = [];
+    ts.forEach(function (t) { var b = o.trades[t], p = ptn(b.partner), hd = ts.length > 1 ? '[' + t + '] ' : '';
+      secs.push([hd + '작업 내용' + (b.time ? ' (' + b.time + ' 도착)' : '') + (ts.length > 1 && p ? ' · ' + p.name : ''), b.tasks.split('\n').filter(Boolean).map(function (x, i) { return (i + 1) + '. ' + x; })]);
+      if (o.layout && (t === '전기' || t === '목수')) secs.push([hd + '조명 배치', (o.layout.list || []).concat(['(배치도 그림은 사진으로 따로 보냅니다)'])]);
+      if (b.mats) secs.push([hd + '준비 자재', [b.mats]]); });
+    if (MS.length) secs.push(['실측 (cm)', MS]); if (o.notes) secs.push(['⚠ 주의사항', [o.notes]]);
+    var one = ts.length === 1 ? o.trades[ts[0]] : null;
+    return DECO.kfmt({ icon: '🛠', title: '작업 지시서' + (ts.length === 1 ? ' · ' + ts[0] : ''),
+      info: [['📅', '날짜', dstr() + (one && one.time ? ' ' + one.time + ' 도착' : '')], ['📍', '현장', o.addr], ['👷', '현장 책임', o.lead], ['💡', '조명 색', o.color], ['🔖', '지시서', o.no],
+        ['🔁', '같은 날', on.length > 1 ? on.map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → ') : '']],
+      secs: secs, foot: ['끝나면 완료 사진 보내 주세요. 수고하세요! 🙏'] }); }
+  $('kAll').addEventListener('click', function () { if (!save()) return; var on = TR.filter(function (x) { return o.trades[x].on; });
+    if (!on.length) { $('msg').className = 'msg bad'; $('msg').textContent = '공종(목수·전기·도배)을 하나 이상 켜 주세요.'; return; } DECO.kakao(kOrder(on), '전체 작업 지시 카톡'); });
+  $('trs').addEventListener('click', function (e) { var b = e.target.closest('[data-kk]'); if (!b) return; if (!save()) return; DECO.kakao(kOrder([b.dataset.kk]), b.dataset.kk + ' 작업 지시 카톡'); });
   f.addEventListener('input', sheet); f.addEventListener('change', sheet);
   f.addEventListener('submit', function (e) { e.preventDefault(); save(); });
   function save() { if (!f.reportValidity()) return null; save.busy = true; read(); save.busy = false; var r = DECO.saveOrder(o);

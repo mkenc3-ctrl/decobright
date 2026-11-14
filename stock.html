@@ -35,7 +35,7 @@
       <label>단위<input id="un" placeholder="개"></label>
       <label>최소(이하면 주문)<input id="mn" type="number" inputmode="numeric" placeholder="예: 10"></label>
     </div>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn2 pri" type="button" id="addB">등록</button><button class="btn2" type="button" id="cp">주문할 것 복사</button></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn2 pri" type="button" id="addB">등록</button><button class="btn2" type="button" id="cp" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 주문할 것 카톡으로 보내기</button></div>
     <p class="msg" id="msg" role="status"></p>
   </div>
   <div class="card" id="list"></div>
@@ -62,6 +62,7 @@
     var b = e.target.closest('[data-d]'); if (!b) return; s.qty = Math.max(0, (s.qty || 0) + (+b.dataset.d)); DECO.saveStock(s); draw(); });
   $('cp').onclick = function () { var L = DECO.stock().filter(function (s) { return s.min && s.qty <= s.min; }); var m = $('msg');
     if (!L.length) { m.className = 'msg'; m.textContent = '주문할 자재가 없습니다.'; return; }
+    DECO.kakao(DECO.kfmt({ icon: '📦', title: '자재 주문', info: [['📅', '날짜', DECO.date(Date.now())]], secs: [['주문할 자재', L.map(function (s) { return s.name + '  (지금 ' + s.qty + (s.unit || '개') + (s.min ? ' / 기준 ' + s.min : '') + ')'; })]], foot: ['수량·가격 확인 후 연락 부탁드립니다.'] }), '자재 주문 카톡'); return;
     var t = '[' + DECO.settings().company + ' 자재 주문]\n' + L.map(function (s) { return '- ' + s.name + ' (지금 ' + s.qty + (s.unit || '개') + ')'; }).join('\n');
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { m.className = 'msg'; m.textContent = '복사했습니다. 자재상에 문자나 카톡으로 붙여넣으세요.'; }, function () { m.className = 'msg'; m.textContent = t; }); };
   draw();

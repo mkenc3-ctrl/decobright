@@ -53,6 +53,7 @@
     <div id="plist"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
       <a class="btn2" id="mkOrder" href="order.html">이 날 시공 지시서 만들기</a>
+      <button class="btn2" type="button" id="kDay" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 이 날 일정 카톡</button>
     </div>
     <form class="card" id="f" autocomplete="off">
       <h3 id="ft" style="font-size:18px">일정 추가</h3>
@@ -130,6 +131,9 @@
   $('delE').addEventListener('click', function () { if (!editing || !confirm('이 일정을 지울까요?\n지운 일정은 되살릴 수 없습니다.')) return; DECO.delEvent(editing.id); resetForm(); draw(); $('msg').textContent = '지웠습니다.'; });
   $('prev').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); draw(); });
   $('next').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); draw(); });
+  $('kDay').addEventListener('click', function () { var d = new Date(sel + 'T00:00'), its = items(sel);
+    DECO.kakao(DECO.kfmt({ icon: '📅', title: (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + '일월화수목금토'[d.getDay()] + ') 일정',
+      secs: [['일정 ' + its.length + '건', its.length ? its.map(function (x, i) { return (i + 1) + '. ' + (x.time ? x.time + '  ' : '') + x.t + (x.s ? ' — ' + x.s : '') + (x.done ? ' (끝남)' : ''); }) : ['이 날 일정이 없습니다.']]] }), '일정 카톡'); });
   $('tod').addEventListener('click', function () { sel = DECO.today(); view = new Date(sel + 'T00:00'); resetForm(); draw(); });
   resetForm(); if (P.get('cust')) { $('kind').value = P.get('kind') === 'as' ? '하자 보수 방문' : '실측 방문'; } draw();
 })();
