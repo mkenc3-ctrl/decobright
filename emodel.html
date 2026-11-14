@@ -85,6 +85,15 @@ body.big .pk button span{font-size:16px}
 #lb p{color:#fff;margin:0;font-size:16px}
 body.cust .owner{display:none!important}
 .cbar{display:none}
+.guide{background:#fff;border:2px solid #f0cf9e;border-radius:12px;padding:12px 14px;margin:0 0 12px;position:relative}
+.guide b.t{display:block;font-size:18px;margin-bottom:6px}
+.guide ol{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.guide li{display:flex;gap:8px;align-items:center;font-size:16px}
+.guide li span{flex:0 0 28px;height:28px;border-radius:50%;background:var(--pri);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+.guide .gx{position:absolute;right:8px;top:8px;border:1px solid var(--bd);background:#fff;font:inherit;font-size:14px;border-radius:8px;padding:4px 10px;cursor:pointer}
+.qnav a.cur{background:var(--pri);color:#fff;border-color:var(--pri)}
+.vgal figure{position:relative}
+.vgal .vz{position:absolute;right:8px;top:8px;border:0;background:rgba(0,0,0,.6);color:#fff;font:inherit;font-size:14px;font-weight:700;padding:5px 9px;border-radius:8px;cursor:pointer}
 .lkb{position:absolute;left:8px;top:8px;border:0;background:rgba(0,0,0,.6);color:#fff;font:inherit;font-size:15px;font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer;z-index:3}
 .lkb.on{background:#c8323c}
 .strip button{position:relative}
@@ -200,6 +209,8 @@ body.tv .page,body.tv .cbar{display:none!important}
   </div>
 
   <nav class="qnav" aria-label="바로 가기"><a href="#s1">💡 불 켜기</a><a href="#s2">🏠 전시실</a><a href="#s3">🎬 영상</a><a href="#s4">💰 금액</a><a href="#s5">📝 상담 신청</a><a href="#s6">❓ 묻고 답하기</a><button type="button" id="bigT" aria-pressed="false">가 글씨 크게</button></nav>
+  <div class="guide" id="guide"><b class="t">처음 오셨나요? 이렇게 둘러보세요</b><button type="button" class="gx" id="gX">알겠어요 ✕</button>
+    <ol><li><span>1</span>「💡 불 켜기」 단추로 실제 집의 불을 켜 보세요.</li><li><span>2</span>전시실 사진을 옆으로 넘기며 둘러보세요.</li><li><span>3</span>마음에 드는 사진은 「♡ 마음에 들어요」를 누르세요.</li><li><span>4</span>맨 아래 「📞 전화 상담」이나 「💬 문자 문의」로 연락 주세요.</li></ol></div>
   <h2 class="grp" id="s1" style="margin-top:6px">① 실제 현장에서 불 켜 보기</h2>
   <div class="ltab" id="ltab"><button type="button" data-m="on" class="on">💡 불 켜기 · 끄기</button><button type="button" data-m="col">🎨 빛 색 바꾸기</button><button type="button" data-m="cmp">↔ 밀어서 비교</button></div>
   <div class="lbox">
@@ -216,7 +227,7 @@ body.tv .page,body.tv .cbar{display:none!important}
   <div class="exv" id="exv"><img id="exI" alt=""><div id="hs"></div><button type="button" class="nav pv" id="exP" aria-label="이전 방">‹</button><button type="button" class="nav nx" id="exX" aria-label="다음 방">›</button><span class="extag" id="exT"></span><button type="button" class="lkb" id="lkB" aria-pressed="false">♡ 마음에 들어요</button><button type="button" class="zb" id="zBtn">⛶ 크게 보기</button></div>
   <div class="hsInfo" id="hsInfo" aria-live="polite"></div>
   <div class="strip" id="strip"></div>
-  <div class="acts" style="justify-content:center"><button class="btn2" type="button" id="exAuto">▶ 자동으로 넘겨 보기</button></div>
+  <div class="acts" style="justify-content:center"><button class="btn2" type="button" id="exAuto">▶ 자동으로 넘겨 보기</button><button class="btn2" type="button" id="exSh">📤 이 사진 보내기</button></div>
 
   <h2 class="grp" id="s3">③ 영상관</h2>
   <p class="sub">실제 현장에서 찍은 영상입니다. 짧은 영상은 화면에 보이면 저절로 돌아갑니다(소리 없음).</p>
@@ -453,7 +464,24 @@ body.tv .page,body.tv .cbar{display:none!important}
   $('exP').onclick = function () { exShow(ex - 1); }; $('exX').onclick = function () { exShow(ex + 1); };
   var tx = null; $('exv').addEventListener('touchstart', function (e) { tx = e.touches[0].clientX; }, { passive: true });
   $('exv').addEventListener('touchend', function (e) { if (tx == null) return; var d = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(d) > 45) exShow(ex + (d < 0 ? 1 : -1)); });
-  exShow(0); lkDraw();
+  var e0 = parseInt(Q.get('e'), 10); exShow(e0 >= 1 && e0 <= EX.length ? e0 - 1 : 0); lkDraw();
+  if (e0 >= 1 && e0 <= EX.length) setTimeout(function () { $('s2').scrollIntoView(); }, 300);
+  // 사진 한 장 보내기 (받은 사람은 그 사진부터 봄)
+  $('exSh').onclick = function () { stopAuto(); var u = HOUSE + '?e=' + (ex + 1), t = S.company + ' 시공 사진 — ' + EX[ex][1];
+    if (navigator.share) { navigator.share({ title: t, text: t, url: u }).catch(function () {}); return; }
+    (navigator.clipboard ? navigator.clipboard.writeText(t + '\n' + u) : Promise.reject()).then(function () { $('hsInfo').textContent = '이 사진 주소를 복사했습니다. 문자·카톡에 붙여넣으세요.'; }, function () { $('hsInfo').textContent = u; }); };
+  // 처음 안내 (닫으면 이 기기에서 다시 안 보임)
+  try { if (localStorage.getItem('deco-em-guide') || document.body.classList.contains('tv')) $('guide').hidden = true; } catch (e) {}
+  $('gX').onclick = function () { $('guide').hidden = true; try { localStorage.setItem('deco-em-guide', '1'); } catch (e) {} };
+  // 지금 보는 곳을 바로 가기 줄에 표시
+  (function () { var NA = [].slice.call(document.querySelectorAll('.qnav a')), last = null, pend = false;
+    function mark() { pend = false; var cur = null; NA.forEach(function (a) { var t = document.querySelector(a.getAttribute('href')); if (t && t.getBoundingClientRect().top < innerHeight * 0.4) cur = a; });
+      if (cur === last) return; last = cur; NA.forEach(function (a) { a.classList.toggle('cur', a === cur); }); if (cur) cur.parentNode.scrollLeft = cur.offsetLeft - 20; }
+    window.addEventListener('scroll', function () { if (!pend) { pend = true; setTimeout(mark, 80); } }, { passive: true }); mark(); })();
+  // 짧은 영상 크게 보기
+  [].forEach.call(document.querySelectorAll('.vgal figure'), function (f) { var v = f.querySelector('video'); if (!v.classList.contains('auto')) return;
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'vz'; b.textContent = '⛶ 크게'; f.appendChild(b);
+    b.onclick = function () { v.play().catch(function () {}); if (v.requestFullscreen) v.requestFullscreen().catch(function () {}); else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen(); }; });
   // ── 📺 매장 화면 모드 (?tv=1): 태블릿·TV에 틀어 두는 자동 재생 ──
   if (Q.get('tv') === '1') (function () {
     document.body.classList.add('tv');
