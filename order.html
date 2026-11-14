@@ -93,6 +93,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
         <button class="btn2" type="button" id="thx">고객에게 완료 인사·후기 부탁 문자</button>
         <button class="btn2 no" type="button" id="del" hidden>지우기</button>
       </div>
+      <div id="upPh" hidden style="margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px"><b>📸 작업자가 올린 사진 <span id="upN"></span></b><div id="upG" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;margin-top:8px"></div></div>
       <p class="msg" id="msg" role="status"></p>
     </form>
   </div>
@@ -240,6 +241,10 @@ h2.s{font-size:19px;margin:20px 0 8px}
     $('msg').className = 'msg'; $('msg').textContent = '인사 문자를 복사했습니다.' + (tel ? ' 문자 창이 열리면 확인하고 보내세요.' : ' 고객 전화번호가 없어 문자 창은 열지 않습니다.');
     if (tel) location.href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt); });
   $('del').addEventListener('click', function () { if (!confirm('이 작업 지시서를 지울까요?\n지운 지시서는 되살릴 수 없습니다.')) return; DECO.delOrder(o.id); location.href = 'orders.html'; });
+  // 작업자가 링크로 올린 사진
+  if (o.id && DECO.photoAll) DECO.photoAll().then(function (a) { var L = a.filter(function (p) { return p.order === o.id; }); if (!L.length) return;
+    $('upPh').hidden = false; $('upN').textContent = L.length + '장';
+    $('upG').innerHTML = L.map(function (p) { var u = URL.createObjectURL(p.blob); return '<a href="photos.html?job=' + encodeURIComponent(p.job || '') + '" style="display:block;text-decoration:none;color:inherit;font-size:12px"><img src="' + u + '" alt="" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block">' + E(p.stage) + ' · ' + E(p.by || '') + '</a>'; }).join(''); }).catch(function () {});
   sheet();
 })();
 </script>

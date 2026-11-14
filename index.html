@@ -110,6 +110,15 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소로 찾기" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
+  <a class="syncbox" id="upBox" href="photos.html?new=1" hidden style="border-color:#E0952B;background:#FCEBD2;font-weight:700"></a>
+  <script>
+  // 작업자가 링크로 올린 새 사진 알림 (사진 보관함을 열면 사라짐)
+  (function () { function chk() { if (!window.DECO || !DECO.photoAll) return; var seen = 0; try { seen = +localStorage.getItem('deco-upseen') || 0; } catch (e) {}
+      DECO.photoAll().then(function (a) { var N = a.filter(function (p) { return p.by && (p.added || 0) > seen; }), b = document.getElementById('upBox'); if (!b) return;
+        if (!N.length) { b.hidden = true; return; } var who = {}; N.forEach(function (p) { who[p.by] = 1; });
+        b.hidden = false; b.textContent = '📸 작업자가 올린 새 사진 ' + N.length + '장 (' + Object.keys(who).join(', ') + ') · 눌러서 보기 ›'; }).catch(function () {}); }
+    window.addEventListener('load', function () { chk(); setTimeout(chk, 8000); setInterval(chk, 60000); }); })();
+  </script>
   <section class="todo" id="todo" hidden aria-label="오늘 할 일"><h2>✅ 오늘 할 일</h2><ul id="todoL"></ul></section>
   <button type="button" class="syncbox brief" id="kMorning" style="background:#FEE500;border-color:#FEE500;color:#191919">☀ 오늘 할 일 카톡 <small style="color:#3a3a3a">단톡방에 보내기 · 현장·작업자·자재·내일</small></button>
   <button type="button" class="syncbox brief" id="brief">🔊 오늘 할 일 듣기 <small id="briefT"></small></button>

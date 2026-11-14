@@ -44,6 +44,7 @@
 <script>
 (function () {
   var E = DECO.esc, f = 'up', today = DECO.today(), box = document.getElementById('box');
+  var PC = {}; if (DECO.photoAll) DECO.photoAll().then(function (a) { a.forEach(function (p) { if (p.order) PC[p.order] = (PC[p.order] || 0) + 1; }); if (Object.keys(PC).length) draw(); }).catch(function () {});
   function draw() {
     var L = DECO.orders().filter(function (o) { if (f === 'up') return o.status !== '완료' && o.status !== '보류'; if (f === 'done') return o.status === '완료'; return true; });
     if (f === 'up') L.reverse();   // 다가오는 작업은 가까운 날부터
@@ -52,7 +53,7 @@
       var d = o.workDate ? new Date(o.workDate + 'T00:00') : null;
       return '<a class="o' + (o.workDate === today ? ' today' : '') + '" href="order.html?id=' + encodeURIComponent(o.id) + '"><div class="d">' +
         (d ? '<small>' + d.getFullYear() + '. ' + (d.getMonth() + 1) + '.</small><b>' + d.getDate() + '일</b><small>' + '일월화수목금토'[d.getDay()] + '요일' + (o.workDate === today ? ' · 오늘' : '') + '</small>' : '<small>날짜 없음</small>') +
-        '</div><div><h3>' + E(o.name || '이름 없음') + ' 님 · ' + E(o.workTime || '') + '</h3><div class="m">' + E(o.addr || '') + '</div><div class="m">' + E(o.no) + (o.lead ? ' · 책임 ' + E(o.lead) : '') + (o.crew ? ' · ' + E(o.crew) : '') + '</div></div>' +
+        '</div><div><h3>' + E(o.name || '이름 없음') + ' 님 · ' + E(o.workTime || '') + (PC[o.id] ? ' <small style="font-size:14px;color:#B5541C">📸 완료 사진 ' + PC[o.id] + '장</small>' : '') + '</h3><div class="m">' + E(o.addr || '') + '</div><div class="m">' + E(o.no) + (o.lead ? ' · 책임 ' + E(o.lead) : '') + (o.crew ? ' · ' + E(o.crew) : '') + '</div></div>' +
         '<span class="s ' + E(o.status || '예정') + '">' + E(o.status || '예정') + '</span></a>';
     }).join('');
   }
