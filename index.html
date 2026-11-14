@@ -75,6 +75,9 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
 .sres a:first-child{border-top:0}
 .sres a small{display:block;font-size:13px;color:var(--mut,#7a6d5c)}
 .sres em{font-style:normal;font-size:12px;font-weight:700;padding:1px 6px;border-radius:6px;background:#f3e6d2;margin-right:6px}
+.grp.fold{cursor:pointer;user-select:none}
+.grp.fold::after{content:' ▾';font-size:.8em;color:var(--mut,#7a6d5c)}
+.grp.fold.shut::after{content:' ▸ 펼치기';font-size:.7em;font-weight:500}
 .sres p{margin:0;padding:10px 14px;color:var(--mut,#7a6d5c)}
 .tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .tiles a,.tiles button{border-left:1px solid var(--line);border-top:4px solid var(--warm);border-radius:14px;padding:14px 12px;gap:3px;align-items:flex-start}
@@ -166,13 +169,15 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     <a class="main" href="quote.html"><b>새 견적 작성</b><span>견적 → 계약 안내 문자까지</span></a>
     <a href="list.html"><b>견적 목록</b><span id="cnt">이 기기에 저장한 견적</span></a>
   </nav>
-  <h2 class="grp">고객·일정</h2>
+  <h2 class="grp" id="favH" hidden>⭐ 자주 여는 화면</h2>
+  <nav class="menu tiles" id="fav" aria-label="자주 여는 화면" hidden></nav>
+  <h2 class="grp fold">고객·일정</h2>
   <nav class="menu tiles" aria-label="고객·일정">
     <a href="call.html"><i aria-hidden="true">📞</i><b>전화 상담 접수</b><span>통화하며 적기 → 고객·상담 기록·실측 일정 한 번에</span></a>
     <a href="customers.html"><i aria-hidden="true">👥</i><b>고객 관리</b><span id="ccnt">상담 기록·견적·시공 내역</span></a>
     <a href="calendar.html"><i aria-hidden="true">📅</i><b>시공 달력</b><span>시공·실측·상담 일정</span></a>
   </nav>
-  <h2 class="grp">현장 작업</h2>
+  <h2 class="grp fold">현장 작업</h2>
   <nav class="menu tiles" aria-label="현장 작업">
     <a href="orders.html"><i aria-hidden="true">📋</i><b>작업 지시서</b><span id="ocnt">목수·전기·도배 거래처 지시·연락처, 문자 보내기</span></a>
     <a href="mats.html"><i aria-hidden="true">📦</i><b>자재 준비 목록</b><span>이번 주 시공 자재를 모아 더하고 챙긴 것 체크</span></a>
@@ -182,7 +187,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     <a href="photos.html"><i aria-hidden="true">📷</i><b>작업 사진 보관함</b><span>현장별 시공 전·중·후 사진</span></a>
     <a href="sns.html"><i aria-hidden="true">✍️</i><b>홍보 글 만들기</b><span>사진으로 인스타그램·블로그 글 자동 작성</span></a>
   </nav>
-  <h2 class="grp">기타</h2>
+  <h2 class="grp fold">기타</h2>
   <nav class="menu tiles" aria-label="기타">
     <a href="stats.html"><i aria-hidden="true">📊</i><b>매출·계약 현황</b><span>월별 매출, 받을 돈(수금), 자료 백업·엑셀</span></a>
     <a href="guide.html"><i aria-hidden="true">❓</i><b>사용 안내</b><span>손님 전화부터 시공 끝까지 무엇을 누르면 되는지</span></a>
@@ -314,9 +319,22 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   var q = document.getElementById('q'), box = document.getElementById('sres'), E = DECO.esc;
   function dg(s) { return String(s || '').replace(/\D/g, ''); }
   function hit(t, w, d) { t = String(t || '').toLowerCase(); return t.indexOf(w) >= 0 || (d.length >= 3 && dg(t).indexOf(d) >= 0); }
+  // 자주 여는 화면: 3번 넘게 연 화면 중 많이 연 4개
+  (function () { var v = {}; try { v = JSON.parse(localStorage.getItem('deco-visits') || '{}'); } catch (e) {}
+    var A = {}; [].forEach.call(document.querySelectorAll('nav.menu.tiles a[href]'), function (a) { var h = a.getAttribute('href'); if (!A[h]) A[h] = a; });
+    var top = Object.keys(v).filter(function (p) { return A[p] && v[p] >= 3; }).sort(function (a, b) { return v[b] - v[a]; }).slice(0, 4); if (!top.length) return;
+    var f = document.getElementById('fav'); top.forEach(function (p) { f.appendChild(A[p].cloneNode(true)); }); f.hidden = false; document.getElementById('favH').hidden = false; })();
+  // 메뉴 묶음 접기 (이 기기에 기억)
+  (function () { var S = {}; try { S = JSON.parse(localStorage.getItem('deco-fold') || '{}'); } catch (e) {}
+    [].forEach.call(document.querySelectorAll('.grp.fold'), function (h) { var n = h.nextElementSibling, k = h.textContent.trim(); h.setAttribute('role', 'button'); h.tabIndex = 0;
+      function set(c) { n.hidden = c; h.classList.toggle('shut', c); h.setAttribute('aria-expanded', String(!c)); } set(!!S[k]);
+      function tg() { S[k] = !S[k]; try { localStorage.setItem('deco-fold', JSON.stringify(S)); } catch (e) {} set(S[k]); }
+      h.addEventListener('click', tg); h.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tg(); } }); }); })();
   q.addEventListener('input', function () {
     var w = q.value.trim().toLowerCase(), d = dg(w); if (w.length < 1) { box.hidden = true; return; }
-    var R = [];
+    var R = [], seenH = {};
+    [].forEach.call(document.querySelectorAll('nav.menu a[href]'), function (a) { var h = a.getAttribute('href'), b = a.querySelector('b'), sp = a.querySelector('span'); if (seenH[h] || !b) return; if (hit(b.textContent + ' ' + (sp ? sp.textContent : ''), w, '')) { seenH[h] = 1; R.push(['화면', b.textContent, sp ? sp.textContent : '', h]); } });
+    DECO.partners().forEach(function (p) { if (hit([p.name, p.phone, p.trade, p.memo].join(' '), w, d)) R.push(['거래처', p.name + ' (' + p.trade + ')', p.phone || '', 'partners.html']); });
     DECO.customers().forEach(function (c) { if (hit([c.name, c.phone, c.addr, c.memo].join(' '), w, d)) R.push(['고객', c.name || '이름 없음', [c.phone, c.addr].filter(Boolean).join(' · '), 'customer.html?id=' + encodeURIComponent(c.id)]); });
     DECO.list().forEach(function (x) { var c = x.cust || {}; if (hit([x.no, c.name, c.phone, c.addr, x.pkgName].join(' '), w, d)) R.push(['견적', (c.name || '') + ' ' + (x.no || ''), (x.status || '상담') + ' · ' + DECO.won(x.totals && x.totals.total) + (c.addr ? ' · ' + c.addr : ''), 'quote.html?id=' + encodeURIComponent(x.id)]); });
     DECO.orders().forEach(function (o) { if (hit([o.no, o.name, o.phone, o.addr].join(' '), w, d)) R.push(['지시서', (o.name || '') + ' ' + (o.no || ''), (o.workDate || '') + ' · ' + (o.status || '예정') + (o.addr ? ' · ' + o.addr : ''), 'order.html?id=' + encodeURIComponent(o.id)]); });
