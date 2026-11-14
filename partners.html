@@ -37,6 +37,7 @@ h2.s{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding
     </div>
     <p class="msg" id="msg" role="status"></p>
   </form>
+  <p><button class="btn2" type="button" id="vcfAll">📇 거래처 모두 휴대폰 연락처에 저장</button> <span class="msg" id="vMsg" role="status"></span></p>
   <div id="box"></div>
 </div>
 <script src="common.js"></script>
@@ -57,6 +58,7 @@ h2.s{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding
         return '<div class="p"><div><b>' + E(p.name) + '</b><small>' + E(p.phone) + (p.memo ? ' · ' + E(p.memo) : '') + work(p) + '</small></div><div class="a">' +
           '<a class="btn2" href="tel:' + tel + '">전화</a><a class="btn2" href="sms:' + tel + '">문자</a><button class="btn2" type="button" data-wk="' + p.id + '" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">📅 이번 주 일정 카톡</button><button class="btn2" type="button" data-ed="' + p.id + '">고치기</button><button class="btn2 no" type="button" data-del="' + p.id + '">지우기</button></div></div>'; }).join('')
         : '<div class="empty">' + t + ' 거래처가 없습니다.</div>'); }).join(''); }
+  $('vcfAll').addEventListener('click', function () { DECO.vcf(DECO.partners().map(function (p) { return { fn: p.name + ' (' + p.trade + ')', phone: p.phone, note: p.memo }; }), '거래처.vcf').then(function (t) { $('vMsg').textContent = t; }); });
   function reset() { ed = null; f.reset(); $('sv').textContent = '거래처 추가'; $('cancel').hidden = true; }
   f.addEventListener('submit', function (e) { e.preventDefault(); var p = ed || {};
     ['trade', 'name', 'phone', 'memo', 'rate'].forEach(function (k) { p[k] = f.elements[k].value.trim(); });

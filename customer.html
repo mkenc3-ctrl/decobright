@@ -34,6 +34,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     <a class="btn2 pri" id="call" href="#">전화 걸기</a>
     <a class="btn2" id="sms" href="#">문자 보내기</a>
     <select id="rpSel" class="btn2" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800;font:inherit;font-weight:800" aria-label="자주 쓰는 답장 보내기"><option value="">💬 자주 쓰는 답장 보내기</option></select>
+    <button class="btn2" type="button" id="vcf">📇 휴대폰 연락처에 저장</button>
     <button class="btn2" type="button" id="kCust" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 고객 정보 카톡 (직원 공유)</button>
     <span id="maps" style="display:contents"></span>
     <a class="btn2" id="newQ" href="quote.html">이 고객 새 견적</a>
@@ -140,6 +141,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     s.addEventListener('change', function () { var r = DECO.replies().filter(function (x) { return x.id === s.value; })[0]; s.value = ''; if (!r) return; var t = DECO.replyFill(r.body);
       if (c && c.name) t = c.name + ' 님, ' + t.replace(/^안녕하세요,?\s*/, '안녕하세요. '); DECO.kakao(t, r.title + ' 답장');
       if (c) { c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '💬 답장 보냄: ' + r.title }); c.touched = Date.now(); DECO.saveCustomer(c); logs(); } }); })();
+  $('vcf').addEventListener('click', function () { if (!c) return; DECO.vcf([{ fn: (c.name || '고객') + ' (' + (DECO.settings().company || '데코') + ' 고객)', phone: c.phone, addr: c.addr, note: [c.size, c.source, c.memo].filter(Boolean).join(' · ') }], (c.name || '고객') + '.vcf').then(function (t) { var m = $('msg'); m.className = 'msg'; m.textContent = t; }); });
   $('la').addEventListener('click', function () { var t = $('lt').value.trim(); if (!t) { $('lt').focus(); return; }
     c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: $('ld').value || DECO.today(), text: t }); c.touched = Date.now(); DECO.saveCustomer(c); $('lt').value = ''; logs(); });
   $('logs').addEventListener('click', function (e) { var b = e.target.closest('[data-l]'); if (!b || !confirm('이 상담 기록을 지울까요?')) return;

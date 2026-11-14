@@ -47,6 +47,7 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
     <div class="card"><div class="steps" id="steps"></div><p class="now2" id="now"></p></div>
     <div class="card"><div class="kv" id="kv"></div></div>
     <div class="card" id="money" hidden></div>
+    <div class="card" id="pics" hidden><b style="font-size:19px">📸 시공 후 사진</b><div id="picL" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px"></div><p style="font-size:14px;color:var(--muted);margin:8px 0 0">사진을 누르면 크게 보입니다. 길게 눌러 저장하실 수 있습니다.</p></div>
     <div class="card" id="acts"></div>
     <p style="font-size:14px;color:var(--muted)">이 화면은 받으신 주소로만 볼 수 있습니다. 내용이 바뀌면 다시 열어 보시면 최신으로 보입니다.</p>
   </div>
@@ -79,7 +80,11 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
       $('money').hidden = false; $('money').innerHTML = '<div class="kv"><b>계약 금액</b><span>' + won(tot) + ' (부가세 포함)</span><b>받은 금액</b><span>' + won(paid) + '</span><b>남은 금액</b><span style="font-weight:800;color:' + (rem ? 'var(--no)' : 'var(--ok)') + '">' + (rem ? won(rem) : '모두 받았습니다 ✔') + '</span>' + (rem && S.bank ? '<b>입금 계좌</b><span>' + esc(S.bank) + '</span>' : '') + '</div>'; }
     var base = location.href.replace(/status\.html.*$/, ''), qs = '?o=' + encodeURIComponent(oid) + '&k=' + encodeURIComponent(key), tel = String(S.phone || '').replace(/[^\d+]/g, '');
     $('acts').innerHTML = (tel ? '<a class="big b" href="tel:' + tel + '">📞 전화로 묻기</a>' : '') + (done ? '<a class="big a" href="' + base + 'rv.html' + qs + '">⭐ 후기 남기기</a><a class="big b" href="' + base + 'as.html' + qs + '">🛠 하자·고장 접수</a>' : '');
-    $('acts').hidden = !$('acts').innerHTML; $('main').hidden = false; }
+    $('acts').hidden = !$('acts').innerHTML; $('main').hidden = false;
+    if (done && o.quoteId) C.from('records').select('data').eq('coll', 'photos').eq('data->>job', o.quoteId).eq('data->>stage', '시공 후').limit(12).then(function (r) {
+      var P = (r.data || []).map(function (x) { return x.data; }).filter(function (d) { return d && !d._del && d.path; }); if (!P.length) return;
+      return C.storage.from('photos').createSignedUrls(P.map(function (d) { return d.path; }), 60 * 60 * 24 * 7).then(function (u) { var U = (u.data || []).filter(function (x) { return x.signedUrl; }); if (!U.length) return;
+        $('picL').innerHTML = U.map(function (x) { return '<a href="' + esc(x.signedUrl) + '" target="_blank" rel="noopener"><img src="' + esc(x.signedUrl) + '" alt="시공 후 사진" loading="lazy" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block"></a>'; }).join(''); $('pics').hidden = false; }); }).catch(function () {}); }
 })();
 </script>
 </body>

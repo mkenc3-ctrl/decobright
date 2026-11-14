@@ -304,6 +304,14 @@
     document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { w.remove(); document.removeEventListener('keydown', esc); } });
     cp(); return w; };
 
+  // ---------- 휴대폰 연락처 파일 (.vcf) ----------
+  D.vcf = function (L, name) { var NL = String.fromCharCode(13, 10), es = function (s) { return String(s || '').replace(/([,;])/g, String.fromCharCode(92) + '$1').replace(/[\r\n]+/g, ' '); };
+    var txt = L.filter(function (x) { return x && x.phone; }).map(function (x) { return ['BEGIN:VCARD', 'VERSION:3.0', 'FN:' + es(x.fn), 'N:' + es(x.fn) + ';;;;', 'TEL;TYPE=CELL:' + String(x.phone).replace(/[^0-9+]/g, ''), x.addr ? 'ADR;TYPE=HOME:;;' + es(x.addr) + ';;;;' : '', x.note ? 'NOTE:' + es(x.note) : '', 'END:VCARD'].filter(Boolean).join(NL); }).join(NL);
+    if (!txt) return Promise.resolve('전화번호가 있는 사람이 없습니다.');
+    var bl = new Blob([txt + NL], { type: 'text/vcard' }), f = new File([bl], name, { type: 'text/vcard' }), ok = false; try { ok = !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) {}
+    if (ok) return navigator.share({ files: [f] }).then(function () { return '연락처 파일을 보냈습니다. 「연락처」 앱을 고르면 저장됩니다.'; }, function () { return '취소했습니다.'; });
+    var a = document.createElement('a'), u = URL.createObjectURL(bl); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+    return Promise.resolve('연락처 파일을 받았습니다. 휴대폰에서 파일을 누르면 연락처에 저장됩니다.'); };
   // ---------- 휴지통 (이 기기, 30일) ----------
   var TRK = { delQuote: [KQ, '견적'], delOrder: [KO, '작업 지시서'], delCustomer: [KC, '고객'], delPartner: [KT, '거래처'], delExp: [KX, '지출'], delMemo: [KM, '메모'], delEvent: [KE, '일정'] };
   function trAll() { return rd('deco-trash', []).filter(function (t) { return t && t.item && Date.now() - t.at < 30 * 864e5; }); }
