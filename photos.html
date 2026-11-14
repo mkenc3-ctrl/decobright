@@ -52,6 +52,8 @@
   <div class="baguide" id="baGuide" hidden><b id="baTxt"></b> <button class="btn2" type="button" id="baCancel">그만두기</button></div>
   <div class="chips" id="chips" role="group" aria-label="구분으로 거르기"></div>
   <div class="bar2"><span id="cnt"></span><span id="space"></span></div>
+  <div class="bar2" style="flex-wrap:wrap;gap:8px"><button class="btn2" type="button" id="selOn">☑ 여러 장 골라 현장 옮기기</button>
+    <span id="selBar" hidden style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><b id="selN">0장 고름</b><select class="sel" id="selJob" aria-label="옮길 현장"></select><button class="btn2 pri" type="button" id="selGo">이 현장으로 옮기기</button><button class="btn2" type="button" id="selX">그만</button></span></div>
   <div id="gal"></div>
 </div>
 <div class="view" id="view" hidden>
@@ -132,6 +134,14 @@
     x.fillStyle = '#fff'; x.font = '700 26px "Noto Sans KR", sans-serif'; x.textAlign = 'right'; x.fillText(s.phone || '', W - 28, H - foot / 2);
     return new Promise(function (ok) { c.toBlob(ok, 'image/jpeg', .9); }); }); }
   var vu = null;
+  // 고르기 모드: 사진을 누르면 열지 않고 고름
+  var SEL = null; function selN() { $('selN').textContent = Object.keys(SEL || {}).length + '장 고름'; }
+  $('selOn').onclick = function () { SEL = {}; $('selBar').hidden = false; $('selOn').hidden = true; $('selJob').innerHTML = [].slice.call($('job').options).filter(function (o) { return o.value !== '*'; }).map(function (o) { return '<option value="' + E(o.value) + '">' + E(o.textContent) + '</option>'; }).join(''); selN(); say('옮길 사진을 눌러 고르세요 (다시 누르면 취소).'); };
+  function selOff() { SEL = null; $('selBar').hidden = true; $('selOn').hidden = false; [].forEach.call(document.querySelectorAll('.ph'), function (b) { b.style.outline = ''; }); }
+  $('selX').onclick = function () { selOff(); say(''); };
+  $('gal').addEventListener('click', function (e) { if (!SEL) return; var b = e.target.closest('.ph'); if (!b) return; e.stopImmediatePropagation(); var id = b.dataset.id; if (SEL[id]) { delete SEL[id]; b.style.outline = ''; } else { SEL[id] = 1; b.style.outline = '4px solid #E0A12E'; } selN(); }, true);
+  $('selGo').onclick = function () { var ids = Object.keys(SEL || {}), j = $('selJob').value; if (!ids.length) { say('사진을 먼저 고르세요.', true); return; }
+    Promise.all(all.filter(function (p) { return ids.indexOf(p.id) >= 0; }).map(function (p) { p.job = j; return DECO.photoPut(p); })).then(function () { var t = $('selJob').selectedOptions[0].textContent; selOff(); load(); say('✔ ' + ids.length + '장을 「' + t + '」(으)로 옮겼습니다.'); }); };
   $('gal').addEventListener('click', function (e) { var b = e.target.closest('.ph'); if (!b) return;
     if (BA) { var p = all.filter(function (x) { return x.id === b.dataset.id; })[0]; if (!p) return; b.classList.add('pick'); BA.push(p); baSay();
       if (BA.length === 2) { var pr = BA; BA = null; baSay(); say('비교 사진을 만드는 중…');

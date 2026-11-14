@@ -8,6 +8,12 @@
   "display": "standalone",
   "background_color": "#FBF6EE",
   "theme_color": "#3B2F2A",
+  "shortcuts": [
+    { "name": "새 견적", "url": "quote.html", "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] },
+    { "name": "전화 상담 접수", "url": "call.html", "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] },
+    { "name": "현장 사진 찍기", "url": "photos.html", "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] },
+    { "name": "시공 달력", "url": "calendar.html", "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] }
+  ],
   "icons": [
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]

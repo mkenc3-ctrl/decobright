@@ -46,6 +46,8 @@
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><label class="btn2" for="rc" id="rcL">🧾 영수증 사진</label><input id="rc" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0"><button class="btn2 pri" type="button" id="addB">적기</button><button class="btn2" type="button" id="csv">이달 엑셀(CSV) 받기</button></div>
     <p class="msg" id="msg" role="status"></p>
   </div>
+  <div class="card" id="fx"><b style="font-size:18px">📌 매달 고정 지출</b> <small style="color:var(--muted)">(통신비·보험·차량 할부처럼 매달 같은 것)</small><div id="fxL" style="margin-top:8px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn2" type="button" id="fxAdd">＋ 위에 적은 내용을 고정 지출로 등록</button><button class="btn2 pri" type="button" id="fxGo">보고 있는 달에 고정 지출 한 번에 넣기</button></div><p class="msg" id="fxM" role="status"></p></div>
   <div id="rcV" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px" role="dialog" aria-label="영수증 사진"><img id="rcI" alt="영수증" style="max-width:100%;max-height:90vh;border-radius:8px"><button type="button" id="rcX" style="position:absolute;top:12px;right:12px;font:inherit;font-size:20px;padding:8px 14px;border-radius:10px;border:0">닫기 ✕</button></div>
   <div class="card">
     <div class="mo"><button type="button" id="pv" aria-label="지난달">‹</button><b id="ml"></b><button type="button" id="nx" aria-label="다음달">›</button></div>
@@ -66,6 +68,17 @@
   $('dt').value = DECO.today(); cats(); DECO.micInit && DECO.micInit();
   function key() { return Y + '-' + String(M + 1).padStart(2, '0'); }
   function mine() { var k = key(); return DECO.exps().filter(function (x) { return (x.d || '').slice(0, 7) === k; }).sort(function (a, b) { return b.d.localeCompare(a.d) || (b.upd || 0) - (a.upd || 0); }); }
+  // 고정 지출 (deco-fixexp, 다른 기기와 같이 씀)
+  function FX() { try { return (JSON.parse(localStorage.getItem('deco-fixexp') || '[]') || []).filter(function (x) { return x && x.id && !x._del; }); } catch (e) { return []; } }
+  function fxW(L) { try { localStorage.setItem('deco-fixexp', JSON.stringify(L)); window.DECO_SYNC && DECO_SYNC.changed && DECO_SYNC.changed('deco-fixexp', L); } catch (e) {} fxD(); }
+  function fxD() { var L = FX(); $('fxL').innerHTML = L.length ? L.map(function (x) { return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--line);font-size:16px"><span>매달 ' + x.day + '일 · <b>' + E(x.cat) + '</b> ' + W(x.amt) + ' · ' + E(x.pm) + (x.memo ? ' · ' + E(x.memo) : '') + '</span><button class="btn2 no" type="button" data-fxd="' + E(x.id) + '" aria-label="고정 지출 빼기">빼기</button></div>'; }).join('') : '<p class="sub" style="margin:0">아직 없습니다. 위에서 분류·금액·내용을 적고 「고정 지출로 등록」을 누르세요.</p>'; }
+  $('fxAdd').onclick = function () { var a = Math.round(+$('am').value || 0); if (a <= 0) { $('fxM').className = 'msg bad'; $('fxM').textContent = '위에 금액을 먼저 넣어 주세요.'; return; }
+    var d = $('dt').value || DECO.today(), L = FX(); L.push({ id: 'f' + Date.now().toString(36), cat: cat, amt: a, pm: $('pm').value, memo: $('mm').value.trim(), day: Math.min(28, +d.slice(8, 10) || 1) }); fxW(L); $('fxM').className = 'msg'; $('fxM').textContent = '고정 지출로 등록했습니다.'; };
+  $('fxL').onclick = function (e) { var b = e.target.closest('[data-fxd]'); if (!b || !confirm('이 고정 지출을 목록에서 뺄까요? (이미 적은 지출은 그대로)')) return; fxW(FX().filter(function (x) { return x.id !== b.dataset.fxd; })); };
+  $('fxGo').onclick = function () { var k = Y + '-' + String(M + 1).padStart(2, '0'), have = {}, n = 0; DECO.exps().forEach(function (x) { if (x.fx && (x.d || '').slice(0, 7) === k) have[x.fx] = 1; });
+    FX().forEach(function (f) { if (have[f.id]) return; DECO.saveExp({ d: k + '-' + String(f.day).padStart(2, '0'), cat: f.cat, amt: f.amt, pm: f.pm, memo: f.memo, fx: f.id }); n++; });
+    $('fxM').className = 'msg'; $('fxM').textContent = n ? (M + 1) + '월에 고정 지출 ' + n + '건을 넣었습니다.' : (M + 1) + '월에는 이미 다 들어 있습니다.'; draw(); };
+  setTimeout(fxD, 0);
   function draw() { var L = mine(), t = 0, by = {}; L.forEach(function (x) { t += +x.amt || 0; by[x.cat] = (by[x.cat] || 0) + (+x.amt || 0); });
     $('ml').textContent = Y + '년 ' + (M + 1) + '월';
     $('sum').innerHTML = '<div><small>이달 지출 합계</small><b>' + W(t) + '</b></div>' + Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }).map(function (c) { return '<div><small>' + E(c) + '</small><b>' + W(by[c]) + '</b></div>'; }).join('');
