@@ -56,7 +56,7 @@ h2.s{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding
     $('box').innerHTML = DECO.TRADES.map(function (t) { var L = A.filter(function (p) { return p.trade === t; });
       return '<h2 class="s">' + t + ' (' + L.length + ')</h2>' + (L.length ? L.map(function (p) { var tel = String(p.phone).replace(/[^\d+]/g, '');
         return '<div class="p"><div><b>' + E(p.name) + '</b><small>' + E(p.phone) + (p.memo ? ' · ' + E(p.memo) : '') + work(p) + '</small></div><div class="a">' +
-          '<a class="btn2" href="tel:' + tel + '">전화</a><a class="btn2" href="sms:' + tel + '">문자</a><button class="btn2" type="button" data-wk="' + p.id + '" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">📅 이번 주 일정 카톡</button><button class="btn2" type="button" data-ed="' + p.id + '">고치기</button><button class="btn2 no" type="button" data-del="' + p.id + '">지우기</button></div></div>'; }).join('')
+          '<a class="btn2" href="tel:' + tel + '">전화</a><a class="btn2" href="sms:' + tel + '">문자</a><button class="btn2" type="button" data-wk="' + p.id + '" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">📅 이번 주 일정 카톡</button><button class="btn2" type="button" data-stm="' + p.id + '">🧾 이번 달 명세서</button><button class="btn2" type="button" data-ed="' + p.id + '">고치기</button><button class="btn2 no" type="button" data-del="' + p.id + '">지우기</button></div></div>'; }).join('')
         : '<div class="empty">' + t + ' 거래처가 없습니다.</div>'); }).join(''); }
   $('vcfAll').addEventListener('click', function () { DECO.vcf(DECO.partners().map(function (p) { return { fn: p.name + ' (' + p.trade + ')', phone: p.phone, note: p.memo }; }), '거래처.vcf').then(function (t) { $('vMsg').textContent = t; }); });
   function reset() { ed = null; f.reset(); $('sv').textContent = '거래처 추가'; $('cancel').hidden = true; }
@@ -64,6 +64,17 @@ h2.s{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding
     ['trade', 'name', 'phone', 'memo', 'rate'].forEach(function (k) { p[k] = f.elements[k].value.trim(); });
     var r = DECO.savePartner(p); $('msg').className = 'msg' + (r ? '' : ' bad'); $('msg').textContent = r ? p.name + ' (' + p.trade + ') 저장했습니다.' : '저장하지 못했습니다.'; if (r) { reset(); draw(); } });
   $('cancel').addEventListener('click', reset);
+  // 거래처 이번 달 작업·지급 명세서 (그림)
+  var W = DECO.won;
+  $('box').addEventListener('click', function (e) { var b = e.target.closest('[data-stm]'); if (!b || b.disabled) return; var p = DECO.partners().filter(function (x) { return x.id === b.dataset.stm; })[0]; if (!p) return;
+    var mk = DECO.today().slice(0, 7), R = [], tot = 0, pd = 0;
+    DECO.orders().forEach(function (o) { var t = o.trades && o.trades[p.trade]; if (!t || !t.on || t.partner !== p.id || (o.workDate || '').slice(0, 7) !== mk || o.status === '보류') return; var c = +(o.cost || {})[p.trade] || 0, ok = (o.costPaid || {})[p.trade];
+      tot += c; if (ok) pd += c; R.push([o.workDate.slice(5).replace('-', '/') + '  ' + (o.addr || o.name || '현장') + (ok ? '  (지급함)' : ''), c ? W(c) : '금액 안 적음']); });
+    if (!R.length) { alert('이번 달 이 거래처가 한 작업이 없습니다.'); return; } R.sort(); b.disabled = true;
+    DECO.docImg({ title: (+mk.slice(5)) + '월 작업·지급 명세서', date: DECO.date(Date.now()), to: p.name + ' 님 (' + p.trade + ')', info: [['기간', mk.replace('-', '년 ') + '월'], ['작업', R.length + '곳']],
+      secs: [['작업 현장', R]], totals: [['합계', W(tot), true], ['지급함', W(pd)], ['지급할 돈', W(tot - pd)]], notes: ['금액이 다르면 연락 주세요. 이번 달도 수고 많으셨습니다.'] })
+      .then(function (bl) { return DECO.shareImg(bl, '명세서_' + p.name + '_' + mk + '.jpg', '[' + DECO.settings().company + '] ' + p.name + ' 님 ' + (+mk.slice(5)) + '월 작업·지급 명세서입니다.'); })
+      .then(function () {}, function (x) { alert('그림을 만들지 못했습니다: ' + (x && x.message || x)); }).then(function () { b.disabled = false; }); });
   $('box').addEventListener('click', function (e) { var b = e.target.closest('[data-wk]'); if (!b) return; var p = DECO.partners().filter(function (x) { return x.id === b.dataset.wk; })[0]; if (!p) return;
     var t0 = DECO.today(), t7 = DECO.ymd(new Date(Date.now() + 6 * 864e5)), L = DECO.orders().filter(function (o) { var x = o.trades && o.trades[p.trade]; return x && x.on && x.partner === p.id && o.workDate && o.workDate >= t0 && o.workDate <= t7 && o.status !== '보류'; }).sort(function (a, c) { return (a.workDate + (a.trades[p.trade].time || '')).localeCompare(c.workDate + (c.trades[p.trade].time || '')); });
     var lines = L.map(function (o) { var d = new Date(o.workDate + 'T00:00'), x = o.trades[p.trade]; return (d.getMonth() + 1) + '/' + d.getDate() + ' (' + '일월화수목금토'[d.getDay()] + ') ' + (x.time || '') + '  ' + (o.addr || o.name || '현장') + (x.tasks ? '\n   - ' + String(x.tasks).split('\n').filter(Boolean).join(', ') : ''); });
