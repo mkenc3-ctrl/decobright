@@ -185,6 +185,24 @@
   // ── 카톡에 붙여넣기 좋은 글 ──
   // D.kfmt({ title, info:[['👤','고객','홍길동 님'],...], secs:[['작업 내용',[...]],...], total:['💰 합계 : 1,000원', ...], foot:['※ ...'] })
   D.KL = '━━━━━━━━━━━━━━';
+  // 하루 할 일 카톡 (아침 단톡방용): 시공 현장·작업자·일정·자재·재고·연락할 고객·내일 미리 보기
+  D.dayBrief = function (ds) { ds = ds || D.today(); var d = new Date(ds + 'T00:00'), PT = D.partners(), today = ds === D.today();
+    function ptn(id) { return PT.filter(function (p) { return p.id === id; })[0]; }
+    function wd(x) { return (x.getMonth() + 1) + '월 ' + x.getDate() + '일 (' + '일월화수목금토'[x.getDay()] + ')'; }
+    var O = D.orders().filter(function (o) { return o.workDate === ds && o.status !== '보류'; }), site = [], mats = [];
+    O.forEach(function (o, i) { site.push((i + 1) + '. ' + (o.name ? o.name + ' 님' : '현장') + (o.addr ? ' · ' + o.addr : '') + (o.status === '완료' ? ' (끝남)' : ''));
+      D.TRADES.forEach(function (t) { var b = o.trades && o.trades[t]; if (!b || !b.on) return; var p = ptn(b.partner);
+        site.push('- ' + t + ' ' + (b.time || '') + (p ? '  ' + p.name + (p.phone ? ' ' + p.phone : '') : ''));
+        if (b.mats) mats.push('- [' + t + '] ' + (o.name || o.addr || '') + ' : ' + String(b.mats).replace(/\n/g, ', ')); });
+      if (o.lead) site.push('- 현장 책임 ' + o.lead); });
+    var EV = D.events().filter(function (e) { return e.date === ds && !e.done; }).sort(function (a, b) { return (a.time || '99').localeCompare(b.time || '99'); })
+      .map(function (e, i) { return (i + 1) + '. ' + (e.time ? e.time + '  ' : '') + e.kind + (e.title ? ' — ' + e.title : ''); });
+    var low = D.stock().filter(function (s) { return s.min && s.qty <= s.min; }).map(function (s) { return s.name + ' (지금 ' + s.qty + (s.unit || '개') + ')'; });
+    var call = today ? D.alerts().filter(function (a) { return a.n === 0 && (a.lab === '연락' || /점검/.test(a.what || '')); }).map(function (a) { return D.alertText(a); }) : [];
+    var t2 = new Date(d.getTime() + 864e5), ds2 = D.ymd(t2), nx = D.dayItems(ds2).map(function (x) { return (x.time ? x.time + '  ' : '') + x.t; });
+    return D.kfmt({ icon: '☀', title: today ? '오늘 할 일' : '할 일', info: [['📅', '날짜', wd(d)], ['📌', '요약', '시공 ' + O.length + '곳 · 일정 ' + EV.length + '건']],
+      secs: [['🛠 시공 현장', site.length ? site : ['시공 일정 없음']], ['📍 실측·상담·방문', EV], ['🧰 챙길 자재', mats], ['📦 주문할 재고', low], ['📞 연락할 고객', call], ['🔜 내일 ' + wd(t2), nx.length ? nx : ['일정 없음']]],
+      foot: [today ? '오늘도 안전 작업 부탁드립니다! 💪' : ''] }); };
   D.kfmt = function (o) { var s = D.settings(), L = [D.KL, (o.icon || '📋') + ' ' + s.company + ' ' + o.title, D.KL];
     (o.info || []).forEach(function (r) { if (r && r[2] !== '' && r[2] != null) L.push(r[0] + ' ' + r[1] + ' : ' + r[2]); });
     (o.secs || []).forEach(function (x) { var ls = (x[1] || []).filter(function (t) { return t != null && String(t).trim() !== ''; }); if (!ls.length) return;
