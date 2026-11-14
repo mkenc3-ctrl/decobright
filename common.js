@@ -224,6 +224,7 @@
   D.KL = '━━━━━━━━━━━━━━';
   // 손님용 온라인 견적서 주소 · 손님 답(okq)
   D.viewLink = function (q) { return q && q.vk ? 'https://mkenc3-ctrl.github.io/decobright/view.html?q=' + encodeURIComponent(q.id) + '&k=' + q.vk : ''; };
+  D.seen = function () { var m = {}; rd('deco-seen', []).forEach(function (x) { if (x && x.qid && !x._del) m[x.qid] = x; }); return m; };
   D.okq = function () { return rd('deco-okq', []).filter(function (a) { return a && a.qid && !a._del; }); };
   // 하루 할 일 카톡 (아침 단톡방용): 시공 현장·작업자·일정·자재·재고·연락할 고객·내일 미리 보기
   D.dayBrief = function (ds) { ds = ds || D.today(); var d = new Date(ds + 'T00:00'), PT = D.partners(), today = ds === D.today();

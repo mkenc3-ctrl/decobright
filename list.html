@@ -49,6 +49,15 @@
   function okTag(id) { var a = OK[id]; if (!a) return ''; var d = new Date(a.at || 0);
     return '<div style="margin-top:6px;padding:8px 10px;border-radius:10px;font-weight:700;font-size:15px;background:' + (a.act === 'ok' ? '#E8F3EC;color:#2E6A4E' : '#FCEBD2;color:#8a4a12') + '">' + (a.act === 'ok' ? '✅ 손님이 「이 견적으로 진행」' : '🤔 손님이 「상담이 더 필요」') + ' · ' + (d.getMonth() + 1) + '/' + d.getDate() +
       (a.tm ? '<br><span style="font-weight:500">편한 시간: ' + E(a.tm) + '</span>' : '') + (a.say ? '<br><span style="font-weight:500">남긴 말: ' + E(a.say) + '</span>' : '') + '</div>'; }
+  var SEEN = DECO.seen ? DECO.seen() : {};
+  function seenTag(q) { var s = SEEN[q.id]; if (!s) return q.vk && /^(상담|실측)$/.test(q.status || '상담') ? '<div class="meta" style="color:#7A6E66">👀 손님이 아직 온라인 견적서를 안 열어 봤습니다</div>' : '';
+    var d = new Date(s.last || 0); return '<div class="meta" style="color:#2E6A4E;font-weight:700">👀 손님이 견적서를 ' + (s.n || 1) + '번 열어 봤습니다 · 마지막 ' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + '</div>'; }
+  // 다시 연락 카톡 (상담·실측 단계 견적)
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-follow]'); if (!b) return; var q = DECO.getQuote(b.dataset.follow); if (!q) return;
+    var c = q.cust || {}, s = DECO.settings(), vd = +s.validDays || 30, end = new Date((q.created || q.updated) + vd * 864e5), sn = SEEN[q.id], vl = DECO.viewLink(q);
+    DECO.kakao(DECO.kfmt({ icon: '💡', title: '견적 다시 안내', info: [['👤', '고객', c.name ? c.name + ' 님' : ''], ['🔖', '견적번호', q.no], ['💰', '견적 금액', DECO.won(q.totals && q.totals.total) + ' (부가세 포함)'], ['⏳', '견적 유효', DECO.date(end) + ' 까지']],
+      secs: [['혹시 이런 점이 궁금하셨나요?', ['실측은 무료이고, 오셔서 보시고 결정하셔도 됩니다', '빼고 싶은 항목이 있으면 맞춰서 다시 견적 드립니다', '시공은 보통 하루, 길어도 이틀이면 끝납니다']]],
+      foot: [(c.name ? c.name + ' 님, ' : '') + '지난번 보내드린 견적 한 번 더 안내드립니다. ' + (sn ? '' : '') + '편하신 때 연락 주시면 자세히 설명드리겠습니다. 🙏', vl ? '📄 견적서 다시 보기 · 진행 알려 주기\n' + vl : ''] }), '다시 연락 카톡'); });
   function draw() {
     var k = qs.value.trim(), L = DECO.list().filter(function (q) {
       if (fs.value && (q.status || '상담') !== fs.value) return false;
@@ -63,7 +72,7 @@
         (function () { var S = ['상담', '실측', '계약', '시공', '완료'], k = S.indexOf(q.status || '상담'); if (k < 0) return '<div class="stp hold">보류 중</div>';
           return '<div class="stp" aria-label="진행 단계 ' + (k + 1) + '/5">' + S.map(function (x, j) { return '<span class="' + (j < k ? 'done' : j === k ? 'now' : '') + '">' + x + '</span>'; }).join('') + '</div>'; })() +
         '<div class="sum">' + DECO.won(q.totals && q.totals.total) + ' <small style="font-size:13px;font-weight:400;color:var(--muted)">부가세 포함</small></div>' +
-        okTag(q.id) + '<div class="acts"><select class="st" data-st="' + E(q.id) + '" aria-label="진행 상태">' + DECO.STATUS.map(function (s) { return '<option' + ((q.status || '상담') === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
+        seenTag(q) + okTag(q.id) + (/^(상담|실측)$/.test(q.status || '상담') ? '<div class="acts" style="margin-top:6px"><button type="button" class="btn2" data-follow="' + E(q.id) + '" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 다시 연락 카톡</button></div>' : '') + (q.vk ? '<div class="acts" style="margin-top:6px"><a class="btn2" target="_blank" rel="noopener" href="' + E(DECO.viewLink(q)) + '&me=1">📄 손님이 보는 견적서 보기</a></div>' : '') + '<div class="acts"><select class="st" data-st="' + E(q.id) + '" aria-label="진행 상태">' + DECO.STATUS.map(function (s) { return '<option' + ((q.status || '상담') === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
         '<a class="btn2" href="quote.html?id=' + id + '">열어서 고치기</a><a class="btn2" href="print.html?id=' + id + '">견적서 인쇄</a>' +
         '<a class="btn2" href="contract.html?id=' + id + '">계약 안내 문자</a><a class="btn2" href="measure.html?id=' + id + '">실측 기록' + (q.measure ? ' ✔' : '') + '</a><a class="btn2" href="sign.html?id=' + id + '">계약서·서명' + (q.sign && q.sign.cust ? ' ✔' : '') + '</a><a class="btn2" href="order.html?quote=' + id + '">작업 지시서</a><a class="btn2" href="photos.html?job=' + id + '">현장 사진</a>' +
         '<button class="btn2" type="button" data-copy="' + E(q.id) + '">복사해서 새 견적</button>' +

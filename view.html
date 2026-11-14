@@ -86,7 +86,9 @@ h2{font-size:17px;background:var(--pri);color:#fff;padding:8px 12px;border-radiu
       Q = r[0].data && r[0].data.data; S = window.DECO ? DECO.settings() : {}; var SV = (r[1].data && r[1].data.data) || {}; Object.keys(SV).forEach(function (k) { if (SV[k] !== '' && SV[k] != null) S[k] = SV[k]; }); var A = r[2].data && r[2].data.data;
       if (!Q || Q._del) return bad('견적서를 찾을 수 없습니다. 담당자에게 문의해 주세요.');
       if (!Q.vk || Q.vk !== key) return bad('견적서 주소가 바뀌었거나 맞지 않습니다. 담당자에게 새 주소를 받아 주세요.');
-      draw(); if (A && !A._del) doneMsg(A); }, function () { bad('서버에 연결하지 못했습니다. 인터넷을 확인해 주세요.'); });
+      draw(); if (A && !A._del) doneMsg(A);
+      if (P.get('me') !== '1') C.from('records').select('data').eq('coll', 'seen').eq('id', qid).maybeSingle().then(function (x) { var o = (x.data && x.data.data) || {};
+        return C.from('records').upsert({ coll: 'seen', id: qid, data: { id: qid, qid: qid, n: (+o.n || 0) + 1, first: o.first || Date.now(), last: Date.now(), name: (Q.cust && Q.cust.name) || '' } }, { onConflict: 'coll,id' }); }).then(null, function () {}); }, function () { bad('서버에 연결하지 못했습니다. 인터넷을 확인해 주세요.'); });
   function draw() { var c = Q.cust || {}, t = Q.totals || {}, co = S.company || '데코브라이트', d = new Date(Q.updated || Q.created || Date.now());
     document.title = '견적서 · ' + co; $('co').textContent = co; $('no').textContent = (Q.no || '') + '  ·  ' + d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '.';
     $('to').textContent = c.name ? c.name + ' 님 귀하' : '고객님 귀하';
