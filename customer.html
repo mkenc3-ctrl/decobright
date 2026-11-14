@@ -64,6 +64,8 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     <div id="qs"></div>
     <h2 class="s">작업 지시서·일정</h2>
     <div id="os"></div>
+    <h2 class="s">하자 접수·처리 <small>손님이 「하자 접수」 화면으로 보낸 것</small></h2>
+    <div id="asx"></div>
     <h2 class="s">현장 사진</h2>
     <div id="ps"></div>
   </div>
@@ -100,6 +102,15 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     var L = (c.logs || []).slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
     $('logs').innerHTML = L.length ? L.map(function (l) { return '<div class="log"><span class="d">' + E(l.date) + '</span><span class="t">' + E(l.text) + '</span><button type="button" data-l="' + E(l.id) + '" aria-label="기록 지우기">×</button></div>'; }).join('') : '<div class="empty">상담 기록이 없습니다.</div>';
   }
+  function asx() { if (!c || !$('asx')) return; var dg = String(c.phone || '').replace(/\D/g, ''), oids = DECO.orders().filter(function (o) { return o.custId === c.id; }).map(function (o) { return o.id; }), L = [];
+    try { L = JSON.parse(localStorage.getItem('deco-asreq') || '[]').filter(function (a) { return a && a.id && !a._del && (a.custId === c.id || oids.indexOf(a.oid) >= 0 || (dg.length >= 9 && String(a.phone || '').replace(/\D/g, '') === dg)); }).sort(function (a, b) { return b.at - a.at; }); } catch (e) {}
+    var dn = c.asDone || {}; $('asx').innerHTML = L.length ? L.map(function (a) { var d = new Date(a.at || 0);
+      return '<div class="log"><span class="d">' + DECO.ymd(d) + '</span><span class="t">' + E((a.kinds || []).join(', ') || '') + (a.say ? ' · ' + E(a.say) : '') + (a.ph && a.ph.length ? ' · 사진 ' + a.ph.length + '장' : '') + '<br>' + (dn[a.id] ? '<b style="color:#2E6A4E">✔ ' + E(dn[a.id]) + ' 처리 완료</b>' : '<b style="color:#B42318">처리 전</b> <button class="btn2" type="button" data-asd="' + E(a.id) + '">✔ 처리 완료</button>') + '</span></div>'; }).join('') : '<div class="empty">접수된 하자가 없습니다.</div>'; }
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-asd]'); if (!b || !c) return; var id = b.dataset.asd, a = null;
+    try { a = JSON.parse(localStorage.getItem('deco-asreq') || '[]').filter(function (x) { return x && x.id === id; })[0]; } catch (x) {}
+    c.asDone = c.asDone || {}; c.asDone[id] = DECO.today(); c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '🛠 하자 처리 완료: ' + ((a && (a.kinds || []).join(', ')) || (a && a.say) || '') }); c.touched = Date.now(); DECO.saveCustomer(c);
+    try { var dn = JSON.parse(localStorage.getItem('deco-asdone') || '{}'); dn[id] = Date.now(); localStorage.setItem('deco-asdone', JSON.stringify(dn)); } catch (x) {} asx(); logs(); });
+  setTimeout(asx, 0);
   function rel() {
     var Q = DECO.custQuotes(c), ids = Q.map(function (q) { return q.id; });
     var tot = Q.filter(function (q) { return ['계약', '시공', '완료'].indexOf(q.status) >= 0; }).reduce(function (s, q) { return s + q.totals.total; }, 0);

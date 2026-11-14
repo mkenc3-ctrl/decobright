@@ -68,6 +68,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card"><table class="tb" id="unpaid"></table></div>
   <h2 class="grp">고객 후기</h2>
   <div class="card"><p class="sub" style="margin-top:0" id="rvSum"></p><div id="rvList"></div></div>
+  <h2 class="grp">현장 작업 시간 <small style="font-size:14px;font-weight:400">(지시서 「작업 시작」~「완료」 누른 시간)</small></h2>
+  <div class="card"><p class="sub" style="margin-top:0" id="wtS"></p><table class="tb" id="wt"></table></div>
   <h2 class="grp" id="pay">받을 돈 (수금 관리)</h2>
   <div class="card">
     <p class="sub" style="margin-top:0" id="paySum"></p>
@@ -240,6 +242,13 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     KEYS.forEach(function (k) { var v = rd(k); if (v != null) { o.data[k] = v; if (Array.isArray(v)) n += v.length; } });
     save('데코브라이트_백업_' + stamp() + '.json', JSON.stringify(o), 'application/json'); try { localStorage.setItem('deco-lastbk', String(Date.now())); } catch (e) {} msg('백업 파일을 받았습니다 (자료 ' + n + '건). 메일이나 카카오톡 「나에게 보내기」로 보관해 두세요.'); };
   // 세무사 자료: 보고 있는 달의 매출(시공일 기준)·수금·지출·거래처 인건비를 한 파일로
+  (function () { var L = DECO.orders().filter(function (o) { var p = o.prog || {}; return p['in'] && p.done && p.done > p['in'] && p.done - p['in'] < 20 * 3600000; }).slice(0, 15);
+    function hm(ms) { var m = Math.round(ms / 60000); return (m >= 60 ? Math.floor(m / 60) + '시간 ' : '') + (m % 60) + '분'; }
+    if (!L.length) { $('wtS').textContent = '아직 기록이 없습니다. 작업 지시서의 「작업 시작」「완료」를 누르면 쌓입니다.'; return; }
+    var sum = 0, R = L.map(function (o) { var p = o.prog, q = o.quoteId ? DECO.getQuote(o.quoteId) : null, c = q && q.custId ? DECO.getCustomer(q.custId) : null, w = p.done - p['in']; sum += w;
+      return '<tr><td>' + E(o.name || o.addr || '') + '<br><small>' + E(o.workDate || '') + (c && c.size ? ' · ' + E(c.size) : '') + (q && q.pkgName ? ' · ' + E(q.pkgName) : '') + '</small></td><td class="n">' + (p.go ? hm(p['in'] - p.go) : '-') + '</td><td class="n"><b>' + hm(w) + '</b></td></tr>'; });
+    $('wtS').textContent = '최근 ' + L.length + '곳 평균 작업 시간 ' + hm(sum / L.length) + ' · 다음 견적·일정 잡을 때 참고하세요.';
+    $('wt').innerHTML = '<tr><th>현장</th><th style="text-align:right">이동</th><th style="text-align:right">작업</th></tr>' + R.join(''); })();
   $('csvT').onclick = function () { var k = Y + '-' + String(M + 1).padStart(2, '0'), PT = DECO.partners(), r = [['구분', '날짜', '상대·항목', '내용', '공급가', '부가세', '합계', '증빙', '발행·영수증', '비고']], n = 0;
     DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, t = (q && q.totals) || {}, x = (q && q.tax) || {};
       r.push(['매출', o.workDate, o.name || (q && q.cust && q.cust.name) || '', (q && q.no ? '견적 ' + q.no + ' · ' : '') + (o.addr || ''), t.supply || 0, t.vat || 0, t.total || 0, x.k || '안 정함', x.done ? '발행함' : (x.k === '세금계산서' || x.k === '현금영수증' ? '아직' : ''), '']); n++;

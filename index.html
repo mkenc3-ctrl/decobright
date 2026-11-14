@@ -128,7 +128,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
       b.textContent = (y.length ? '✅ ' + y.map(function (a) { return (a.name || a.no) + ' 님'; }).join(', ') + '께서 견적대로 진행하겠다고 하셨습니다' : '🤔 ' + N.map(function (a) { return (a.name || a.no) + ' 님'; }).join(', ') + '께서 상담을 더 원하십니다') + (N.length > y.length && y.length ? ' (상담 요청 ' + (N.length - y.length) + '건 더)' : '') + ' · 눌러서 보기 ›'; }
     // 고객 하자 접수 (일정에 넣으면 사라짐)
     function asb() { var b = document.getElementById('asBox'), dn = {}; if (!b) return; try { dn = JSON.parse(localStorage.getItem('deco-asdone') || '{}'); } catch (e) {}
-      var L = []; try { L = JSON.parse(localStorage.getItem('deco-asreq') || '[]').filter(function (a) { return a && a.id && !a._del && !dn[a.id]; }); } catch (e) {} if (!L.length) { b.hidden = true; return; }
+      var L = []; try { L = JSON.parse(localStorage.getItem('deco-asreq') || '[]').filter(function (a) { return a && a.id && !a._del && !dn[a.id]; }); var cd = {}; DECO.customers().forEach(function (c) { for (var k in (c.asDone || {})) cd[k] = 1; }); L = L.filter(function (a) { return !cd[a.id]; }); } catch (e) {} if (!L.length) { b.hidden = true; return; }
       var E = DECO.esc; b.hidden = false; b.innerHTML = '🛠 고객 하자 접수 ' + L.length + '건' + L.map(function (a) { var d = new Date(a.at || 0);
         return '<div style="margin-top:6px;font-weight:500">' + E(a.name || '고객') + ' 님 · ' + E((a.kinds || []).join(', ') || a.say || '') + ' · ' + (d.getMonth() + 1) + '/' + d.getDate() + (a.md ? ' · 희망 ' + E(a.md.slice(5).replace('-', '/')) : '') + (a.ph && a.ph.length ? ' · 사진 ' + a.ph.length + '장' : '') +
           ' <a data-as="' + E(a.id) + '" href="calendar.html?kind=as&cust=' + encodeURIComponent(a.custId || '') + '&date=' + encodeURIComponent(a.md || '') + '&title=' + encodeURIComponent('하자: ' + ((a.kinds || []).join(', ') || a.say || '') + (a.phone ? ' / ' + a.phone : '')) + '" style="font-weight:800">📅 일정에 넣기 ›</a></div>'; }).join(''); }
@@ -185,6 +185,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <h2 class="grp">기타</h2>
   <nav class="menu tiles" aria-label="기타">
     <a href="stats.html"><i aria-hidden="true">📊</i><b>매출·계약 현황</b><span>월별 매출, 받을 돈(수금), 자료 백업·엑셀</span></a>
+    <a href="qr.html"><i aria-hidden="true">🔳</i><b>홍보 QR 전단</b><span>게시판·차량에 붙일 A4 (e모델하우스·블로그·전화)</span></a>
     <a href="reply.html"><i aria-hidden="true">💬</i><b>자주 쓰는 답장</b><span>가격·시공 기간·입금 안내 등 바로 보내기</span></a>
     <a href="memo.html"><i aria-hidden="true">📝</i><b>메모장</b><span>할 일·자재·전화 내용</span></a>
     <a href="prices.html"><i aria-hidden="true">🏷️</i><b>가격표 관리</b><span>패키지·항목 단가 고치기, 새 항목 추가</span></a>

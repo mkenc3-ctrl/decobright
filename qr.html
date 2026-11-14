@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>홍보 QR 전단 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.opt{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:16px}
+.opt label{display:flex;gap:6px;align-items:center}
+.opt input[type=checkbox]{width:22px;height:22px}
+.opt input[type=text]{font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:8px 12px;flex:1 1 260px}
+.sheet{background:#fff;color:#1d1712;border:1px solid var(--line);margin:14px auto 0;max-width:794px;padding:40px 36px;text-align:center}
+.sheet h1{font-size:46px;font-weight:900;margin:0;letter-spacing:-1px}
+.sheet .sl{font-size:24px;font-weight:700;color:#8A5A12;margin:8px 0 26px}
+.qs{display:flex;flex-wrap:wrap;justify-content:center;gap:24px}
+.q{border:3px solid #2A1F17;border-radius:16px;padding:16px;width:220px}
+.q .c{display:flex;justify-content:center}
+.q .c img,.q .c canvas{width:180px!important;height:180px!important}
+.q b{display:block;font-size:21px;margin-top:10px}
+.q small{display:block;font-size:15px;color:#5b4f45;margin-top:2px}
+.sheet .tel{font-size:40px;font-weight:900;margin:28px 0 4px}
+.sheet .ad{font-size:17px;color:#5b4f45}
+@media print{body *{visibility:hidden}.sheet,.sheet *{visibility:visible}.sheet{position:absolute;left:0;top:0;border:0;margin:0;max-width:none;width:100%}@page{size:A4;margin:12mm}}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">홍보 QR 전단</h1>
+  <p class="sub">아파트 게시판·현장 출입문·차량에 붙일 A4 한 장입니다. 손님이 휴대폰 카메라로 비추면 바로 열립니다.</p>
+  <section class="card opt">
+    <label><input type="checkbox" id="oH" checked> e모델하우스</label>
+    <label><input type="checkbox" id="oB" checked> 블로그</label>
+    <label><input type="checkbox" id="oT" checked> 전화 걸기</label>
+    <input type="text" id="sl" aria-label="한 줄 문구" value="우리 집 천장, 호텔처럼 바꿔 드립니다">
+    <button class="btn2 pri" type="button" id="pr">🖨 인쇄·PDF 저장</button>
+  </section>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="sheet" id="sheet">
+    <h1 id="co"></h1>
+    <p class="sl" id="slT"></p>
+    <div class="qs" id="qs"></div>
+    <p class="tel" id="tel"></p>
+    <p class="ad" id="ad"></p>
+  </div>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, S = DECO.settings(), E = DECO.esc;
+  function draw() { var tel = String(S.phone || '').replace(/[^\d+]/g, ''), blog = S.blog ? (/^http/.test(S.blog) ? S.blog : 'https://' + S.blog) : '', L = [];
+    if ($('oH').checked) L.push(['https://mkenc3-ctrl.github.io/decobright/house.html', '🏠 e모델하우스', '시공 사진·금액 미리 보기']);
+    if ($('oB').checked && blog) L.push([blog, '📷 시공 사례', '블로그에서 보기']);
+    if ($('oT').checked && tel) L.push(['tel:' + tel, '📞 바로 전화', '비추면 전화가 걸립니다']);
+    $('co').textContent = S.company || '데코브라이트'; $('slT').textContent = $('sl').value.trim(); $('tel').textContent = S.phone ? '☎ ' + S.phone : ''; $('ad').textContent = [S.area ? S.area + ' 전 지역' : '', '간접조명 · 실링팬 · 천장 조명'].filter(Boolean).join('  |  ');
+    $('qs').innerHTML = L.map(function (x, i) { return '<div class="q"><div class="c" id="qc' + i + '"></div><b>' + E(x[1]) + '</b><small>' + E(x[2]) + '</small></div>'; }).join('');
+    if (!window.QRCode) { $('msg').className = 'msg bad'; $('msg').textContent = 'QR 그림을 만들지 못했습니다. 인터넷 연결을 확인해 주세요.'; return; }
+    L.forEach(function (x, i) { new QRCode($('qc' + i), { text: x[0], width: 360, height: 360, correctLevel: QRCode.CorrectLevel.M }); }); }
+  ['oH', 'oB', 'oT'].forEach(function (k) { $(k).addEventListener('change', draw); }); $('sl').addEventListener('input', function () { $('slT').textContent = this.value.trim(); });
+  $('pr').addEventListener('click', function () { window.print(); });
+  draw();
+})();
+</script>
+</body>
+</html>
