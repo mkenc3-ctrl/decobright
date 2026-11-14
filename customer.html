@@ -34,6 +34,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     <a class="btn2 pri" id="call" href="#">전화 걸기</a>
     <a class="btn2" id="sms" href="#">문자 보내기</a>
     <select id="rpSel" class="btn2" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800;font:inherit;font-weight:800" aria-label="자주 쓰는 답장 보내기"><option value="">💬 자주 쓰는 답장 보내기</option></select>
+    <button class="btn2" type="button" id="cmpB" hidden style="font-weight:800">📊 견적 비교표 (그림)</button>
     <button class="btn2" type="button" id="vcf">📇 휴대폰 연락처에 저장</button>
     <button class="btn2" type="button" id="kCust" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 고객 정보 카톡 (직원 공유)</button>
     <span id="maps" style="display:contents"></span>
@@ -94,6 +95,19 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     $('newQ').href = 'quote.html?cust=' + encodeURIComponent(c.id); $('newE').href = 'calendar.html?cust=' + encodeURIComponent(c.id); $('newAS').href = 'calendar.html?kind=as&cust=' + encodeURIComponent(c.id);
     logs(); rel();
   }
+  // 견적 비교표: 이 고객의 견적(보류 빼고) 최대 3개를 한 장에
+  function cmpQ() { if (!c) return []; return DECO.list().filter(function (q) { return q.status !== '보류' && (q.custId === c.id || (c.phone && q.cust && q.cust.phone && q.cust.phone.replace(/\D/g, '') === String(c.phone).replace(/\D/g, ''))); }).sort(function (a, b) { return (a.created || 0) - (b.created || 0); }).slice(-3); }
+  setTimeout(function () { $('cmpB').hidden = cmpQ().length < 2; }, 0);
+  $('cmpB').addEventListener('click', function () { var Q = cmpQ(), W = DECO.won, btn = this; if (Q.length < 2) return; btn.disabled = true;
+    var tag = ['A안', 'B안', 'C안'], low = Math.min.apply(null, Q.map(function (q) { return (q.totals && q.totals.total) || 0; }));
+    DECO.docImg({ title: '견적 비교표', date: DECO.date(Date.now()), to: (c.name ? c.name + ' 님' : ''),
+      info: Q.map(function (q, i) { return [tag[i], (q.pkgName || '맞춤 견적') + ' · ' + W((q.totals && q.totals.total) || 0) + ((q.totals && q.totals.total) === low ? ' (가장 저렴)' : '')]; }),
+      secs: Q.map(function (q, i) { var it = []; if (q.pkgName) it.push([q.pkgName, W(q.pkgPrice || 0)]); (q.items || []).forEach(function (x) { if (+x.qty > 0) it.push([x.name, x.qty + (x.unit || '개')]); });
+        it.push(['합계 (부가세 포함)', W((q.totals && q.totals.total) || 0)]); return [tag[i] + (q.no ? ' · 견적 ' + q.no : ''), it.slice(0, 10)]; }),
+      notes: ['궁금하신 점은 편하게 전화 주세요. 고르신 안으로 일정을 잡아 드립니다.'] })
+      .then(function (bl) { return DECO.shareImg(bl, '견적비교_' + (c.name || '') + '.jpg', '[' + DECO.settings().company + '] ' + (c.name || '') + ' 님 견적 비교표입니다.'); })
+      .then(function (m) { var e = $('msg'); e.className = 'msg'; e.textContent = m; }, function (x) { var e = $('msg'); e.className = 'msg bad'; e.textContent = '그림을 만들지 못했습니다: ' + (x && x.message || x); })
+      .then(function () { btn.disabled = false; }); });
   $('kCust').addEventListener('click', function () { if (!c) return; var W = DECO.won;
     var Q = DECO.list().filter(function (q) { return q.custId === c.id || (c.phone && q.cust && q.cust.phone && q.cust.phone.replace(/\D/g, '') === String(c.phone).replace(/\D/g, '')); });
     var O = DECO.orders().filter(function (o) { return Q.some(function (q) { return q.id === o.quoteId; }); });

@@ -66,6 +66,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card" id="vatQ"></div>
   <h2 class="grp">패키지별 견적·계약 <small style="font-size:14px;font-weight:400">(전체 견적 기준 · 보류 빼고)</small></h2>
   <div class="card"><table class="tb" id="pkgT"></table></div>
+  <h2 class="grp">올해와 작년 비교 <small style="font-size:14px;font-weight:400">(달마다 계약 금액 · 견적 만든 달 기준)</small></h2>
+  <div class="card" style="overflow-x:auto"><table class="tb" id="yoy"></table></div>
   <h2 class="grp" id="profit">이달 시공 정산 (남는 돈)</h2>
   <div class="card"><p class="sub" style="margin-top:0">작업 지시서 시공일이 이달인 현장입니다. 지시서 「내부 정산」에 적은 인건비·자재비를 뺍니다. 매출은 부가세를 뺀 공급가입니다.</p><table class="tb" id="pf"></table></div>
   <h2 class="grp">아직 안 준 돈 (거래처 인건비·자재비)</h2>
@@ -275,6 +277,13 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     $('vatQ').innerHTML = '<p style="margin:0 0 6px;font-size:18px"><b>' + (q0 / 3 + 1) + '분기</b> (' + (q0 + 1) + '~' + (q0 + 3) + '월) 시공 ' + n + '곳</p><table class="tb"><tr><td>매출 공급가</td><td class="n">' + W(sp) + '</td></tr><tr><td>받은 부가세 (매출세액)</td><td class="n" style="font-weight:800">' + W(vt) + '</td></tr></table>' +
       '<p style="margin:8px 0 0;font-size:15px">신고·납부 때 : ' + due + '. 낼 부가세 ≈ 받은 부가세 － 자재·장비를 살 때 낸 부가세(세금계산서·카드 영수증). 간이과세자는 계산이 다릅니다.</p>' +
       (miss ? '<p style="margin:6px 0 0;color:var(--no);font-weight:700">⚠ 세금계산서·현금영수증 아직 발행 안 한 현장 ' + miss + '곳 — 작업 지시서·견적에서 확인하세요.</p>' : ''); })();
+  (function () { var y = now.getFullYear(), A = {}, cA = 0, cB = 0;
+    Q.forEach(function (q) { if (!DONE[q.status]) return; var k = ym(q.created || q.updated); A[k] = (A[k] || 0) + amt(q); });
+    var rows = '<tr><th>달</th><th style="text-align:right">작년 ' + (y - 1) + '</th><th style="text-align:right">올해 ' + y + '</th><th style="text-align:right">차이</th></tr>';
+    for (var m = 0; m < 12; m++) { var a = A[(y - 1) * 12 + m] || 0, b = A[y * 12 + m] || 0, fut = m > now.getMonth(); if (!fut) { cA += a; cB += b; }
+      rows += '<tr' + (m === now.getMonth() ? ' style="font-weight:800"' : '') + '><td>' + (m + 1) + '월</td><td class="n">' + (a ? W(a) : '-') + '</td><td class="n">' + (fut ? '' : b ? W(b) : '-') + '</td><td class="n" style="color:' + (b - a < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (fut || (!a && !b) ? '' : (b - a < 0 ? '－' + W(a - b) : '＋' + W(b - a))) + '</td></tr>'; }
+    rows += '<tr style="font-weight:800;border-top:2px solid var(--line)"><td>1~' + (now.getMonth() + 1) + '월 합계</td><td class="n">' + W(cA) + '</td><td class="n">' + W(cB) + '</td><td class="n" style="color:' + (cB - cA < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (cA ? Math.round((cB - cA) / cA * 100) + '%' : '') + '</td></tr>';
+    $('yoy').innerHTML = rows; })();
   $('csvT').onclick = function () { var k = Y + '-' + String(M + 1).padStart(2, '0'), PT = DECO.partners(), r = [['구분', '날짜', '상대·항목', '내용', '공급가', '부가세', '합계', '증빙', '발행·영수증', '비고']], n = 0;
     DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, t = (q && q.totals) || {}, x = (q && q.tax) || {};
       r.push(['매출', o.workDate, o.name || (q && q.cust && q.cust.name) || '', (q && q.no ? '견적 ' + q.no + ' · ' : '') + (o.addr || ''), t.supply || 0, t.vat || 0, t.total || 0, x.k || '안 정함', x.done ? '발행함' : (x.k === '세금계산서' || x.k === '현금영수증' ? '아직' : ''), '']); n++;
