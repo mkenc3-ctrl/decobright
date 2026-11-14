@@ -14,6 +14,12 @@
 .bar input,.bar select{font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:0 12px;height:46px;background:#fff}
 .bar input{flex:1 1 240px}
 #flt input,#flt select{font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:0 10px;height:46px;background:#fff;min-width:0;width:100%;box-sizing:border-box}#flt select:disabled{opacity:.55}#fCu input{flex:1 1 140px;width:auto}
+.cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin:0 0 12px}
+.cat button{font:inherit;cursor:pointer;background:#fff;border:2px solid var(--line);border-left:7px solid var(--cc,#7A6E66);border-radius:10px;padding:8px 10px;text-align:left;color:var(--ink);min-height:64px}
+.cat button span{display:block;font-size:16px;font-weight:700}
+.cat button b{display:block;font-size:24px;line-height:1.2}
+.cat button[aria-pressed="true"]{background:var(--cc,#3B2F2A);border-color:var(--cc,#3B2F2A);color:#fff}
+.cat button.zero{opacity:.5}
 .sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
 @media (max-width:560px){.sum{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .sum div{background:#fff;border:1px solid var(--line);padding:8px 14px;font-size:14px;color:var(--muted)}
@@ -32,10 +38,10 @@
   <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
   <h1 class="t">고객 관리</h1>
   <p class="sub">견적을 저장하면 고객이 자동으로 등록됩니다(같은 전화번호는 한 사람으로 묶음). 눌러서 상담 기록·견적·시공 내역을 봅니다.</p>
-  <div class="sum" id="sum"></div>
+  <div class="cat" id="sum" role="group" aria-label="진행 상태별 고객"></div>
   <div class="bar">
     <input id="qs" type="search" placeholder="이름·전화번호·주소로 찾기" aria-label="고객 찾기">
-    <select id="fs" aria-label="진행 상태로 거르기"></select>
+    <select id="fs" aria-label="진행 상태로 거르기" hidden></select>
     <a class="btn2 pri" href="customer.html">+ 고객 등록</a>
     <button class="btn2" type="button" id="kSea" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🌤 계절 안내 카톡</button>
   </div>
@@ -113,13 +119,19 @@
   siOpts();
   fs.innerHTML = '<option value="">전체 상태</option><option value="_call">☎ 연락할 고객 (상담·실측, 3일 넘게 연락 없음)</option><option value="_due">💰 받을 돈 남은 고객</option>' + ['견적 전'].concat(DECO.STATUS).map(function (s) { return '<option>' + s + '</option>'; }).join('');
   var cnt = function (s) { return C.filter(function (x) { return x.st === s; }).length; };
-  document.getElementById('sum').innerHTML = '<div>전체 고객<b>' + C.length + '명</b></div><div>상담·실측 중<b>' + (cnt('상담') + cnt('실측') + cnt('견적 전')) + '명</b></div><div>계약·시공<b>' + (cnt('계약') + cnt('시공')) + '명</b></div><div>완료<b>' + cnt('완료') + '명</b></div>';
+  // 진행 상태 카테고리 버튼 (누르면 그 고객만)
+  var CAT = [['', '전체', C.length, '#3B2F2A'], ['견적 전', '견적 전', cnt('견적 전'), '#8A7F76'], ['상담', '상담', cnt('상담'), '#2F6DB5'], ['실측', '실측', cnt('실측'), '#B26B12'], ['계약', '계약', cnt('계약'), '#2E6A4E'],
+    ['시공', '시공 중', cnt('시공'), '#C4572A'], ['완료', '시공 완료', cnt('완료'), '#1F5136'], ['보류', '보류', cnt('보류'), '#6B6F76'],
+    ['_call', '☎ 연락할 고객', C.filter(function (x) { return (x.st === '상담' || x.st === '실측' || x.st === '견적 전') && x.ago >= 3; }).length, '#9B3A22'], ['_due', '💰 받을 돈', C.filter(function (x) { return x.due; }).length, '#8A5A12']];
+  document.getElementById('sum').innerHTML = CAT.map(function (c) { return '<button type="button" data-st="' + E(c[0]) + '" style="--cc:' + c[3] + '"' + (c[2] ? '' : ' class="zero"') + '><span>' + E(c[1]) + '</span><b>' + c[2] + '명</b></button>'; }).join('');
+  function catMark() { [].forEach.call(document.querySelectorAll('#sum [data-st]'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.st === fs.value)); }); }
+  document.getElementById('sum').addEventListener('click', function (e) { var b = e.target.closest('[data-st]'); if (!b) return; fs.value = b.dataset.st; fs.dispatchEvent(new Event('change')); });
   function draw() {
     var k = qs.value.trim(), kd = k.replace(/\D/g, '');
     var L = C.filter(function (x) { var c = x.c; if (fs.value === '_call') { if (!((x.st === '상담' || x.st === '실측' || x.st === '견적 전') && x.ago >= 3)) return false; } else if (fs.value === '_due') { if (!x.due) return false; } else if (fs.value && x.st !== fs.value) return false; if (!k) return true;
       return [c.name, c.addr].join(' ').indexOf(k) >= 0 || (kd.length >= 3 && String(c.phone).replace(/\D/g, '').indexOf(kd) >= 0); });
     if (fs.value === '_call') L.sort(function (a, b) { return a.ago - b.ago; }); if (fs.value === '_due') L.sort(function (a, b) { return b.due - a.due; });
-    var si = $f('fSi').value, gu = $f('fGu').value, pr = period(), by = $f('fBy').value, vw = $f('fVw').value;
+    catMark(); var si = $f('fSi').value, gu = $f('fGu').value, pr = period(), by = $f('fBy').value, vw = $f('fVw').value;
     L = L.filter(function (x) { if (si && x.si !== si) return false; if (gu && x.gu !== gu) return false; if (pr) { var t = by === 'l' ? (x.ago < 999 ? x.ld : 0) : x.cd; if (!(t >= pr[0].getTime() && t < pr[1].getTime())) return false; } return true; });
     if (vw === 'reg') L.sort(function (a, b) { return (a.si === '주소 없음·모름') - (b.si === '주소 없음·모름') || a.si.localeCompare(b.si) || a.gu.localeCompare(b.gu) || String(a.c.name || '').localeCompare(String(b.c.name || '')); });
     if (vw === 'mon') L.sort(function (a, b) { return by === 'l' ? a.ago - b.ago : b.cd - a.cd; });
@@ -161,11 +173,11 @@
     DECO.kakao(DECO.kfmt({ icon: S0[0].split(' ')[0], title: S0[0].replace(/^\S+\s/, ''), secs: [['알아 두시면 좋아요', S0[1]]], foot: ['안녕하세요, 데코브라이트 시공 고객님! ' + S0[2], '궁금한 점은 편하게 답장 주세요. 🙏'] }), '계절 안내 카톡 · 보낼 고객 ' + W0.length + '명'); };
   qs.addEventListener('input', draw); fs.addEventListener('change', draw);
   // 거르기 기억 (이 기기, 화면을 다시 열어도 그대로)
-  var FK = ['fSi', 'fGu', 'fBy', 'fPe', 'fD1', 'fD2', 'fVw'];
+  var FK = ['fs', 'fSi', 'fGu', 'fBy', 'fPe', 'fD1', 'fD2', 'fVw'];
   try { var SV = JSON.parse(sessionStorage.getItem('deco-cflt') || '{}'); FK.forEach(function (k) { if (SV[k] != null) { $f(k).value = SV[k]; if (k === 'fSi') guOpts(); } }); } catch (e) {}
   function fsave() { var o = {}; FK.forEach(function (k) { o[k] = $f(k).value; }); try { sessionStorage.setItem('deco-cflt', JSON.stringify(o)); } catch (e) {} }
   FK.forEach(function (k) { $f(k).addEventListener('change', function () { if (k === 'fSi') { $f('fGu').value = ''; guOpts(); } fsave(); draw(); }); });
-  $f('fX').addEventListener('click', function () { FK.forEach(function (k) { $f(k).value = k === 'fBy' ? 'c' : ''; }); guOpts(); fsave(); draw(); });
+  $f('fX').addEventListener('click', function () { FK.forEach(function (k) { $f(k).value = k === 'fBy' ? 'c' : ''; }); qs.value = ''; guOpts(); fsave(); draw(); });
   draw();
 })();
 </script>
