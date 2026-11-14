@@ -110,6 +110,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소로 찾기" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
+  <a class="syncbox" id="balBox" href="stats.html#pay" hidden style="border-color:#2E6A4E;background:#E8F3EC;font-weight:700"></a>
   <div class="syncbox" id="asBox" hidden style="border-color:#B42318;background:#FDECEC;font-weight:700"></div>
   <a class="syncbox" id="okBox" href="list.html" hidden style="border-color:#2E6A4E;background:#E8F3EC;font-weight:700"></a>
   <a class="syncbox" id="upBox" href="photos.html?new=1" hidden style="border-color:#E0952B;background:#FCEBD2;font-weight:700"></a>
@@ -132,7 +133,13 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
           ' <a data-as="' + E(a.id) + '" href="calendar.html?kind=as&cust=' + encodeURIComponent(a.custId || '') + '&date=' + encodeURIComponent(a.md || '') + '&title=' + encodeURIComponent('하자: ' + ((a.kinds || []).join(', ') || a.say || '') + (a.phone ? ' / ' + a.phone : '')) + '" style="font-weight:800">📅 일정에 넣기 ›</a></div>'; }).join(''); }
     document.addEventListener('click', function (e) { var a = e.target.closest('[data-as]'); if (!a) return; try { var dn = JSON.parse(localStorage.getItem('deco-asdone') || '{}'); dn[a.dataset.as] = Date.now(); localStorage.setItem('deco-asdone', JSON.stringify(dn)); } catch (x) {} });
     (function w(n) { if (window.DECO && DECO.wxLoad) DECO.wxLoad(); else if (n < 20) setTimeout(function () { w(n + 1); }, 500); })(0);
-    window.addEventListener('load', function () { asb(); setTimeout(asb, 8000); setInterval(asb, 60000); chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
+    // 잔금: 시공일이 지난(또는 완료) 현장 중 받을 돈이 남은 고객
+    function bal() { var b = document.getElementById('balBox'); if (!b || !window.DECO) return; var t = DECO.today(), L = [];
+      DECO.orders().forEach(function (o) { if (!o.quoteId || o.status === '보류' || !(o.status === '완료' || (o.workDate && o.workDate < t))) return; var q = DECO.getQuote(o.quoteId); if (!q) return;
+        var rem = ((q.totals && q.totals.total) || 0) - (q.pays || []).reduce(function (s, p) { return s + (+p.amt || 0); }, 0); if (rem > 0 && !L.some(function (x) { return x.id === q.id; })) L.push({ id: q.id, n: o.name || (q.cust && q.cust.name) || '고객', r: rem, d: o.workDate || '' }); });
+      if (!L.length) { b.hidden = true; return; } b.hidden = false;
+      b.textContent = '💰 잔금 받을 고객 ' + L.length + '명: ' + L.slice(0, 3).map(function (x) { return x.n + ' 님 ' + DECO.won(x.r) + (x.d ? ' (시공 ' + x.d.slice(5).replace('-', '/') + ')' : ''); }).join(', ') + (L.length > 3 ? ' 외' : '') + ' · 눌러서 받기 ›'; }
+    window.addEventListener('load', function () { bal(); asb(); setTimeout(asb, 8000); setInterval(asb, 60000); chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
   </script>
   <section class="todo" id="todo" hidden aria-label="오늘 할 일"><h2>✅ 오늘 할 일</h2><ul id="todoL"></ul></section>
   <button type="button" class="syncbox brief" id="kMorning" style="background:#FEE500;border-color:#FEE500;color:#191919">☀ 오늘 할 일 카톡 <small style="color:#3a3a3a">단톡방에 보내기 · 현장·작업자·자재·내일</small></button>

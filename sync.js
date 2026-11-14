@@ -138,6 +138,7 @@
     }, function (e) { S.busy = false; S.err = '연결이 불안정합니다. 잠시 뒤 다시 맞춥니다.'; emit(); });
   }
   function arrived() {
+    if (!LIVE && window.DECO && DECO.ntfCheck) DECO.ntfCheck();
     if (LIVE) { var g = +sessionStorage.getItem('deco-sync-reload') || 0; if (Date.now() - g > 15000) { sessionStorage.setItem('deco-sync-reload', Date.now()); location.reload(); return; } }
     var b = document.getElementById('syncNew');
     if (!b) { b = document.createElement('div'); b.id = 'syncNew'; b.style.cssText = 'position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:#3B2F2A;color:#fff;padding:10px 14px;border-radius:12px;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center';
@@ -172,7 +173,7 @@
       });
     });
     document.addEventListener('visibilitychange', function () { if (!document.hidden && S.member) sync(); });
-    setInterval(function () { if (!document.hidden && S.member) sync(); }, 60000);
+    setInterval(function () { if (S.member && (!document.hidden || (window.Notification && Notification.permission === 'granted'))) sync(); }, 60000);
     window.addEventListener('online', function () { if (S.member) sync(); });
     emit();
   }

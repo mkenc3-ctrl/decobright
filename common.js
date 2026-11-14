@@ -312,6 +312,20 @@
     return '<a class="btn2" href="https://map.kakao.com/link/search/' + a + '" target="_blank" rel="noopener">카카오맵 길찾기</a><a class="btn2" href="https://map.naver.com/p/search/' + a + '" target="_blank" rel="noopener">네이버지도</a>'; };
   document.addEventListener('DOMContentLoaded', micInit);
   // 휴대폰 설치(홈 화면에 추가)용 — 인터넷 주소(https)나 내 컴퓨터(localhost)에서만 동작
+  // 휴대폰 알림: 손님 답·하자 접수·점검표·새 사진 (지난번 확인 뒤 새로 온 것만)
+  D.ntfShow = function (t, b, url, tag) { if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    var o = { body: b, tag: tag || t, icon: 'icons/icon.svg', badge: 'icons/icon.svg', data: { url: url || 'index.html' } };
+    if (navigator.serviceWorker && navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(function (r) { r.showNotification(t, o); }).catch(function () { try { new Notification(t, o); } catch (e) {} });
+    else try { new Notification(t, o); } catch (e) {} };
+  D.ntfCheck = function () { if (!('Notification' in window) || Notification.permission !== 'granted') return; var K = 'deco-ntf-at', last = +localStorage.getItem(K) || 0, now = Date.now();
+    try { localStorage.setItem(K, String(now)); } catch (e) {} if (!last) return;
+    var nw = function (k, f) { return rd(k, []).filter(function (x) { return x && !x._del && (+x[f] || 0) > last; }); };
+    nw('deco-okq', 'at').forEach(function (a) { D.ntfShow('데코브라이트 · 손님 답', (a.name || a.no || '손님') + ' 님 ' + (a.act === 'ok' ? '「이 견적으로 진행」' : '「상담이 더 필요」') + (a.md ? ' · 실측 희망 ' + a.md : ''), 'list.html', 'okq-' + a.qid); });
+    nw('deco-asreq', 'at').forEach(function (a) { D.ntfShow('데코브라이트 · 🛠 하자 접수', (a.name || '고객') + ' 님 · ' + ((a.kinds || []).join(', ') || a.say || ''), 'index.html', 'as-' + a.id); });
+    nw('deco-chk', 'at').forEach(function (c) { D.ntfShow('데코브라이트 · 점검표 도착', (c.by || '작업자') + (c.tr ? ' (' + c.tr + ')' : '') + (c.no && c.no.length ? ' · 못 한 것 ' + c.no.length + '개' : ' · 모두 확인'), 'order.html?id=' + encodeURIComponent(c.oid), 'chk-' + c.id); });
+    if (D.photoAll) D.photoAll().then(function (a) { var N = a.filter(function (p) { return p.by && (p.added || 0) > last; }); if (!N.length) return; var c = N.filter(function (p) { return /^손님/.test(p.by); }).length;
+      D.ntfShow('데코브라이트 · 📸 새 사진 ' + N.length + '장', c ? '손님이 보낸 사진 ' + c + '장 포함' : '작업자가 올린 사진', 'photos.html', 'photo-new'); }).catch(function () {}); };
+  window.addEventListener('load', function () { setTimeout(D.ntfCheck, 4000); });
   if ('serviceWorker' in navigator && /^(https:|http:\/\/localhost)/.test(location.href)) {
     window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
   }

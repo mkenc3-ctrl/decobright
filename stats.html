@@ -50,7 +50,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <h1 class="t">매출·계약 현황</h1>
   <p class="sub">견적을 만든 달 기준입니다. 「계약」은 상태가 계약·시공·완료인 견적입니다. 금액은 부가세 포함 합계입니다.</p>
   <div class="mbar"><button class="btn2" type="button" id="prev">‹ 지난달</button><b id="mt"></b><button class="btn2" type="button" id="next">다음달 ›</button></div>
-  <div class="noprint" style="text-align:right;margin:-4px 0 10px"><button class="btn2" type="button" id="prtM">이달 보고서 인쇄 · PDF</button></div>
+  <div class="noprint" style="text-align:right;margin:-4px 0 10px"><button class="btn2" type="button" id="prtM">이달 보고서 인쇄 · PDF</button> <button class="btn2" type="button" id="imgM" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 이달 보고 그림 카톡</button></div>
   <div class="ponly" id="ptitle"></div>
   <div class="kpis" id="kpis"></div>
   <h2 class="grp">최근 12개월</h2>
@@ -124,6 +124,22 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-kset]'); if (!b) return; var g = KSET[b.dataset.kset]; if (!g) return;
     DECO.kakao(DECO.kfmt({ icon: '🧾', title: '정산 내역', info: [['👷', '받는 분', b.dataset.kset + ' 님'], ['📅', '보낸 날', DECO.date(Date.now())]],
       secs: [['현장별 금액', g.ln.map(function (l) { return l.replace(/^- /, ''); })]], total: ['💰 합계 : ' + W(g.a)], foot: ['확인 부탁드립니다. 늘 수고 많으십니다! 🙏'] }), '정산 카톡'); });
+  // 지급 완료: 지시서 「지급함」 체크 + 지급 내역 카톡
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-kdone]'); if (!b) return; var w = b.dataset.kdone, g = KSET[w]; if (!g) return;
+    if (!confirm(w + ' 님께 ' + W(g.a) + ' 지급을 마쳤다고 기록할까요?')) return; var td = DECO.today();
+    g.it.forEach(function (x) { var o = DECO.orders().filter(function (y) { return y.id === x[0]; })[0]; if (!o) return; o.costPaid = o.costPaid || {}; o.costPaid[x[1]] = td; DECO.saveOrder(o); });
+    profit(); DECO.kakao(DECO.kfmt({ icon: '💸', title: '지급 완료 안내', info: [['👷', '받는 분', w + ' 님'], ['📅', '지급일', DECO.date(Date.now())]], secs: [['지급 내역', g.ln.map(function (l) { return l.replace(/^- /, ''); })]], total: ['💰 지급 합계 : ' + W(g.a)], foot: ['입금했습니다. 확인 부탁드립니다. 늘 수고 많으십니다! 🙏'] }), '지급 내역 카톡'); });
+  // 이달 보고 그림
+  $('imgM').onclick = function () { var k = Y * 12 + M, mk = Y + '-' + String(M + 1).padStart(2, '0'), mq = Q.filter(function (q) { return ym(q.created || q.updated) === k; });
+    var O = DECO.orders().filter(function (o) { return o.workDate && ym(o.workDate + 'T00:00') === k && o.status !== '보류'; }), sale = 0, cost = 0;
+    O.forEach(function (o) { var q = o.quoteId ? DECO.getQuote(o.quoteId) : null; sale += q && q.totals ? q.totals.supply || 0 : 0; for (var x in (o.cost || {})) cost += +o.cost[x] || 0; });
+    var ex = DECO.exps().filter(function (x) { return (x.d || '').slice(0, 7) === mk; }).reduce(function (a, x) { return a + (+x.amt || 0); }, 0), inn = 0;
+    Q.forEach(function (q) { (q.pays || []).forEach(function (p) { if ((p.d || '').slice(0, 7) === mk) inn += +p.amt || 0; }); });
+    var due = Q.filter(function (q) { return DONE[q.status]; }).reduce(function (s, q) { return s + Math.max(0, amt(q) - paid(q)); }, 0);
+    DECO.docImg({ title: Y + '년 ' + (M + 1) + '월 보고', date: DECO.today(), info: [['견적', mq.length + '건 · ' + man(mq.reduce(function (s, q) { return s + amt(q); }, 0))], ['계약', mq.filter(function (q) { return DONE[q.status]; }).length + '건'], ['시공 현장', O.length + '곳']],
+      secs: [['돈 흐름', [['시공 매출 (공급가)', W(sale)], ['현장 비용 (인건비·자재)', '－' + W(cost)], ['공통 지출', '－' + W(ex)]]], ['수금', [['이달 들어온 돈', W(inn)], ['아직 받을 돈', W(due)]]]],
+      totals: [['이달 순이익 (참고)', W(sale - cost - ex), true]], notes: ['※ 앱에 적은 기록으로 계산한 참고 금액입니다.'] })
+      .then(function (bl) { return DECO.shareImg(bl, Y + '년' + (M + 1) + '월_보고.jpg', DECO.settings().company + ' ' + Y + '년 ' + (M + 1) + '월 보고'); }).catch(function () {}); };
   function profit() { var k = Y * 12 + M, O = DECO.orders().filter(function (o) { return o.workDate && ym(o.workDate + 'T00:00') === k && o.status !== '보류'; });
     var tS = 0, tC = 0, rows = O.map(function (o) { var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, sup = q && q.totals ? q.totals.supply || 0 : 0, c = 0; for (var x in (o.cost || {})) c += +o.cost[x] || 0; tS += sup; tC += c;
       return '<tr><td><a href="order.html?id=' + encodeURIComponent(o.id) + '">' + E(o.workDate.slice(5)) + ' ' + E(o.name || o.addr || o.no) + '</a></td><td class="n">' + W(sup) + '</td><td class="n">' + W(c) + '</td><td class="n"><b>' + W(sup - c) + '</b></td></tr>'; });
@@ -132,10 +148,10 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     $('pf').innerHTML += '<tr><td><a href="expense.html">공통 지출 (지출 장부) ›</a></td><td></td><td class="n">' + W(ex) + '</td><td class="n">－' + W(ex) + '</td></tr><tr style="background:#faf6ee"><td><b>이달 순이익 (참고)</b></td><td></td><td></td><td class="n"><b style="font-size:17px;color:' + (tS - tC - ex < 0 ? '#b5462f' : '#2f7a4a') + '">' + W(tS - tC - ex) + '</b></td></tr>';
     var G = {}, PT = {}, PH = {}; DECO.partners().forEach(function (p) { PT[p.id] = p.name; PH[p.name] = String(p.phone || '').replace(/[^\d+]/g, ''); });
     DECO.orders().forEach(function (o) { var c = o.cost || {}, pd = o.costPaid || {}; Object.keys(c).forEach(function (t) { if (pd[t] || !c[t]) return; var who = (o.trades && o.trades[t] && PT[o.trades[t].partner]) || (t === '자재' ? '자재비' : t === '기타' ? '기타 비용' : t + ' (거래처 미지정)');
-      G[who] = G[who] || { a: 0, at: [], ln: [] }; G[who].a += +c[t]; G[who].at.push((o.workDate || '').slice(5) + ' ' + (o.name || '')); G[who].ln.push('- ' + (o.workDate || '').slice(5) + ' ' + (o.name || o.addr || '') + ' 현장 ' + t + ' ' + W(+c[t])); }); });
+      G[who] = G[who] || { a: 0, at: [], ln: [], it: [] }; G[who].it.push([o.id, t]); G[who].a += +c[t]; G[who].at.push((o.workDate || '').slice(5) + ' ' + (o.name || '')); G[who].ln.push('- ' + (o.workDate || '').slice(5) + ' ' + (o.name || o.addr || '') + ' 현장 ' + t + ' ' + W(+c[t])); }); });
     var ks = Object.keys(G), co = DECO.settings().company, ios = /iPhone|iPad/.test(navigator.userAgent); KSET = G;
     $('unpaid').innerHTML = ks.length ? '<tr><th>누구</th><th>현장</th><th style="text-align:right">금액</th></tr>' + ks.map(function (w) { var tel = PH[w], txt = '[' + co + '] ' + w + ' 님, 정산 내역 보내드립니다.\n' + G[w].ln.join('\n') + '\n합계 ' + W(G[w].a) + '\n확인 후 입금해 드리겠습니다. 늘 감사합니다.';
-      return '<tr><td>' + E(w) + '<br><button type="button" class="btn2" data-kset="' + E(w) + '" style="margin-top:4px;font-size:13px;padding:4px 8px;background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 정산 카톡</button>' + (tel ? '<br><a class="btn2" style="margin-top:4px;font-size:13px;padding:4px 8px" href="sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt) + '">정산 문자</a>' : '') + '</td><td style="font-size:13px">' + E(G[w].at.join(', ')) + '</td><td class="n">' + W(G[w].a) + '</td></tr>'; }).join('') : '<tr><td>안 준 돈이 없습니다. (지시서 「내부 정산」의 「지급함」을 체크하면 빠집니다)</td></tr>'; }
+      return '<tr><td>' + E(w) + '<br><button type="button" class="btn2" data-kset="' + E(w) + '" style="margin-top:4px;font-size:13px;padding:4px 8px;background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 정산 카톡</button><br><button type="button" class="btn2" data-kdone="' + E(w) + '" style="margin-top:4px;font-size:13px;padding:4px 8px;background:#2E6A4E;border-color:#2E6A4E;color:#fff;font-weight:800">✔ 지급 완료</button>' + (tel ? '<br><a class="btn2" style="margin-top:4px;font-size:13px;padding:4px 8px" href="sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt) + '">정산 문자</a>' : '') + '</td><td style="font-size:13px">' + E(G[w].at.join(', ')) + '</td><td class="n">' + W(G[w].a) + '</td></tr>'; }).join('') : '<tr><td>안 준 돈이 없습니다. (지시서 「내부 정산」의 「지급함」을 체크하면 빠집니다)</td></tr>'; }
   (function () { var R = DECO.orders().filter(function (o) { return o.review && (o.review.star || o.review.text); }).sort(function (a, b) { return (b.workDate || '').localeCompare(a.workDate || ''); });
     var st = R.filter(function (o) { return o.review.star; }), avg = st.length ? (st.reduce(function (s, o) { return s + o.review.star; }, 0) / st.length).toFixed(1) : '-';
     $('rvSum').textContent = R.length ? '후기 ' + R.length + '건 · 평균 별점 ' + avg + ' / 5 · 홍보 사용 허락 ' + R.filter(function (o) { return o.review.ok; }).length + '건' : '아직 후기가 없습니다. 작업 지시서 아래 「고객 후기」에 별점과 한마디를 남겨 주세요.';
@@ -173,16 +189,23 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     DECO.kakao(DECO.kfmt({ icon: '💳', title: '시공 대금 안내', info: [['👤', '고객', c.name ? c.name + ' 님' : ''], ['📍', '현장', c.addr], ['🔖', '견적번호', q.no]],
       total: ['합계 금액 : ' + W(amt(q)), paid(q) ? '받은 금액 : ' + W(paid(q)) : '', '💰 남은 금액 : ' + W(rem)],
       foot: [ST.bank ? '🏦 입금 계좌 : ' + ST.bank : '', '시공을 맡겨 주셔서 감사합니다. 🙏'] }), '대금 안내 카톡'); });
+  var TAXK = ['안 정함', '필요 없음', '세금계산서', '현금영수증', '카드 결제'];
+  function taxRow(q) { var t = q.tax || {}, k = t.k || '안 정함', need = k === '세금계산서' || k === '현금영수증';
+    return '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0;font-size:15px"><b>🧾 증빙</b><select data-tax="k" style="font:inherit;font-size:15px;padding:4px">' + TAXK.map(function (x) { return '<option' + (x === k ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>' +
+      (need ? '<label style="font-weight:700;color:' + (t.done ? '#2E6A4E' : '#B42318') + '"><input type="checkbox" data-tax="done"' + (t.done ? ' checked' : '') + ' style="width:20px;height:20px;vertical-align:middle"> ' + (t.done ? '발행함 (' + E(t.done) + ')' : '아직 발행 안 함') + '</label>' : '') + '</div>'; }
+  $('payList').addEventListener('change', function (e) { var x = e.target.closest('[data-tax]'); if (!x) return; var row = x.closest('.pr'), q = DECO.getQuote(row.dataset.id); if (!q) return; q.tax = q.tax || {};
+    if (x.dataset.tax === 'k') q.tax.k = x.value; else q.tax.done = x.checked ? DECO.today() : ''; DECO.saveQuote(q); Q = DECO.list(); payDraw(); });
   function payDraw() {
     var C = Q.filter(function (q) { return DONE[q.status]; }), due = 0, mon = 0, k = now.getFullYear() * 12 + now.getMonth();
     C.forEach(function (q) { due += Math.max(0, amt(q) - paid(q)); });
     Q.forEach(function (q) { (q.pays || []).forEach(function (p) { if (ym(p.d + 'T00:00') === k) mon += +p.amt || 0; }); });
-    $('paySum').innerHTML = '이번 달 들어온 돈 <b>' + W(mon) + '</b> · 아직 받을 돈 <b>' + W(due) + '</b> (계약·시공·완료 견적 기준)';
+    var tx = C.filter(function (q) { var t = q.tax || {}; return (t.k === '세금계산서' || t.k === '현금영수증') && !t.done; }).length, tu = C.filter(function (q) { return !(q.tax && q.tax.k && q.tax.k !== '안 정함'); }).length;
+    $('paySum').innerHTML = '이번 달 들어온 돈 <b>' + W(mon) + '</b> · 아직 받을 돈 <b>' + W(due) + '</b> (계약·시공·완료 견적 기준)' + (tx ? '<br><b style="color:#B42318">🧾 세금계산서·현금영수증 발행 안 한 것 ' + tx + '건</b>' : '') + (tu ? '<br><span style="color:#7A6E66">🧾 증빙을 안 정한 계약 ' + tu + '건</span>' : '');
     var L = C.filter(function (q) { return PV === 'all' || amt(q) - paid(q) > 0; }).sort(function (a, b) { return (amt(b) - paid(b)) - (amt(a) - paid(a)); });
     $('payList').innerHTML = L.length ? L.map(function (q) { var c = q.cust || {}, rem = amt(q) - paid(q);
       return '<div class="pr" data-id="' + E(q.id) + '"><div class="h"><b>' + E(c.name || '이름 없음') + ' <small style="font-weight:400;font-size:14px">' + E(q.no || '') + ' · ' + E(q.status) + '</small></b><span style="display:flex;gap:6px">' + smsBtn(q, rem) + '<button class="btn2" type="button" data-open>입금 기록</button></span></div>' +
         '<div class="m">합계 ' + W(amt(q)) + ' · 받은 돈 ' + W(paid(q)) + ' · 남은 돈 <em class="' + (rem > 0 ? '' : 'ok') + '">' + (rem > 0 ? W(rem) : '완납') + '</em></div>' +
-        ((q.pays || []).length ? '<ul>' + q.pays.map(function (p, i) { return '<li>' + E(p.d) + ' ' + E(p.kind) + ' ' + W(p.amt) + (p.memo ? ' · ' + E(p.memo) : '') + ' <button type="button" data-del="' + i + '" aria-label="이 입금 기록 지우기">지우기</button></li>'; }).join('') + '</ul>' : '') +
+        taxRow(q) + ((q.pays || []).length ? '<ul>' + q.pays.map(function (p, i) { return '<li>' + E(p.d) + ' ' + E(p.kind) + ' ' + W(p.amt) + (p.memo ? ' · ' + E(p.memo) : '') + ' <button type="button" data-del="' + i + '" aria-label="이 입금 기록 지우기">지우기</button></li>'; }).join('') + '</ul>' : '') +
         (OPEN === q.id ? '<div class="pf"><label class="fl">입금 날짜<input type="date" data-f="d" value="' + DECO.today() + '"></label><label class="fl">종류<select data-f="kind">' + ['계약금', '중도금', '잔금', '기타'].map(function (x) { return '<option' + (x === (paid(q) ? '잔금' : '계약금') ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label>' +
           '<label class="fl">금액(원)<input type="number" inputmode="numeric" data-f="amt" value="' + (paid(q) ? Math.max(0, rem) : Math.min(+ST.deposit || rem, rem)) + '"></label><label class="fl">메모<input data-f="memo" placeholder="예: 현금, 계좌이체"></label>' +
           '<button class="btn2 pri" type="button" data-save>저장</button></div>' : '') + '</div>'; }).join('') : '<p class="sub">' + (PV === 'due' ? '받을 돈이 남은 계약이 없습니다.' : '계약된 견적이 없습니다. 견적 목록에서 상태를 「계약」으로 바꾸면 여기에 나옵니다.') + '</p>';

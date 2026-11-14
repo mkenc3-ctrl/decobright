@@ -43,9 +43,10 @@
       <label>결제<select id="pm"><option>카드</option><option>현금</option><option>계좌이체</option></select></label>
       <label class="w">내용<input id="mm" data-mic placeholder="예: 주유, 드릴 비트 구입"></label>
     </div>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn2 pri" type="button" id="addB">적기</button><button class="btn2" type="button" id="csv">이달 엑셀(CSV) 받기</button></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><label class="btn2" for="rc" id="rcL">🧾 영수증 사진</label><input id="rc" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0"><button class="btn2 pri" type="button" id="addB">적기</button><button class="btn2" type="button" id="csv">이달 엑셀(CSV) 받기</button></div>
     <p class="msg" id="msg" role="status"></p>
   </div>
+  <div id="rcV" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px" role="dialog" aria-label="영수증 사진"><img id="rcI" alt="영수증" style="max-width:100%;max-height:90vh;border-radius:8px"><button type="button" id="rcX" style="position:absolute;top:12px;right:12px;font:inherit;font-size:20px;padding:8px 14px;border-radius:10px;border:0">닫기 ✕</button></div>
   <div class="card">
     <div class="mo"><button type="button" id="pv" aria-label="지난달">‹</button><b id="ml"></b><button type="button" id="nx" aria-label="다음달">›</button></div>
     <div class="sum" id="sum"></div>
@@ -68,15 +69,21 @@
   function draw() { var L = mine(), t = 0, by = {}; L.forEach(function (x) { t += +x.amt || 0; by[x.cat] = (by[x.cat] || 0) + (+x.amt || 0); });
     $('ml').textContent = Y + '년 ' + (M + 1) + '월';
     $('sum').innerHTML = '<div><small>이달 지출 합계</small><b>' + W(t) + '</b></div>' + Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }).map(function (c) { return '<div><small>' + E(c) + '</small><b>' + W(by[c]) + '</b></div>'; }).join('');
-    $('list').innerHTML = L.length ? L.map(function (x) { return '<div class="r" data-id="' + E(x.id) + '"><div><b>' + E(x.cat) + (x.memo ? ' · ' + E(x.memo) : '') + '</b><small>' + E(x.d.slice(5).replace('-', '/')) + ' · ' + E(x.pm || '') + ' · <a href="#" data-del>지우기</a></small></div><div class="a">' + W(x.amt) + '</div></div>'; }).join('')
+    $('list').innerHTML = L.length ? L.map(function (x) { return '<div class="r" data-id="' + E(x.id) + '"><div><b>' + E(x.cat) + (x.memo ? ' · ' + E(x.memo) : '') + '</b><small>' + E(x.d.slice(5).replace('-', '/')) + ' · ' + E(x.pm || '') + ' · ' + (x.ph ? '<a href="#" data-ph="' + E(x.ph) + '">🧾 영수증</a> · ' : '') + '<a href="#" data-del>지우기</a></small></div><div class="a">' + W(x.amt) + '</div></div>'; }).join('')
       : '<p class="sub">이달 적은 지출이 없습니다.</p>'; }
   $('pv').onclick = function () { if (--M < 0) { M = 11; Y--; } draw(); };
   $('nx').onclick = function () { if (++M > 11) { M = 0; Y++; } draw(); };
+  var RC = null; $('rc').onchange = function () { RC = this.files && this.files[0] || null; this.value = ''; $('rcL').textContent = RC ? '🧾 영수증 붙임 ✔' : '🧾 영수증 사진'; };
+  $('rcX').onclick = function () { $('rcV').hidden = true; };
   $('addB').onclick = function () { var a = Math.round(+$('am').value || 0), m = $('msg');
     if (a <= 0) { m.className = 'msg bad'; m.textContent = '금액을 넣어 주세요.'; return; }
-    var d = $('dt').value || DECO.today(); DECO.saveExp({ d: d, cat: cat, amt: a, pm: $('pm').value, memo: $('mm').value.trim() });
+    var d = $('dt').value || DECO.today(), X = { d: d, cat: cat, amt: a, pm: $('pm').value, memo: $('mm').value.trim() }, rf = RC; RC = null; $('rcL').textContent = '🧾 영수증 사진';
+    if (rf && DECO.shrink && DECO.photoAdd) DECO.shrink(rf, 1400).then(function (r) { return DECO.photoAdd({ blob: r.blob, w: r.w, h: r.h, job: '', stage: '기타', memo: '[영수증] ' + d + ' ' + cat + ' ' + W(a) + (X.memo ? ' ' + X.memo : ''), taken: rf.lastModified || Date.now() }); })
+      .then(function (p) { X.ph = p.id; DECO.saveExp(X); draw(); }).catch(function () { DECO.saveExp(X); draw(); }); else DECO.saveExp(X);
     $('am').value = $('mm').value = ''; m.className = 'msg'; m.textContent = cat + ' ' + W(a) + ' 적었습니다.';
     var p = d.split('-'); Y = +p[0]; M = +p[1] - 1; draw(); };
+  $('list').addEventListener('click', function (e) { var p = e.target.closest('[data-ph]'); if (!p) return; e.preventDefault();
+    DECO.photoAll().then(function (a) { var x = a.filter(function (y) { return y.id === p.dataset.ph; })[0]; if (!x) { alert('영수증 사진을 찾지 못했습니다. 잠시 뒤 다시 눌러 주세요.'); return; } $('rcI').src = URL.createObjectURL(x.blob); $('rcV').hidden = false; }); });
   $('list').addEventListener('click', function (e) { var b = e.target.closest('[data-del]'); if (!b) return; e.preventDefault(); var id = b.closest('.r').dataset.id, x = DECO.exps().filter(function (y) { return y.id === id; })[0];
     if (x && confirm(x.cat + ' ' + W(x.amt) + ' 을(를) 지울까요?')) { DECO.delExp(id); draw(); } });
   $('csv').onclick = function () { var L = mine(); if (!L.length) { $('msg').className = 'msg'; $('msg').textContent = '이달 지출이 없습니다.'; return; }
