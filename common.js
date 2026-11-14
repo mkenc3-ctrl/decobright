@@ -131,11 +131,25 @@
 
   // ---------- 일정 (실측·상담 방문 등, 시공은 작업 지시서에서) ----------
   var KE = 'deco-events';
-  D.KINDS = ['실측 방문', '상담', '자재 입고', '하자 보수 방문', '기타'];
+  D.KINDS = ['실측 방문', '상담', '자재 입고', '하자 보수 방문', '기타', '시공 예정'];
   D.events = function () { return rd(KE, []); };
   D.saveEvent = function (e) { var all = rd(KE, []); if (!e.id) e.id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); e.updated = Date.now();
     var next = all.filter(function (x) { return x.id !== e.id; }); next.push(e); return wr(KE, next) ? e : null; };
   D.delEvent = function (id) { return wr(KE, rd(KE, []).filter(function (x) { return x.id !== id; })); };
+  // ---------- 다른 화면에서 넣은 날짜 → 시공 달력에 자동 등록 (연결 일정 id는 L로 시작, 날짜를 지우면 달력에서도 빠짐) ----------
+  function linkEv(id, date, kind, time, custId, title) { var all = rd(KE, []), old = all.filter(function (x) { return x.id === id; })[0];
+    if (!date) { if (old) wr(KE, all.filter(function (x) { return x.id !== id; })); return; }
+    if (old && old.date === date && (old.time || '') === (time || '') && old.kind === kind && (old.title || '') === (title || '') && (old.custId || '') === (custId || '')) return;
+    D.saveEvent({ id: id, date: date, time: time || '', kind: kind, custId: custId || '', title: title || '', auto: 1, done: !!(old && old.date === date && old.done) }); }
+  D.linkQuote = function (q) { if (!q || !q.id) return; var v = q.visit || {}, w = q.wish || (q.sign && q.sign.d1) || '', who = (q.cust && (q.cust.name || q.cust.addr)) || '';
+    linkEv('Lv' + q.id, v.d || '', '실측 방문', v.t || '', q.custId, '견적 ' + (q.no || '') + (who ? ' · ' + who : ''));
+    var hasO = D.orders().some(function (o) { return o.quoteId === q.id && o.workDate && o.status !== '보류'; });   // 지시서가 생기면 지시서 시공일이 달력에 나오므로 「시공 예정」은 뺌
+    linkEv('Lw' + q.id, hasO || q.status === '보류' ? '' : w, '시공 예정', '', q.custId, '견적 ' + (q.no || '') + (who ? ' · ' + who : '') + (q.pkgName ? ' · ' + q.pkgName : '')); };
+  D.linkCustomer = function (c) { if (!c || !c.id) return; var x = c.next || {}; linkEv('Ln' + c.id, x.d || '', '상담', '', c.id, '📞 다시 연락' + (x.m ? ' · ' + x.m : '')); };
+  (function () { var sq = D.saveQuote, so = D.saveOrder, sc = D.saveCustomer;
+    D.saveQuote = function (q) { var r = sq.apply(this, arguments); try { if (r) D.linkQuote(r); } catch (e) {} return r; };
+    D.saveOrder = function (o) { var r = so.apply(this, arguments); try { if (o && o.quoteId) { var q = D.getQuote(o.quoteId); if (q) D.linkQuote(q); } } catch (e) {} return r; };
+    D.saveCustomer = function (c) { var r = sc.apply(this, arguments); try { if (r) D.linkCustomer(r); } catch (e) {} return r; }; })();
   // 하루 일정 (시공 지시서 + 일정)
   D.dayItems = function (ds) {
     return D.orders().filter(function (o) { return o.workDate === ds; }).map(function (o) { return { k: 0, time: o.workTime || '', t: '시공 ' + (o.name || ''), done: o.status === '완료', id: o.id }; })

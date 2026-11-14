@@ -131,7 +131,8 @@ h2.s{font-size:19px;margin:20px 0 8px}
   var TIME = { '목수': '08:00', '전기': '10:00', '도배': '14:00' }, PT = DECO.partners();
   var o = P.get('id') ? DECO.getOrder(P.get('id')) : null, qid = P.get('quote');
   if (!o && qid) o = DECO.orders().filter(function (x) { return x.quoteId === qid; })[0] || null;
-  if (!o) { o = { quoteId: qid || '', workDate: P.get('date') || DECO.today(), status: '예정', checks: {}, trades: {} };
+  var qW = qid ? DECO.getQuote(qid) : null;
+  if (!o) { o = { quoteId: qid || '', workDate: P.get('date') || (qW && (qW.wish || (qW.sign && qW.sign.d1))) || DECO.today(), status: '예정', checks: {}, trades: {} };
     TR.forEach(function (t) { o.trades[t] = { on: false, partner: '', time: TIME[t], tasks: '', mats: '' }; });
     var q = qid ? DECO.getQuote(qid) : null;
     if (q) { var c = q.cust || {}, lines = [], add = function (t, x) { var b = o.trades[t]; b.tasks += (b.tasks ? '\n' : '') + x; b.on = true; };

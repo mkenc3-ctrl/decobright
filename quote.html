@@ -234,6 +234,12 @@ input[type=range]{flex:1;accent-color:#e9a23b}
           <label>연락처<input class="fld" id="custPhone" placeholder="010-0000-0000" inputmode="tel"></label>
           <label style="grid-column:1/-1">현장주소<input class="fld" id="custAddr" placeholder="예: 창원시 성산구 ..."></label>
           <label>담당자<input class="fld" id="custStaff" placeholder="담당 직원명"></label>
+          <div style="grid-column:1/-1;background:#FFF8EC;border:1px solid #E8C98A;border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
+            <b style="grid-column:1/-1;font-size:15px">📅 일정 <small style="font-weight:400">— 넣고 저장하면 시공 달력에 저절로 들어갑니다</small></b>
+            <label>실측 방문 날짜<input class="fld" id="visD" type="date"></label>
+            <label>방문 시간<input class="fld" id="visT" type="time"></label>
+            <label>시공 희망일<input class="fld" id="wishD" type="date"></label>
+          </div>
           <label>진행 상태<select class="fld" id="qStatus"></select></label>
         </div>
       </div>
@@ -679,7 +685,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     const t=TPL().find(x=>x.id===v); if(!t) return; const c=snapshot();
     restore({ ...t, cust:c.cust, status:c.status }); toast("「"+t.name+"」 구성을 불러왔습니다. 수량만 맞추세요."); });
   tplDraw();
-  $("resetQ").addEventListener("click",()=>{ QI=QI0.map(x=>({...x,qty:0,opt:""})); etcRows=[]; pkg="p3"; ["custName","custPhone","custAddr","custStaff","memoInput","discount"].forEach(id=>$(id).value=""); $("qStatus").value="상담"; renderPanel(); render(); curId=null; curCust=""; history.replaceState(null,"","quote.html"); $("qno").textContent=""; toast("견적을 초기화했습니다. 저장하면 새 견적으로 저장됩니다."); });
+  $("resetQ").addEventListener("click",()=>{ QI=QI0.map(x=>({...x,qty:0,opt:""})); etcRows=[]; pkg="p3"; ["custName","custPhone","custAddr","custStaff","memoInput","discount","visD","visT","wishD"].forEach(id=>$(id).value=""); $("qStatus").value="상담"; renderPanel(); render(); curId=null; curCust=""; history.replaceState(null,"","quote.html"); $("qno").textContent=""; toast("견적을 초기화했습니다. 저장하면 새 견적으로 저장됩니다."); });
   $("syncQty").addEventListener("click",()=>{ const f=P().f, cnt=k=>items.filter(i=>i.type===k).length, set=(id,n)=>{ QI.find(x=>x.id===id).qty=Math.max(0,n); };
     if (!items.length){ toast("사진에 붙인 조명이 없습니다. 위에서 조명을 먼저 붙여 주세요.",true); return; }
     const fans=cnt("fan")-(f.fan?1:0); set("i1", cnt("down")+cnt("wall")-(f.inN+f.tvN)); set("i3", cnt("curtain")-(f.curtain?1:0));
@@ -837,9 +843,10 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       pkg:p.id, pkgName:p.name, pkgPrice:p.price, pkgDesc:p.desc,
       items:QI.filter(i=>i.qty>0).map(i=>({id:i.id,name:i.name,unit:i.unit,price:i.price,qty:i.qty,opt:i.opt})),
       etc:etcRows.filter(r=>r.label||r.amount).map(r=>({label:r.label,amount:r.amount||0})),
+      visit:{d:v("visD"),t:v("visT")}, wish:v("wishD"),
       kelvin, layout: items.length ? {img:layoutImg(), list:layoutList()} : null, discount:Math.max(0,parseInt($("discount").value)||0), status:$("qStatus").value, totals:totals() }; }
   function restore(q){
-    $("custName").value=q.cust?.name||""; $("custPhone").value=q.cust?.phone||""; $("custAddr").value=q.cust?.addr||""; $("custStaff").value=q.cust?.staff||""; $("memoInput").value=q.memo||""; $("discount").value=q.discount||""; $("qStatus").value=q.status||"상담";
+    $("custName").value=q.cust?.name||""; $("custPhone").value=q.cust?.phone||""; $("custAddr").value=q.cust?.addr||""; $("custStaff").value=q.cust?.staff||""; $("visD").value=q.visit?.d||""; $("visT").value=q.visit?.t||""; $("wishD").value=q.wish||(q.sign&&q.sign.d1)||""; $("memoInput").value=q.memo||""; $("discount").value=q.discount||""; $("qStatus").value=q.status||"상담";
     if (PKGS.some(p=>p.id===q.pkg)) pkg=q.pkg;
     QI=QI0.map(x=>{ const s=(q.items||[]).find(i=>i.id===x.id); return {...x, qty:s?s.qty:0, opt:s?s.opt||"":"", price:(s&&x.editable)?s.price:x.price}; });
     etcRows=(q.etc||[]).map(r=>({id:etcId++,label:r.label,amount:r.amount}));

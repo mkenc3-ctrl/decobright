@@ -157,7 +157,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     Array.prototype.forEach.call(f.elements, function (el) { if (el.name) c[el.name] = el.value.trim(); });
     var r = DECO.saveCustomer(c); $('msg').className = 'msg' + (r ? '' : ' bad'); $('msg').textContent = r ? '저장했습니다.' : '저장하지 못했습니다.';
     if (r) { c = r; history.replaceState(null, '', 'customer.html?id=' + encodeURIComponent(c.id)); fill(); } });
-  function nx() { if (!c) return; var x = c.next || {}; $('nxd').value = x.d || ''; $('nxm').value = x.m || ''; $('nxc').hidden = !x.d; $('nxT').textContent = x.d ? '그날 처음 화면 「알림」에 나옵니다.' : ''; }
+  function nx() { if (!c) return; var x = c.next || {}; $('nxd').value = x.d || ''; $('nxm').value = x.m || ''; $('nxc').hidden = !x.d; $('nxT').textContent = x.d ? '시공 달력과 처음 화면 「알림」에 나옵니다.' : ''; }
   $('nxs').addEventListener('click', function () { if (!c) return; var d = $('nxd').value; if (!d) { $('nxd').focus(); return; } c.next = { d: d, m: $('nxm').value.trim() }; c.touched = Date.now(); DECO.saveCustomer(c); nx(); });
   $('nxc').addEventListener('click', function () { if (!c || !c.next) return; c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '📞 다시 연락함' + (c.next.m ? ' (' + c.next.m + ')' : '') }); delete c.next; c.touched = Date.now(); DECO.saveCustomer(c); nx(); logs(); });
   setTimeout(nx, 0);
