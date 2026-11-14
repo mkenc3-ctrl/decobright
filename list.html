@@ -44,6 +44,11 @@
 <script>
 (function () {
   var box = document.getElementById('box'), qs = document.getElementById('qs'), E = DECO.esc;
+  var OK = {}; (DECO.okq ? DECO.okq() : []).forEach(function (a) { OK[a.qid] = a; });
+  try { localStorage.setItem('deco-okseen', String(Date.now())); } catch (e) {}
+  function okTag(id) { var a = OK[id]; if (!a) return ''; var d = new Date(a.at || 0);
+    return '<div style="margin-top:6px;padding:8px 10px;border-radius:10px;font-weight:700;font-size:15px;background:' + (a.act === 'ok' ? '#E8F3EC;color:#2E6A4E' : '#FCEBD2;color:#8a4a12') + '">' + (a.act === 'ok' ? '✅ 손님이 「이 견적으로 진행」' : '🤔 손님이 「상담이 더 필요」') + ' · ' + (d.getMonth() + 1) + '/' + d.getDate() +
+      (a.tm ? '<br><span style="font-weight:500">편한 시간: ' + E(a.tm) + '</span>' : '') + (a.say ? '<br><span style="font-weight:500">남긴 말: ' + E(a.say) + '</span>' : '') + '</div>'; }
   function draw() {
     var k = qs.value.trim(), L = DECO.list().filter(function (q) {
       if (fs.value && (q.status || '상담') !== fs.value) return false;
@@ -58,7 +63,7 @@
         (function () { var S = ['상담', '실측', '계약', '시공', '완료'], k = S.indexOf(q.status || '상담'); if (k < 0) return '<div class="stp hold">보류 중</div>';
           return '<div class="stp" aria-label="진행 단계 ' + (k + 1) + '/5">' + S.map(function (x, j) { return '<span class="' + (j < k ? 'done' : j === k ? 'now' : '') + '">' + x + '</span>'; }).join('') + '</div>'; })() +
         '<div class="sum">' + DECO.won(q.totals && q.totals.total) + ' <small style="font-size:13px;font-weight:400;color:var(--muted)">부가세 포함</small></div>' +
-        '<div class="acts"><select class="st" data-st="' + E(q.id) + '" aria-label="진행 상태">' + DECO.STATUS.map(function (s) { return '<option' + ((q.status || '상담') === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
+        okTag(q.id) + '<div class="acts"><select class="st" data-st="' + E(q.id) + '" aria-label="진행 상태">' + DECO.STATUS.map(function (s) { return '<option' + ((q.status || '상담') === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
         '<a class="btn2" href="quote.html?id=' + id + '">열어서 고치기</a><a class="btn2" href="print.html?id=' + id + '">견적서 인쇄</a>' +
         '<a class="btn2" href="contract.html?id=' + id + '">계약 안내 문자</a><a class="btn2" href="measure.html?id=' + id + '">실측 기록' + (q.measure ? ' ✔' : '') + '</a><a class="btn2" href="sign.html?id=' + id + '">계약서·서명' + (q.sign && q.sign.cust ? ' ✔' : '') + '</a><a class="btn2" href="order.html?quote=' + id + '">작업 지시서</a><a class="btn2" href="photos.html?job=' + id + '">현장 사진</a>' +
         '<button class="btn2" type="button" data-copy="' + E(q.id) + '">복사해서 새 견적</button>' +

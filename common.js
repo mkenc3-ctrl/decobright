@@ -29,6 +29,7 @@
         var d = new Date(now), day = String(d.getFullYear()).slice(2) + pad(d.getMonth() + 1) + pad(d.getDate());
                 q.id = 'q' + now.toString(36) + Math.random().toString(36).slice(2, 5); q.no = nextNo(all, 'DB-' + day + '-'); q.created = now;
       } else { q.no = old.no; q.created = old.created; }
+      if (!q.vk) q.vk = (old && old.vk) || (Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6));   // 손님용 견적서 주소 열쇠
       q.updated = now;
       var next = all.filter(function (x) { return x.id !== q.id; }); next.push(q);
       if (wr(KQ, next)) return q;
@@ -221,6 +222,9 @@
   // ── 카톡에 붙여넣기 좋은 글 ──
   // D.kfmt({ title, info:[['👤','고객','홍길동 님'],...], secs:[['작업 내용',[...]],...], total:['💰 합계 : 1,000원', ...], foot:['※ ...'] })
   D.KL = '━━━━━━━━━━━━━━';
+  // 손님용 온라인 견적서 주소 · 손님 답(okq)
+  D.viewLink = function (q) { return q && q.vk ? 'https://mkenc3-ctrl.github.io/decobright/view.html?q=' + encodeURIComponent(q.id) + '&k=' + q.vk : ''; };
+  D.okq = function () { return rd('deco-okq', []).filter(function (a) { return a && a.qid && !a._del; }); };
   // 하루 할 일 카톡 (아침 단톡방용): 시공 현장·작업자·일정·자재·재고·연락할 고객·내일 미리 보기
   D.dayBrief = function (ds) { ds = ds || D.today(); var d = new Date(ds + 'T00:00'), PT = D.partners(), today = ds === D.today();
     function ptn(id) { return PT.filter(function (p) { return p.id === id; })[0]; }

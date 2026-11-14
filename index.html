@@ -110,6 +110,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소로 찾기" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
+  <a class="syncbox" id="okBox" href="list.html" hidden style="border-color:#2E6A4E;background:#E8F3EC;font-weight:700"></a>
   <a class="syncbox" id="upBox" href="photos.html?new=1" hidden style="border-color:#E0952B;background:#FCEBD2;font-weight:700"></a>
   <script>
   // 작업자가 링크로 올린 새 사진 알림 (사진 보관함을 열면 사라짐)
@@ -117,7 +118,12 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
       DECO.photoAll().then(function (a) { var N = a.filter(function (p) { return p.by && (p.added || 0) > seen; }), b = document.getElementById('upBox'); if (!b) return;
         if (!N.length) { b.hidden = true; return; } var who = {}; N.forEach(function (p) { who[p.by] = 1; });
         b.hidden = false; b.textContent = '📸 작업자가 올린 새 사진 ' + N.length + '장 (' + Object.keys(who).join(', ') + ') · 눌러서 보기 ›'; }).catch(function () {}); }
-    window.addEventListener('load', function () { chk(); setTimeout(chk, 8000); setInterval(chk, 60000); }); })();
+    // 손님이 온라인 견적서에서 답한 것 (견적 목록을 열면 사라짐)
+    function ok() { if (!window.DECO || !DECO.okq) return; var seen = 0; try { seen = +localStorage.getItem('deco-okseen') || 0; } catch (e) {}
+      var N = DECO.okq().filter(function (a) { return (a.at || 0) > seen; }), b = document.getElementById('okBox'); if (!b) return; if (!N.length) { b.hidden = true; return; }
+      var y = N.filter(function (a) { return a.act === 'ok'; }); b.hidden = false;
+      b.textContent = (y.length ? '✅ ' + y.map(function (a) { return (a.name || a.no) + ' 님'; }).join(', ') + '께서 견적대로 진행하겠다고 하셨습니다' : '🤔 ' + N.map(function (a) { return (a.name || a.no) + ' 님'; }).join(', ') + '께서 상담을 더 원하십니다') + (N.length > y.length && y.length ? ' (상담 요청 ' + (N.length - y.length) + '건 더)' : '') + ' · 눌러서 보기 ›'; }
+    window.addEventListener('load', function () { chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
   </script>
   <section class="todo" id="todo" hidden aria-label="오늘 할 일"><h2>✅ 오늘 할 일</h2><ul id="todoL"></ul></section>
   <button type="button" class="syncbox brief" id="kMorning" style="background:#FEE500;border-color:#FEE500;color:#191919">☀ 오늘 할 일 카톡 <small style="color:#3a3a3a">단톡방에 보내기 · 현장·작업자·자재·내일</small></button>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>견적서 · 데코브라이트</title>
+<meta name="robots" content="noindex">
+<meta property="og:title" content="데코브라이트 견적서">
+<meta property="og:description" content="간접조명·실링팬 견적서입니다. 눌러서 확인해 주세요.">
+<meta property="og:image" content="https://mkenc3-ctrl.github.io/decobright/img/m/ka-warm.jpg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="icon" href="icons/icon.svg">
+<style>
+:root{--ink:#221C18;--muted:#7A6E66;--line:#E6D9C6;--bd:#CDBBA3;--pri:#3B2F2A;--paper:#FBF6EE;--warm:#E0952B;--warm-s:#FCEBD2;--acc:#B5541C;--ok:#2E6A4E;--no:#B42318}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Noto Sans KR',sans-serif;font-size:17px;line-height:1.55}
+.w{max-width:620px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
+.hd{background:#2A211C;color:#fff;border-radius:14px 14px 0 0;padding:18px}
+.hd small{color:#F3C98A;font-weight:800;font-size:16px}
+.hd h1{margin:4px 0 0;font-size:30px;letter-spacing:.2em}
+.hd p{margin:4px 0 0;color:#e9dccb;font-size:15px}
+.bd{background:#fff;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;padding:16px;margin-bottom:14px}
+.to{font-size:22px;font-weight:800;margin:0 0 8px}
+.kv{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:16px;margin-bottom:6px}
+.kv b{color:var(--muted);font-weight:700}
+h2{font-size:17px;background:var(--pri);color:#fff;padding:8px 12px;border-radius:8px;margin:16px 0 0}
+.row{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:16px}
+.row:nth-child(even){background:#F6EBDD}
+.row span{min-width:0}.row small{display:block;color:var(--muted);font-size:14px}
+.row b{white-space:nowrap}
+.tot{margin-top:14px}
+.tot .row{background:#fff!important;border:0;padding:4px 12px}
+.tot .big{background:var(--warm-s)!important;border-radius:10px;padding:12px;margin-top:6px;font-size:20px;font-weight:800}
+.tot .big b{color:var(--acc);font-size:24px}
+.pic img{width:100%;border-radius:10px;display:block;margin-top:8px}
+.note{font-size:15px;color:#4A403A;margin:12px 0 0}
+.ask{background:#fff;border:2px solid var(--warm);border-radius:14px;padding:16px}
+.ask h3{margin:0 0 6px;font-size:20px}
+.ask label{display:block;font-weight:700;margin:10px 0 0}
+.ask input{display:block;width:100%;font:inherit;font-size:17px;height:50px;border:1px solid var(--bd);border-radius:10px;padding:0 12px;margin-top:4px}
+.big2{display:flex;align-items:center;justify-content:center;width:100%;height:62px;font:inherit;font-size:20px;font-weight:800;border-radius:14px;border:0;cursor:pointer;margin-top:10px;text-decoration:none}
+.y{background:var(--warm);color:#1d1714}.g{background:#fff;border:2px solid var(--pri)!important;color:var(--pri)}
+.msg{min-height:24px;font-weight:700;margin:10px 0 0}.msg.ok{color:var(--ok)}.msg.bad{color:var(--no)}
+.done{background:#E8F3EC;border:2px solid var(--ok);border-radius:14px;padding:16px;font-size:18px;font-weight:700}
+.err{background:#fff;border:2px solid var(--no);border-radius:14px;padding:16px;font-size:18px}
+</style>
+</head>
+<body>
+<div class="w">
+  <div id="doc" hidden>
+    <div class="hd"><small id="co"></small><h1>견적서</h1><p id="no"></p></div>
+    <div class="bd">
+      <p class="to" id="to"></p>
+      <div class="kv" id="kv"></div>
+      <div id="secs"></div>
+      <div class="tot" id="tot"></div>
+      <div class="pic" id="pic" hidden><h2>조명 배치 예상 모습</h2><img id="picI" alt="조명 배치 예상 모습"></div>
+      <p class="note" id="note"></p>
+    </div>
+    <div class="ask" id="ask">
+      <h3>이 견적, 어떠세요?</h3>
+      <p style="margin:0;color:var(--muted);font-size:15px">아래 단추를 누르면 담당자에게 바로 전해집니다. 실측 날짜를 잡아 연락드립니다.</p>
+      <label>전화 받기 편한 시간 <small style="font-weight:400">(선택)</small><input id="tm" maxlength="40" placeholder="예: 평일 저녁 6시 이후"></label>
+      <label>남길 말씀 <small style="font-weight:400">(선택)</small><input id="say" maxlength="100" placeholder="예: 다운라이트 2개 빼고 싶어요"></label>
+      <button type="button" class="big2 y" data-a="ok">✅ 이 견적으로 진행할게요</button>
+      <button type="button" class="big2 g" data-a="ask">🤔 상담이 더 필요해요</button>
+      <a class="big2 g" id="tel" href="#" style="display:flex">📞 전화로 묻기</a>
+      <p class="msg" id="msg" role="status"></p>
+    </div>
+    <div class="done" id="done" hidden></div>
+  </div>
+  <div class="err" id="bad" hidden></div>
+</div>
+<script src="common.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, P = new URLSearchParams(location.search), qid = P.get('q') || '', key = P.get('k') || '', C, Q, S = {};
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function won(n) { return Math.round(+n || 0).toLocaleString('ko-KR') + '원'; }
+  function bad(t) { $('doc').hidden = true; $('bad').hidden = false; $('bad').textContent = t; }
+  if (!window.supabase || !qid || !key) return bad(!window.supabase ? '인터넷 연결을 확인하고 다시 열어 주세요.' : '주소가 잘못되었습니다. 받으신 문자·카톡의 주소를 다시 눌러 주세요.');
+  C = window.supabase.createClient('https://dypvqgaayumrhaiphatu.supabase.co', 'sb_publishable_5-LUZwZQ3VwBxDKDA_nJpw_ddF6QKdE', { auth: { persistSession: false } });
+  Promise.all([C.from('records').select('data').eq('coll', 'quotes').eq('id', qid).maybeSingle(), C.from('records').select('data').eq('coll', 'settings').eq('id', 'main').maybeSingle(), C.from('records').select('data').eq('coll', 'okq').eq('id', qid).maybeSingle()])
+    .then(function (r) { if (r[0].error) return bad('서버에 연결하지 못했습니다. 잠시 뒤 다시 열어 주세요.');
+      Q = r[0].data && r[0].data.data; S = window.DECO ? DECO.settings() : {}; var SV = (r[1].data && r[1].data.data) || {}; Object.keys(SV).forEach(function (k) { if (SV[k] !== '' && SV[k] != null) S[k] = SV[k]; }); var A = r[2].data && r[2].data.data;
+      if (!Q || Q._del) return bad('견적서를 찾을 수 없습니다. 담당자에게 문의해 주세요.');
+      if (!Q.vk || Q.vk !== key) return bad('견적서 주소가 바뀌었거나 맞지 않습니다. 담당자에게 새 주소를 받아 주세요.');
+      draw(); if (A && !A._del) doneMsg(A); }, function () { bad('서버에 연결하지 못했습니다. 인터넷을 확인해 주세요.'); });
+  function draw() { var c = Q.cust || {}, t = Q.totals || {}, co = S.company || '데코브라이트', d = new Date(Q.updated || Q.created || Date.now());
+    document.title = '견적서 · ' + co; $('co').textContent = co; $('no').textContent = (Q.no || '') + '  ·  ' + d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '.';
+    $('to').textContent = c.name ? c.name + ' 님 귀하' : '고객님 귀하';
+    var color = { 2700: '전구색 (따뜻한 빛)', 4000: '주백색 (중간 빛)', 6500: '주광색 (하얀 빛)' }[Q.kelvin], vd = S.validDays || 30;
+    $('kv').innerHTML = [['현장', c.addr], ['담당', c.staff], ['조명 색', color], ['유효기간', '견적일로부터 ' + vd + '일']].filter(function (x) { return x[1]; }).map(function (x) { return '<b>' + x[0] + '</b><span>' + esc(x[1]) + '</span>'; }).join('');
+    var H = '';
+    function sec(title, rows) { rows = rows.filter(Boolean); if (!rows.length) return; H += '<h2>' + title + '</h2>' + rows.map(function (x) { return '<div class="row"><span>' + esc(x[0]) + (x[2] ? '<small>' + esc(x[2]) + '</small>' : '') + '</span><b>' + esc(x[1]) + '</b></div>'; }).join(''); }
+    sec('패키지', [Q.pkg && Q.pkg !== 'none' ? [Q.pkgName, won(Q.pkgPrice), Q.pkgDesc] : null]);
+    sec('추가 항목', (Q.items || []).map(function (i) { return [i.name + (i.opt ? ' (' + i.opt + ')' : ''), won(i.qty * i.price), won(i.price) + ' × ' + i.qty]; }));
+    sec('기타', (Q.etc || []).map(function (r) { return [r.label || '기타', won(r.amount)]; }));
+    if (Q.memo) sec('비고', [[Q.memo, '']]);
+    $('secs').innerHTML = H;
+    $('tot').innerHTML = '<div class="row"><span>공급가액</span><b>' + won((t.supply || 0) + (t.dc || 0)) + '</b></div>' + (t.dc ? '<div class="row"><span>할인</span><b>-' + won(t.dc) + '</b></div>' : '') +
+      '<div class="row"><span>부가세 (10%)</span><b>' + won(t.vat) + '</b></div><div class="row big"><span>합계 (부가세 포함)</span><b>' + won(t.total) + '</b></div>';
+    var img = (Q.layout && Q.layout.img) || Q.img; if (img) { $('pic').hidden = false; $('picI').src = img; }
+    $('note').innerHTML = '※ 실측 후 최종 금액이 확정됩니다.' + (S.bank ? '<br>입금 계좌 : ' + esc(S.bank) : '') + '<br>' + esc(co) + (S.phone ? ' · 📞 ' + esc(S.phone) : '');
+    var tel = String(S.phone || '').replace(/[^\d+]/g, ''); if (tel) $('tel').href = 'tel:' + tel; else $('tel').style.display = 'none';
+    $('doc').hidden = false; }
+  function doneMsg(A) { $('ask').hidden = true; $('done').hidden = false; var d = new Date(A.at || Date.now());
+    $('done').textContent = (A.act === 'ok' ? '✅ 「이 견적으로 진행」을 전하셨습니다' : '🤔 「상담이 더 필요해요」를 전하셨습니다') + ' (' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일). 곧 연락드리겠습니다. 감사합니다!'; }
+  $('ask').addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (!b || b.disabled) return; var m = $('msg'); b.disabled = true; m.className = 'msg'; m.textContent = '보내는 중…';
+    var A = { id: qid, qid: qid, act: b.dataset.a, at: Date.now(), name: (Q.cust && Q.cust.name) || '', no: Q.no || '', tm: $('tm').value.trim(), say: $('say').value.trim(), k: key };
+    C.from('records').upsert({ coll: 'okq', id: qid, data: A }, { onConflict: 'coll,id' }).then(function (r) { if (r.error) throw r.error; doneMsg(A); },
+      function () { b.disabled = false; m.className = 'msg bad'; m.textContent = '보내지 못했습니다. 인터넷을 확인하거나 전화로 연락 주세요.'; }); });
+})();
+</script>
+</body>
+</html>

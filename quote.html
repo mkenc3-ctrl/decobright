@@ -723,7 +723,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       info:[["👤","고객",nm?nm+" 님":""],["📍","현장",v("custAddr")],["📅","견적일",DECO.date(Date.now())],["🔖","견적번호",qn],["🧑‍🔧","담당",v("custStaff")]],
       secs:[["패키지",[p.id==="none"?"":p.name+"  "+won(p.price)]],["추가 항목",items],["기타",etc],["조명 색",[color]],["비고",[v("memoInput")]]],
       total:["공급가액 : "+won(t.supply+(t.dc||0)), t.dc?"할인 : -"+won(t.dc):"", "부가세 : "+won(t.vat), "💰 합계 : "+won(t.total)+" (부가세 포함)"],
-      foot:["※ 실측 후 최종 금액이 확정됩니다.", "궁금하신 점은 편하게 연락 주세요."] }); }
+      foot:["※ 실측 후 최종 금액이 확정됩니다.", curId&&DECO.viewLink(DECO.getQuote(curId))?"📄 견적서 자세히 보기 · 진행 여부 알려 주기\n"+DECO.viewLink(DECO.getQuote(curId)):"", "궁금하신 점은 편하게 연락 주세요."] }); }
   // 견적서를 그림 한 장으로 → 카톡에 사진으로 보내기
   $("imgQuote").addEventListener("click",async ()=>{ const b=$("imgQuote"); if(b.disabled) return; doSave(); b.disabled=true; const old=b.textContent; b.textContent="그림 만드는 중…";
     try { const t=totals(), p=P(), v=id=>$(id).value.trim(), s=DECO.settings(), nm=v("custName"), qn=($("qno").textContent.match(/견적번호\s*(\S+)/)||[])[1]||"";
@@ -736,12 +736,12 @@ input[type=range]{flex:1;accent-color:#e9a23b}
         totals:[["공급가액",won(t.supply+(t.dc||0))],t.dc?["할인","-"+won(t.dc)]:null,["부가세 (10%)",won(t.vat)],["합계 (부가세 포함)",won(t.total),1]],
         pic: items.length ? thumb() : "", picCap:"조명 배치 예상 모습",
         notes:["※ 실측 후 최종 금액이 확정됩니다.", s.bank?"입금 계좌 : "+s.bank:"", s.slogan||""] });
-      const m=await DECO.shareImg(blob,"견적서_"+(nm||"고객")+"_"+DECO.today().replace(/-/g,"")+".jpg", "["+s.company+"] "+(nm?nm+" 님, ":"")+"견적서 보내드립니다. 문의 "+(s.phone||"")); toast(m);
+      const m=await DECO.shareImg(blob,"견적서_"+(nm||"고객")+"_"+DECO.today().replace(/-/g,"")+".jpg", "["+s.company+"] "+(nm?nm+" 님, ":"")+"견적서 보내드립니다. 문의 "+(s.phone||"")+(DECO.viewLink(DECO.getQuote(curId))?"\n📄 견적서 보기·진행 알려 주기: "+DECO.viewLink(DECO.getQuote(curId)):"")); toast(m);
     } catch(e){ toast("그림을 만들지 못했습니다: "+(e&&e.message||e),true); } finally { b.disabled=false; b.textContent=old; } });
   $("kakaoQuote").addEventListener("click",()=>{ doSave(); DECO.kakao(kText(),"카톡으로 견적 보내기"); });
   $("smsQuote").addEventListener("click",()=>{ const tel=$("custPhone").value.replace(/[^\d+]/g,""); if(!tel){ toast("고객 연락처를 먼저 넣어 주세요."); $("custPhone").focus(); return; }
     doSave(); const nm=$("custName").value.trim(), s=DECO.settings(), out=qText().filter(l=>!/^(고객명|연락처|담당자):/.test(l)); out[0]="["+s.company+"] "+(nm?nm+" 님, ":"")+"요청하신 견적 보내드립니다.";
-    const txt=out.join("\n"); try{ navigator.clipboard&&navigator.clipboard.writeText(txt).catch(()=>{}); }catch(e){}
+    const vl=DECO.viewLink(DECO.getQuote(curId)); if(vl) out.push("","📄 견적서 보기·진행 알려 주기: "+vl); const txt=out.join("\n"); try{ navigator.clipboard&&navigator.clipboard.writeText(txt).catch(()=>{}); }catch(e){}
     location.href="sms:"+tel+(/iPhone|iPad/.test(navigator.userAgent)?"&":"?")+"body="+encodeURIComponent(txt); });
 
   // ---------- AI auto placement ----------
