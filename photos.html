@@ -64,6 +64,7 @@
     <a class="btn2" id="vquote" href="#" style="background:#2E6A4E;border-color:#2E6A4E;color:#fff;font-weight:800">📐 이 사진으로 견적 만들기</a>
     <button class="btn2" type="button" id="vexpo">🏠 e모델하우스 전시실로 보내기</button>
     <button class="btn2" type="button" id="vdown">내려받기</button>
+    <button class="btn2" type="button" id="vlab">🏷 날짜·현장 글씨 넣어 저장</button>
     <button class="btn2 pri" type="button" id="vkeep" hidden>보관함에 저장</button>
     <button class="btn2 no" type="button" id="vdel">지우기</button>
     <button class="btn2" type="button" id="vclose">닫기</button>
@@ -150,6 +151,12 @@
     navigator.share({ files: [f], title: s.company + ' 시공 사진', text: s.company + ' ' + (s.phone || '') }).catch(function () {}); });
   $('vkeep').addEventListener('click', function () { if (!baBlob) return; var j = $('job').value === '*' ? '' : $('job').value;
     DECO.photoAdd({ job: j, stage: '시공 후', memo: '전·후 비교', blob: baBlob, taken: Date.now() }).then(function () { close(); say('비교 사진을 「' + jobName(j) + ' · 시공 후」에 저장했습니다.'); load(); }); });
+  $('vlab').addEventListener('click', function () { if (!cur) return; var im = $('vimg'), S = DECO.settings(), W = im.naturalWidth, H = im.naturalHeight; if (!W) return;
+    var c = document.createElement('canvas'), g = c.getContext('2d'), fs = Math.max(22, Math.round(W / 34)), bh = Math.round(fs * 2.6); c.width = W; c.height = H + bh; g.drawImage(im, 0, 0);
+    g.fillStyle = '#2A1F17'; g.fillRect(0, H, W, bh); g.textBaseline = 'middle'; g.font = '700 ' + fs + "px 'Noto Sans KR', sans-serif"; g.fillStyle = '#fff'; g.textAlign = 'left';
+    var d = new Date(cur.taken || cur.added), ds = d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '. ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    g.fillText(ds + '  ·  ' + cur.stage + '  ·  ' + jobName(cur.job).split(' · ')[0], Math.round(fs * .7), H + bh / 2); g.textAlign = 'right'; g.fillStyle = '#F4B94A'; g.fillText(S.company || '데코브라이트', W - Math.round(fs * .7), H + bh / 2);
+    c.toBlob(function (bl) { DECO.shareImg(bl, (S.company || 'deco') + '_' + DECO.ymd(d).replace(/-/g, '') + '_' + cur.stage.replace(/[^0-9A-Za-z가-힣]/g, '') + '.jpg', '').then(function (t) { var m = $('msg'); if (m) { m.className = 'msg'; m.textContent = t; } }); }, 'image/jpeg', .9); });
   $('vdown').addEventListener('click', function () { var a = document.createElement('a'); a.href = vu; if (!cur) { a.download = '데코브라이트_시공전후_' + DECO.today().replace(/-/g, '') + '.jpg'; a.click(); return; } a.download = '데코브라이트_' + jobName(cur.job).split(' · ')[0] + '_' + cur.stage.replace('·', '') + '_' + DECO.date(cur.taken || cur.added).replace(/\D+/g, '') + '.jpg'; a.click(); });
   $('vdel').addEventListener('click', function () { if (!confirm('이 사진을 지울까요?\n지운 사진은 되살릴 수 없습니다.')) return; DECO.photoDel(cur.id).then(function () { close(); say('사진을 지웠습니다.'); load(); }); });
   // ── e모델하우스 전시실로 보내기 (서버 보관함 photos 의 e/ 폴더, 기록 coll 'emodel') ──

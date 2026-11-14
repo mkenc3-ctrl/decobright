@@ -53,6 +53,7 @@
     <div id="plist"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
       <a class="btn2" id="mkOrder" href="order.html">이 날 시공 지시서 만들기</a>
+      <button class="btn2" type="button" id="ics">📲 휴대폰 달력에 넣기 (두 달)</button>
       <button class="btn2" type="button" id="kFree" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🗓 시공 가능한 날짜 카톡</button>
       <button class="btn2" type="button" id="kDay" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 이 날 할 일 카톡</button>
     </div>
@@ -132,6 +133,21 @@
   $('delE').addEventListener('click', function () { if (!editing || !confirm('이 일정을 지울까요?\n지운 일정은 되살릴 수 없습니다.')) return; DECO.delEvent(editing.id); resetForm(); draw(); $('msg').textContent = '지웠습니다.'; });
   $('prev').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); draw(); });
   $('next').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); draw(); });
+  // 앞으로 60일 시공·일정 → .ics 파일 (휴대폰 기본 달력에서 열면 들어감)
+  $('ics').addEventListener('click', function () { var NL = String.fromCharCode(13, 10), t0 = DECO.today(), e = new Date(); e.setDate(e.getDate() + 60); var t1 = DECO.ymd(e), V = [];
+    function es(s) { return String(s || '').replace(/([,;\\])/g, '\\$1').replace(/\r?\n/g, ' '); }
+    function ev(id, d, tm, sum, loc) { var dd = d.replace(/-/g, ''), L = ['BEGIN:VEVENT', 'UID:' + id + '@decobright', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z', 'SUMMARY:' + es(sum)];
+      if (tm) { var h = +tm.slice(0, 2), m = +tm.slice(3, 5), h2 = h + 2; L.push('DTSTART:' + dd + 'T' + String(h).padStart(2, '0') + String(m).padStart(2, '0') + '00', 'DTEND:' + dd + 'T' + String(Math.min(h2, 23)).padStart(2, '0') + String(m).padStart(2, '0') + '00'); }
+      else { var n = new Date(d + 'T00:00'); n.setDate(n.getDate() + 1); L.push('DTSTART;VALUE=DATE:' + dd, 'DTEND;VALUE=DATE:' + DECO.ymd(n).replace(/-/g, '')); }
+      if (loc) L.push('LOCATION:' + es(loc)); L.push('END:VEVENT'); V.push(L.join(NL)); }
+    DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate < t0 || o.workDate > t1 || o.status === '보류') return; ev('o' + o.id, o.workDate, o.workTime, '시공 ' + (o.name || '') + (o.crew ? ' (' + o.crew + ')' : ''), o.addr); });
+    DECO.events().forEach(function (x) { if (!x.date || x.date < t0 || x.date > t1 || x.done) return; ev(x.id, x.date, x.time, x.kind + (x.custId && DECO.getCustomer(x.custId) ? ' ' + (DECO.getCustomer(x.custId).name || '') : ''), x.title); });
+    if (!V.length) { alert('앞으로 두 달 동안 넣을 일정이 없습니다.'); return; }
+    var txt = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//decobright//ko', 'CALSCALE:GREGORIAN'].concat(V, ['END:VCALENDAR']).join(NL), bl = new Blob([txt], { type: 'text/calendar' }), f = new File([bl], '데코브라이트_일정.ics', { type: 'text/calendar' }), ok = false;
+    try { ok = !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (x) {}
+    if (ok) { navigator.share({ files: [f] }).catch(function () {}); return; }
+    var a = document.createElement('a'), u = URL.createObjectURL(bl); a.href = u; a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+    alert('일정 ' + V.length + '건 파일을 받았습니다. 받은 파일을 누르면 휴대폰 달력에 들어갑니다.\n(같은 파일을 다시 넣어도 겹치지 않고 고쳐집니다)'); });
   // 앞으로 2주 중 시공이 없는 날(일요일 빼고)을 손님에게 안내
   $('kFree').addEventListener('click', function () { var busy = {}, L = [], d = new Date(); DECO.orders().forEach(function (o) { if (o.workDate && o.status !== '보류' && o.status !== '완료') busy[o.workDate] = (busy[o.workDate] || 0) + 1; });
     DECO.events().forEach(function (e) { if (e.kind === '시공' && e.date) busy[e.date] = (busy[e.date] || 0) + 1; });

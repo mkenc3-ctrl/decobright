@@ -142,9 +142,10 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
       b.textContent = '💰 잔금 받을 고객 ' + L.length + '명: ' + L.slice(0, 3).map(function (x) { return x.n + ' 님 ' + DECO.won(x.r) + (x.d ? ' (시공 ' + x.d.slice(5).replace('-', '/') + ')' : ''); }).join(', ') + (L.length > 3 ? ' 외' : '') + ' · 눌러서 받기 ›'; }
     // 이달 매출 목표 (회사 정보 설정의 목표, 직원 기기는 숨김)
     function goal() { var b = document.getElementById('goalBox'); if (!b || !window.DECO) return; var g = (+DECO.settings().goal || 0) * 10000; if (!g || (DECO.staff && DECO.staff())) { b.hidden = true; return; }
-      var k = DECO.today().slice(0, 7), sale = 0, n = 0; DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null; if (q && q.totals) { sale += q.totals.supply || 0; n++; } });
+      var k = DECO.today().slice(0, 7), sale = 0, n = 0, pv = new Date(), pk, ps = 0; pv.setDate(1); pv.setMonth(pv.getMonth() - 1); pk = DECO.ymd(pv).slice(0, 7);
+      DECO.orders().forEach(function (o) { if (!o.workDate || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, v = q && q.totals ? q.totals.supply || 0 : 0; if (o.workDate.slice(0, 7) === k && q && q.totals) { sale += v; n++; } else if (o.workDate.slice(0, 7) === pk) ps += v; });
       var p = Math.round(sale / g * 100), d = new Date(), last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate() - d.getDate(); b.hidden = false;
-      b.innerHTML = '🎯 이달 매출 목표 ' + DECO.won(g) + ' 중 <b>' + DECO.won(sale) + ' (' + p + '%)</b> · 현장 ' + n + '곳' + '<div style="height:14px;background:#EADFCB;border-radius:7px;margin:8px 0 4px;overflow:hidden"><div style="height:100%;width:' + Math.min(100, p) + '%;background:' + (p >= 100 ? '#2E6A4E' : '#C98A1E') + '"></div></div><small style="font-weight:500">' + (p >= 100 ? '목표를 넘었습니다 👏' : '남은 금액 ' + DECO.won(g - sale) + ' · 이달 ' + last + '일 남음') + ' (시공일 기준 공급가)</small>'; }
+      b.innerHTML = '🎯 이달 매출 목표 ' + DECO.won(g) + ' 중 <b>' + DECO.won(sale) + ' (' + p + '%)</b> · 현장 ' + n + '곳' + '<div style="height:14px;background:#EADFCB;border-radius:7px;margin:8px 0 4px;overflow:hidden"><div style="height:100%;width:' + Math.min(100, p) + '%;background:' + (p >= 100 ? '#2E6A4E' : '#C98A1E') + '"></div></div><small style="font-weight:500">' + (p >= 100 ? '목표를 넘었습니다 👏' : '남은 금액 ' + DECO.won(g - sale) + ' · 이달 ' + last + '일 남음') + (ps ? ' · 지난달 전체 ' + DECO.won(ps) : '') + ' (시공일 기준 공급가)</small>'; }
     window.addEventListener('load', function () { bal(); goal(); asb(); setTimeout(asb, 8000); setInterval(asb, 60000); chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
   </script>
   <section class="todo" id="todo" hidden aria-label="오늘 할 일"><h2>✅ 오늘 할 일</h2><ul id="todoL"></ul></section>
@@ -167,6 +168,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   </nav>
   <h2 class="grp">고객·일정</h2>
   <nav class="menu tiles" aria-label="고객·일정">
+    <a href="call.html"><i aria-hidden="true">📞</i><b>전화 상담 접수</b><span>통화하며 적기 → 고객·상담 기록·실측 일정 한 번에</span></a>
     <a href="customers.html"><i aria-hidden="true">👥</i><b>고객 관리</b><span id="ccnt">상담 기록·견적·시공 내역</span></a>
     <a href="calendar.html"><i aria-hidden="true">📅</i><b>시공 달력</b><span>시공·실측·상담 일정</span></a>
   </nav>

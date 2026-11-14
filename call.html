@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전화 상담 접수 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.f{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f label{display:flex;flex-direction:column;gap:4px;font-size:15px;font-weight:700;color:var(--ink2)}
+.f input,.f select,.f textarea{font:inherit;font-size:18px;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;width:100%;font-weight:500}
+.f .w{grid-column:1/-1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:16px;height:42px;padding:0 14px;border:1px solid var(--bd);background:#fff;border-radius:10px;cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--pri);color:#fff;border-color:var(--pri)}
+.req{color:var(--no)}
+.done{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+@media (max-width:520px){.f{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">📞 전화 상담 접수</h1>
+  <p class="sub">통화하면서 적어 두세요. 「저장」을 누르면 ① 고객 등록 ② 상담 기록 ③ 실측 날짜가 있으면 달력 일정까지 한 번에 됩니다.</p>
+  <section class="card f" id="form">
+    <label>전화번호 <span class="req">(꼭)</span><input id="ph" type="tel" inputmode="tel" placeholder="010-0000-0000"></label>
+    <label>성함<input id="nm" placeholder="예: 김○○"></label>
+    <label class="w">주소·아파트<input id="ad" placeholder="예: 창원 의창구 ○○아파트 101동"></label>
+    <label>평수<input id="sz" placeholder="예: 34평"></label>
+    <label>알게 된 경로<select id="src"><option value="">고르기</option></select></label>
+    <div class="w"><b style="font-size:15px;color:var(--ink2)">원하는 곳</b><div class="chips" id="pl" style="margin-top:4px"></div></div>
+    <label class="w">상담 내용<textarea id="mm" rows="3" placeholder="예: 거실 우물천장 간접조명, 예산 300만 원 정도"></textarea></label>
+    <label>실측 희망 날짜<input id="md" type="date"></label>
+    <label>시간<input id="mt" type="time"></label>
+    <div class="w"><button class="btn2 pri" type="button" id="sv" style="height:52px;font-size:19px;width:100%">저장</button></div>
+  </section>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="done" id="done" hidden>
+    <a class="btn2 pri" id="goQ" href="#">📐 이 고객 견적 쓰기</a>
+    <a class="btn2" id="goC" href="#">👤 고객 화면 보기</a>
+    <button class="btn2" type="button" id="kMd" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800" hidden>💬 실측 방문 확인 카톡</button>
+    <button class="btn2" type="button" id="again">+ 다른 상담 접수</button>
+  </div>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, PL = ['거실', '주방', '안방', '작은방', '현관', '복도', '아이방', '상가·사무실'], pick = {}, last = null;
+  $('src').innerHTML += DECO.SOURCES.map(function (s) { return '<option>' + s + '</option>'; }).join('');
+  function chips() { $('pl').innerHTML = PL.map(function (p) { return '<button type="button" aria-pressed="' + !!pick[p] + '">' + p + '</button>'; }).join(''); }
+  $('pl').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; pick[b.textContent] = !pick[b.textContent]; chips(); });
+  function say(t, bad) { $('msg').className = 'msg' + (bad ? ' bad' : ''); $('msg').textContent = t; }
+  function when(d, t) { var x = new Date(d + 'T00:00'); return (x.getMonth() + 1) + '월 ' + x.getDate() + '일 (' + '일월화수목금토'[x.getDay()] + ')' + (t ? ' ' + (+t.slice(0, 2) < 12 ? '오전 ' : '오후 ') + ((+t.slice(0, 2) % 12) || 12) + '시' + (+t.slice(3, 5) ? ' ' + (+t.slice(3, 5)) + '분' : '') : ''); }
+  $('sv').addEventListener('click', function () { var ph = $('ph').value.trim(), nm = $('nm').value.trim(), ad = $('ad').value.trim(), sz = $('sz').value.trim(), md = $('md').value, mt = $('mt').value, mm = $('mm').value.trim(), pls = PL.filter(function (p) { return pick[p]; });
+    if (ph.replace(/\D/g, '').length < 9) { say('전화번호를 넣어 주세요.', true); $('ph').focus(); return; }
+    var id = DECO.ensureCustomer({ name: nm, phone: ph, addr: ad }), c = id && DECO.getCustomer(id); if (!c) { say('저장하지 못했습니다.', true); return; }
+    if ($('src').value && !c.source) c.source = $('src').value; if (sz && !c.size) c.size = sz;
+    var t = '📞 전화 상담' + (sz ? ' · ' + sz : '') + (pls.length ? ' · ' + pls.join(', ') : '') + (mm ? '\n' + mm : '') + (md ? '\n실측 희망 ' + when(md, mt) : '');
+    c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: t }); c.touched = Date.now(); DECO.saveCustomer(c);
+    if (md) DECO.saveEvent({ date: md, time: mt, kind: '실측 방문', title: (ad || '') + (pls.length ? ' / ' + pls.join(', ') : '') + ' / ' + ph, custId: id });
+    last = { c: c, md: md, mt: mt, ad: ad }; $('form').hidden = true; $('done').hidden = false; $('kMd').hidden = !md;
+    $('goQ').href = 'quote.html?cust=' + encodeURIComponent(id); $('goC').href = 'customer.html?id=' + encodeURIComponent(id);
+    say('✔ 저장했습니다: ' + (nm || ph) + ' 님 고객 등록·상담 기록' + (md ? '·실측 일정(' + when(md, mt) + ')' : '')); });
+  $('kMd').addEventListener('click', function () { if (!last) return; var c = last.c;
+    DECO.kakao(DECO.kfmt({ icon: '📏', title: '실측 방문 안내', info: [['👤', '고객', c.name ? c.name + ' 님' : ''], ['📅', '방문', when(last.md, last.mt)], ['📍', '주소', last.ad]], secs: [['방문하면', ['천장 크기를 재고 원하시는 조명을 같이 정합니다', '20~30분 정도 걸리고 비용은 없습니다']]], foot: ['일정이 바뀌면 편하게 연락 주세요. 감사합니다 🙏'] }), '실측 방문 확인 카톡'); });
+  $('again').addEventListener('click', function () { ['ph', 'nm', 'ad', 'sz', 'mm', 'md', 'mt'].forEach(function (k) { $(k).value = ''; }); $('src').value = ''; pick = {}; chips(); last = null; $('form').hidden = false; $('done').hidden = true; say(''); $('ph').focus(); });
+  chips();
+})();
+</script>
+</body>
+</html>

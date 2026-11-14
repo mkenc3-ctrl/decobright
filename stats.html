@@ -82,6 +82,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
       <button class="btn2" type="button" id="csvQ">견적 목록 엑셀</button>
       <button class="btn2" type="button" id="csvC">고객 목록 엑셀</button>
       <button class="btn2" type="button" id="csvO">작업 지시서 엑셀</button>
+      <button class="btn2" type="button" id="csvT" style="font-weight:800">🧾 세무사에게 보낼 달 자료 (보고 있는 달)</button>
       <label class="btn2" style="cursor:pointer">백업 파일 되살리기<input type="file" id="rs" accept=".json,application/json" hidden></label>
     </div>
     <p class="msg" id="bmsg" role="status"></p>
@@ -238,6 +239,17 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   $('bk').onclick = function () { var o = { app: 'decobright', ver: 1, at: new Date().toISOString(), data: {} }, n = 0;
     KEYS.forEach(function (k) { var v = rd(k); if (v != null) { o.data[k] = v; if (Array.isArray(v)) n += v.length; } });
     save('데코브라이트_백업_' + stamp() + '.json', JSON.stringify(o), 'application/json'); try { localStorage.setItem('deco-lastbk', String(Date.now())); } catch (e) {} msg('백업 파일을 받았습니다 (자료 ' + n + '건). 메일이나 카카오톡 「나에게 보내기」로 보관해 두세요.'); };
+  // 세무사 자료: 보고 있는 달의 매출(시공일 기준)·수금·지출·거래처 인건비를 한 파일로
+  $('csvT').onclick = function () { var k = Y + '-' + String(M + 1).padStart(2, '0'), PT = DECO.partners(), r = [['구분', '날짜', '상대·항목', '내용', '공급가', '부가세', '합계', '증빙', '발행·영수증', '비고']], n = 0;
+    DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, t = (q && q.totals) || {}, x = (q && q.tax) || {};
+      r.push(['매출', o.workDate, o.name || (q && q.cust && q.cust.name) || '', (q && q.no ? '견적 ' + q.no + ' · ' : '') + (o.addr || ''), t.supply || 0, t.vat || 0, t.total || 0, x.k || '안 정함', x.done ? '발행함' : (x.k === '세금계산서' || x.k === '현금영수증' ? '아직' : ''), '']); n++;
+      Object.keys(o.cost || {}).forEach(function (tr) { if (!+o.cost[tr]) return; var p = PT.filter(function (y) { return y.id === (o.trades && o.trades[tr] && o.trades[tr].partner); })[0];
+        r.push(['인건비·자재(현장)', (o.costPaid || {})[tr] || o.workDate, (p ? p.name + ' ' : '') + '(' + tr + ')', o.name || o.addr || '', '', '', +o.cost[tr], '', (o.costPaid || {})[tr] ? '지급함' : '아직 안 줌', '']); n++; }); });
+    Q.forEach(function (q) { (q.pays || []).forEach(function (p) { if ((p.d || '').slice(0, 7) !== k) return; r.push(['수금', p.d, (q.cust && q.cust.name) || '', '견적 ' + (q.no || '') + ' · ' + (p.kind || ''), '', '', +p.amt || 0, '', '', p.memo || '']); n++; }); });
+    DECO.exps().forEach(function (x) { if ((x.d || '').slice(0, 7) !== k) return; r.push(['지출', x.d, x.cat || '', x.memo || '', '', '', +x.amt || 0, x.pm || '', x.ph ? '영수증 사진 있음' : '', '']); n++; });
+    if (!n) { msg(k + ' 자료가 없습니다.', true); return; }
+    r.push([]); r.push(['※ 앱에 적은 기록으로 만든 참고 자료입니다. 영수증 사진은 「사진 보관함 → 기타」에 있습니다.']);
+    save('세무자료_' + k.replace('-', '') + '.csv', csv(r), 'text/csv'); msg(k + ' 세무 자료 ' + n + '줄을 엑셀 파일로 받았습니다. 카톡 「나에게 보내기」나 메일로 세무사님께 보내세요.'); };
   $('csvQ').onclick = function () { var r = [['견적번호', '만든 날', '고객', '전화', '주소', '상태', '패키지', '공급가', '부가세', '합계', '받은 돈', '남은 돈']];
     Q.forEach(function (q) { var c = q.cust || {}, t = q.totals || {}; r.push([q.no, dt(q.created), c.name, c.phone, c.addr, q.status || '상담', q.pkgName, t.supply, t.vat, amt(q), paid(q), amt(q) - paid(q)]); });
     save('견적목록_' + stamp() + '.csv', csv(r), 'text/csv'); msg('견적 ' + Q.length + '건을 엑셀 파일로 받았습니다.'); };
