@@ -110,6 +110,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소로 찾기" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
+  <div class="syncbox" id="asBox" hidden style="border-color:#B42318;background:#FDECEC;font-weight:700"></div>
   <a class="syncbox" id="okBox" href="list.html" hidden style="border-color:#2E6A4E;background:#E8F3EC;font-weight:700"></a>
   <a class="syncbox" id="upBox" href="photos.html?new=1" hidden style="border-color:#E0952B;background:#FCEBD2;font-weight:700"></a>
   <script>
@@ -123,7 +124,15 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
       var N = DECO.okq().filter(function (a) { return (a.at || 0) > seen; }), b = document.getElementById('okBox'); if (!b) return; if (!N.length) { b.hidden = true; return; }
       var y = N.filter(function (a) { return a.act === 'ok'; }); b.hidden = false;
       b.textContent = (y.length ? '✅ ' + y.map(function (a) { return (a.name || a.no) + ' 님'; }).join(', ') + '께서 견적대로 진행하겠다고 하셨습니다' : '🤔 ' + N.map(function (a) { return (a.name || a.no) + ' 님'; }).join(', ') + '께서 상담을 더 원하십니다') + (N.length > y.length && y.length ? ' (상담 요청 ' + (N.length - y.length) + '건 더)' : '') + ' · 눌러서 보기 ›'; }
-    window.addEventListener('load', function () { chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
+    // 고객 하자 접수 (일정에 넣으면 사라짐)
+    function asb() { var b = document.getElementById('asBox'), dn = {}; if (!b) return; try { dn = JSON.parse(localStorage.getItem('deco-asdone') || '{}'); } catch (e) {}
+      var L = []; try { L = JSON.parse(localStorage.getItem('deco-asreq') || '[]').filter(function (a) { return a && a.id && !a._del && !dn[a.id]; }); } catch (e) {} if (!L.length) { b.hidden = true; return; }
+      var E = DECO.esc; b.hidden = false; b.innerHTML = '🛠 고객 하자 접수 ' + L.length + '건' + L.map(function (a) { var d = new Date(a.at || 0);
+        return '<div style="margin-top:6px;font-weight:500">' + E(a.name || '고객') + ' 님 · ' + E((a.kinds || []).join(', ') || a.say || '') + ' · ' + (d.getMonth() + 1) + '/' + d.getDate() + (a.md ? ' · 희망 ' + E(a.md.slice(5).replace('-', '/')) : '') + (a.ph && a.ph.length ? ' · 사진 ' + a.ph.length + '장' : '') +
+          ' <a data-as="' + E(a.id) + '" href="calendar.html?kind=as&cust=' + encodeURIComponent(a.custId || '') + '&date=' + encodeURIComponent(a.md || '') + '&title=' + encodeURIComponent('하자: ' + ((a.kinds || []).join(', ') || a.say || '') + (a.phone ? ' / ' + a.phone : '')) + '" style="font-weight:800">📅 일정에 넣기 ›</a></div>'; }).join(''); }
+    document.addEventListener('click', function (e) { var a = e.target.closest('[data-as]'); if (!a) return; try { var dn = JSON.parse(localStorage.getItem('deco-asdone') || '{}'); dn[a.dataset.as] = Date.now(); localStorage.setItem('deco-asdone', JSON.stringify(dn)); } catch (x) {} });
+    (function w(n) { if (window.DECO && DECO.wxLoad) DECO.wxLoad(); else if (n < 20) setTimeout(function () { w(n + 1); }, 500); })(0);
+    window.addEventListener('load', function () { asb(); setTimeout(asb, 8000); setInterval(asb, 60000); chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
   </script>
   <section class="todo" id="todo" hidden aria-label="오늘 할 일"><h2>✅ 오늘 할 일</h2><ul id="todoL"></ul></section>
   <button type="button" class="syncbox brief" id="kMorning" style="background:#FEE500;border-color:#FEE500;color:#191919">☀ 오늘 할 일 카톡 <small style="color:#3a3a3a">단톡방에 보내기 · 현장·작업자·자재·내일</small></button>
@@ -199,7 +208,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
         call ? '다시 연락할 견적 고객이 ' + call + '명 있습니다.' : '', due ? '아직 받을 돈은 ' + won(due) + '입니다.' : ''];
       var text = parts.filter(Boolean).join(' ');
       document.getElementById('briefT').textContent = '오늘 시공 ' + O.length + '건 · 일정 ' + V.length + '건' + (call ? ' · 연락 ' + call + '명' : '');
-      document.getElementById('kMorning').onclick = function () { DECO.kakao(DECO.dayBrief(), '오늘 할 일 카톡'); };
+      document.getElementById('kMorning').onclick = function () { (DECO.wxLoad ? DECO.wxLoad() : Promise.resolve()).then(function () { DECO.kakao(DECO.dayBrief(), '오늘 할 일 카톡'); }); };
       document.getElementById('brief').onclick = function () { if (!DECO.speak('데코브라이트 오늘 브리핑입니다. ' + text)) alert(text); }; })();
     (function () { var T = [], td = DECO.today(), tm = new Date(); tm.setDate(tm.getDate() + 1); tm = DECO.ymd(tm), E2 = DECO.esc;
       DECO.orders().forEach(function (o) { if (o.status === '완료' || o.status === '보류') return;

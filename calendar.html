@@ -136,7 +136,9 @@
     DECO.kakao(DECO.kfmt({ icon: '📅', title: (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + '일월화수목금토'[d.getDay()] + ') 일정',
       secs: [['일정 ' + its.length + '건', its.length ? its.map(function (x, i) { return (i + 1) + '. ' + (x.time ? x.time + '  ' : '') + x.t + (x.s ? ' — ' + x.s : '') + (x.done ? ' (끝남)' : ''); }) : ['이 날 일정이 없습니다.']]] }), '일정 카톡'); });
   $('tod').addEventListener('click', function () { sel = DECO.today(); view = new Date(sel + 'T00:00'); resetForm(); draw(); });
-  resetForm(); if (P.get('cust')) { $('kind').value = P.get('kind') === 'as' ? '하자 보수 방문' : '실측 방문'; } draw();
+  resetForm(); if (P.get('cust') || P.get('kind')) { $('kind').value = P.get('kind') === 'as' ? '하자 보수 방문' : '실측 방문'; }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(P.get('date') || '')) f.elements.date.value = P.get('date'); if (P.get('title')) f.elements.title.value = P.get('title');
+  if (DECO.wxLoad) DECO.wxLoad(); draw();
 })();
 </script>
 </body>

@@ -232,6 +232,7 @@
     function wd(x) { return (x.getMonth() + 1) + '월 ' + x.getDate() + '일 (' + '일월화수목금토'[x.getDay()] + ')'; }
     var O = D.orders().filter(function (o) { return o.workDate === ds && o.status !== '보류'; }), site = [], mats = [];
     O.forEach(function (o, i) { site.push((i + 1) + '. ' + (o.name ? o.name + ' 님' : '현장') + (o.addr ? ' · ' + o.addr : '') + (o.status === '완료' ? ' (끝남)' : ''));
+      if (o.addr) site.push('- 🗺 길 안내 https://map.kakao.com/link/search/' + encodeURIComponent(o.addr));
       D.TRADES.forEach(function (t) { var b = o.trades && o.trades[t]; if (!b || !b.on) return; var p = ptn(b.partner);
         site.push('- ' + t + ' ' + (b.time || '') + (p ? '  ' + p.name + (p.phone ? ' ' + p.phone : '') : ''));
         if (b.mats) mats.push('- [' + t + '] ' + (o.name || o.addr || '') + ' : ' + String(b.mats).replace(/\n/g, ', ')); });
@@ -241,9 +242,17 @@
     var low = D.stock().filter(function (s) { return s.min && s.qty <= s.min; }).map(function (s) { return s.name + ' (지금 ' + s.qty + (s.unit || '개') + ')'; });
     var call = today ? D.alerts().filter(function (a) { return a.n === 0 && (a.lab === '연락' || /점검/.test(a.what || '')); }).map(function (a) { return D.alertText(a); }) : [];
     var t2 = new Date(d.getTime() + 864e5), ds2 = D.ymd(t2), nx = D.dayItems(ds2).map(function (x) { return (x.time ? x.time + '  ' : '') + x.t; });
-    return D.kfmt({ icon: '☀', title: today ? '오늘 할 일' : '할 일', info: [['📅', '날짜', wd(d)], ['📌', '요약', '시공 ' + O.length + '곳 · 일정 ' + EV.length + '건']],
+    var wx = D.wx(ds);
+    return D.kfmt({ icon: '☀', title: today ? '오늘 할 일' : '할 일', info: [['📅', '날짜', wd(d)], ['🌤', '날씨', wx], ['📌', '요약', '시공 ' + O.length + '곳 · 일정 ' + EV.length + '건']],
       secs: [['🛠 시공 현장', site.length ? site : ['시공 일정 없음']], ['📍 실측·상담·방문', EV], ['🧰 챙길 자재', mats], ['📦 주문할 재고', low], ['📞 연락할 고객', call], ['🔜 내일 ' + wd(t2), nx.length ? nx : ['일정 없음']]],
       foot: [today ? '오늘도 안전 작업 부탁드립니다! 💪' : ''] }); };
+  // 날씨 (창원 기준, 3일 예보를 기기에 기억)
+  var WXK = { 0: '☀ 맑음', 1: '🌤 대체로 맑음', 2: '⛅ 구름 조금', 3: '☁ 흐림', 45: '🌫 안개', 48: '🌫 안개' };
+  function wxName(c) { return WXK[c] || (c >= 95 ? '⛈ 뇌우' : c >= 80 ? '🌦 소나기' : c >= 71 && c <= 77 ? '❄ 눈' : c >= 51 && c <= 67 ? '🌧 비' : '☁ 흐림'); }
+  D.wx = function (ds) { var m = rd('deco-wx', {}), w = m[ds]; if (!w) return ''; return wxName(w.c) + ' ' + Math.round(w.lo) + '~' + Math.round(w.hi) + '℃' + (w.p != null ? ' · 비 올 확률 ' + w.p + '%' : '') + (w.p >= 60 ? ' (자재 젖지 않게 챙기세요)' : ''); };
+  D.wxLoad = function () { var m = rd('deco-wx', {}); if (m._at && Date.now() - m._at < 3 * 36e5) return Promise.resolve();
+    return fetch('https://api.open-meteo.com/v1/forecast?latitude=35.23&longitude=128.68&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FSeoul&forecast_days=3').then(function (r) { return r.json(); }).then(function (j) { var d = j.daily, o = { _at: Date.now() };
+      d.time.forEach(function (t, i) { o[t] = { c: d.weather_code[i], hi: d.temperature_2m_max[i], lo: d.temperature_2m_min[i], p: d.precipitation_probability_max ? d.precipitation_probability_max[i] : null }; }); try { localStorage.setItem('deco-wx', JSON.stringify(o)); } catch (e) {} }).catch(function () {}); };
   D.kfmt = function (o) { var s = D.settings(), L = [D.KL, (o.icon || '📋') + ' ' + s.company + ' ' + o.title, D.KL];
     (o.info || []).forEach(function (r) { if (r && r[2] !== '' && r[2] != null) L.push(r[0] + ' ' + r[1] + ' : ' + r[2]); });
     (o.secs || []).forEach(function (x) { var ls = (x[1] || []).filter(function (t) { return t != null && String(t).trim() !== ''; }); if (!ls.length) return;

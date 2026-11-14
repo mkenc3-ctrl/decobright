@@ -38,6 +38,12 @@
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn2 pri" type="button" id="addB">등록</button><button class="btn2" type="button" id="cp" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 주문할 것 카톡으로 보내기</button></div>
     <p class="msg" id="msg" role="status"></p>
   </div>
+  <div class="card" style="background:#FFF8EC;border:2px solid #E0952B">
+    <b style="font-size:18px">📅 앞으로 7일 시공 자재 계산</b>
+    <p class="sub" style="margin:4px 0 8px">시공 일정이 잡힌 견적의 항목 수량을 더해 지금 재고와 비교합니다. (패키지 구성품은 빼고 계산)</p>
+    <button class="btn2 pri" type="button" id="wk">계산하기</button>
+    <div id="wkB" style="margin-top:10px"></div>
+  </div>
   <div class="card" id="list"></div>
 </div>
 <script src="common.js"></script>
@@ -65,6 +71,18 @@
     DECO.kakao(DECO.kfmt({ icon: '📦', title: '자재 주문', info: [['📅', '날짜', DECO.date(Date.now())]], secs: [['주문할 자재', L.map(function (s) { return s.name + '  (지금 ' + s.qty + (s.unit || '개') + (s.min ? ' / 기준 ' + s.min : '') + ')'; })]], foot: ['수량·가격 확인 후 연락 부탁드립니다.'] }), '자재 주문 카톡'); return;
     var t = '[' + DECO.settings().company + ' 자재 주문]\n' + L.map(function (s) { return '- ' + s.name + ' (지금 ' + s.qty + (s.unit || '개') + ')'; }).join('\n');
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { m.className = 'msg'; m.textContent = '복사했습니다. 자재상에 문자나 카톡으로 붙여넣으세요.'; }, function () { m.className = 'msg'; m.textContent = t; }); };
+  var WK = [];
+  $('wk').onclick = function () { var t0 = DECO.today(), t7 = DECO.ymd(new Date(Date.now() + 7 * 864e5)), N = {}, site = [];
+    DECO.orders().filter(function (o) { return o.workDate && o.workDate >= t0 && o.workDate <= t7 && ['완료', '보류'].indexOf(o.status) < 0; }).forEach(function (o) { var q = o.quoteId && DECO.getQuote(o.quoteId); if (!q) return; site.push((o.name || o.addr || '현장') + ' ' + o.workDate.slice(5).replace('-', '/'));
+      (q.items || []).forEach(function (i) { if (!(+i.qty > 0)) return; N[i.name] = (N[i.name] || 0) + (+i.qty); }); });
+    var S = DECO.stock(); WK = Object.keys(N).map(function (n) { var s = S.filter(function (x) { return x.name === n; })[0] || S.filter(function (x) { return x.name.indexOf(n) >= 0 || n.indexOf(x.name) >= 0; })[0]; var have = s ? s.qty || 0 : null; return { n: n, need: N[n], have: have, unit: (s && s.unit) || '개', short: Math.max(0, N[n] - (have || 0)) }; });
+    if (!WK.length) { $('wkB').innerHTML = '<p class="sub">앞으로 7일 안에 견적과 연결된 시공 일정이 없습니다.</p>'; return; }
+    var sh = WK.filter(function (w) { return w.short; });
+    $('wkB').innerHTML = '<p class="sub" style="margin:0 0 6px">현장 ' + site.length + '곳: ' + E(site.join(', ')) + '</p><table style="width:100%;border-collapse:collapse;font-size:16px"><tr style="text-align:left"><th>자재</th><th>필요</th><th>재고</th><th>부족</th></tr>' +
+      WK.map(function (w) { return '<tr style="border-top:1px solid #ecdcc4' + (w.short ? ';color:#B42318;font-weight:700' : '') + '"><td>' + E(w.n) + '</td><td>' + w.need + '</td><td>' + (w.have == null ? '미등록' : w.have) + '</td><td>' + (w.short || '-') + '</td></tr>'; }).join('') + '</table>' +
+      (sh.length ? '<button class="btn2" type="button" id="wkK" style="margin-top:10px;background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 부족한 자재 ' + sh.length + '가지 주문 카톡</button>' : '<p style="color:#2E6A4E;font-weight:700;margin:10px 0 0">✔ 재고로 충분합니다.</p>'); };
+  $('wkB').addEventListener('click', function (e) { if (!e.target.closest('#wkK')) return; var sh = WK.filter(function (w) { return w.short; });
+    DECO.kakao(DECO.kfmt({ icon: '📦', title: '자재 주문', info: [['📅', '날짜', DECO.date(Date.now())], ['🗓', '쓸 곳', '앞으로 7일 시공']], secs: [['주문할 자재', sh.map(function (w) { return w.n + ' ' + w.short + w.unit; })]], foot: ['위 자재 주문 부탁드립니다. 입고 날짜 알려 주세요. 🙏'] }), '자재 주문 카톡'); });
   draw();
 })();
 </script>

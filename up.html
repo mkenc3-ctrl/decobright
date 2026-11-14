@@ -29,6 +29,8 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
 .msg.ok{color:var(--ok)}.msg.bad{color:var(--no)}
 .gal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block}
+.ckI{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid var(--line);font-size:18px;cursor:pointer}
+.ckI input{width:28px;height:28px;flex:none}
 .err{background:#fff;border:2px solid var(--no);border-radius:14px;padding:16px;font-size:18px}
 </style>
 </head>
@@ -44,6 +46,13 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
       <label class="big a" for="cam">📸 사진 찍기</label><input id="cam" type="file" accept="image/*" capture="environment">
       <label class="big b" for="fs">🖼 찍어 둔 사진 여러 장 고르기</label><input id="fs" type="file" accept="image/*" multiple>
       <p class="msg" id="msg" role="status"></p>
+    </div>
+    <div class="card" id="ckBox" hidden>
+      <b style="font-size:19px">✅ 마무리 점검표</b> <small style="color:var(--muted)">(끝나면 하나씩 누르세요)</small>
+      <div id="ckL" style="margin-top:8px"></div>
+      <label class="f" style="margin-top:8px">남길 말 <small style="font-weight:400;color:var(--muted)">(선택)</small><input id="ckM" maxlength="80" placeholder="예: 안방 다운라이트 1개 자재 부족"></label>
+      <button type="button" class="big a" id="ckGo">📨 점검표 보내기</button>
+      <p class="msg" id="ckMsg" role="status"></p>
     </div>
     <div class="card" id="doneBox" hidden><b id="doneT"></b><div class="gal" id="gal" style="margin-top:8px"></div></div>
     <p style="font-size:14px;color:var(--muted)">올린 사진은 사장님 앱의 「현장 사진 보관함」에 이 현장 사진으로 들어갑니다. 큰 사진은 저절로 줄여서 올립니다.</p>
@@ -67,8 +76,16 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
     if (!d.upk || d.upk !== key) return bad('사진 올리기 주소가 바뀌었거나 맞지 않습니다. 사장님께 새 주소를 받아 주세요.');
     ord = d; var dt = d.workDate ? new Date(d.workDate + 'T00:00') : null;
     $('hInfo').innerHTML = '📍 ' + esc(d.addr || d.name || '현장') + '<br>📅 ' + (dt ? (dt.getMonth() + 1) + '월 ' + dt.getDate() + '일 (' + '일월화수목금토'[dt.getDay()] + ')' : '') + (tr ? ' · 🛠 ' + esc(tr) : '');
-    $('main').hidden = false;
+    $('main').hidden = false; ckDraw();
   }, function () { bad('서버에 연결하지 못했습니다. 인터넷을 확인해 주세요.'); });
+  function ckDraw() { var T = [], tr0 = tr ? [tr] : Object.keys(ord.trades || {}).filter(function (t) { return ord.trades[t].on; });
+    tr0.forEach(function (t) { var b = (ord.trades || {})[t]; if (b && b.tasks) String(b.tasks).split('\n').forEach(function (x) { x = x.trim(); if (x && T.indexOf(x) < 0) T.push(x); }); });
+    T = T.concat(['모든 조명 켜고 끄기 확인', '리모컨·벽 스위치 작동 확인', '실링팬 흔들림·소음 없음', '천장 마감·틈 확인', '먼지 청소·쓰레기 정리', '고객에게 사용법 설명']);
+    $('ckL').innerHTML = T.map(function (x, i) { return '<label class="ckI"><input type="checkbox" value="' + esc(x) + '">' + esc(x) + '</label>'; }).join(''); $('ckBox').hidden = false; }
+  $('ckGo').onclick = function () { var I = [].slice.call(document.querySelectorAll('#ckL input')), ok = I.filter(function (i) { return i.checked; }).map(function (i) { return i.value; }), no = I.filter(function (i) { return !i.checked; }).map(function (i) { return i.value; }), m = $('ckMsg'), btn = this;
+    var nm = $('nm').value.trim(); try { localStorage.setItem('deco-up-name', nm); } catch (e) {} btn.disabled = true; m.className = 'msg'; m.textContent = '보내는 중…'; var id = oid + '_' + (tr || 'all');
+    C.from('records').upsert({ coll: 'chk', id: id, data: { id: id, oid: oid, tr: tr, by: nm || '작업자', at: Date.now(), ok: ok, no: no, memo: $('ckM').value.trim() } }, { onConflict: 'coll,id' }).then(function (r) { if (r.error) throw r.error; btn.disabled = false;
+      m.className = 'msg ok'; m.textContent = no.length ? '✔ 보냈습니다. 못 한 것 ' + no.length + '개도 사장님께 전해졌습니다.' : '✔ 모두 확인해서 보냈습니다. 수고하셨습니다!'; }, function () { btn.disabled = false; m.className = 'msg bad'; m.textContent = '보내지 못했습니다. 인터넷을 확인하고 다시 눌러 주세요.'; }); };
   $('stg').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (!b) return; stage = b.dataset.s; [].forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', String(x === b)); }); });
   function shrink(f) { return new Promise(function (ok, no) { var u = URL.createObjectURL(f), im = new Image();
     im.onload = function () { var k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
