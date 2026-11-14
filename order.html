@@ -179,8 +179,11 @@ h2.s{font-size:19px;margin:20px 0 8px}
     L.push('', '■ 작업 내용'); b.tasks.split('\n').filter(Boolean).forEach(function (x, i) { L.push((i + 1) + '. ' + x); });
     if (o.layout && (t === '전기' || t === '목수')) { L.push('', '■ 조명 배치'); (o.layout.list || []).forEach(function (x) { L.push('· ' + x); }); L.push('(배치도 그림은 인쇄본·사진으로 따로 보냅니다)'); }
     if (b.mats) L.push('', '■ 준비 자재', b.mats); if (MS.length) L.push('', '■ 실측 (cm)', MS.join('\n')); if (o.notes) L.push('', '■ 주의사항', o.notes);
-    L.push('', '같은 날 : ' + TR.filter(function (x) { return o.trades[x].on; }).map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → '), '문의 ' + s.phone); return L.join('\n'); }
+    L.push('', '같은 날 : ' + TR.filter(function (x) { return o.trades[x].on; }).map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → '), '문의 ' + s.phone, '', '📸 완료 사진 올리기: ' + upLink(t)); return L.join('\n'); }
   // 카톡에 붙여넣기 좋은 지시서 (공종 하나 또는 전체)
+  // 작업자 완료 사진 올리기 주소 (지시서마다 비밀 열쇠 upk)
+  function upLink(t) { if (!o.upk) { o.upk = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6); DECO.saveOrder(o); }
+    return 'https://mkenc3-ctrl.github.io/decobright/up.html?o=' + encodeURIComponent(o.id) + (t ? '&t=' + encodeURIComponent(t) : '') + '&k=' + o.upk; }
   function kOrder(ts) { var on = TR.filter(function (x) { return o.trades[x].on; }), secs = [];
     ts.forEach(function (t) { var b = o.trades[t], p = ptn(b.partner), hd = ts.length > 1 ? '[' + t + '] ' : '';
       secs.push([hd + '작업 내용' + (b.time ? ' (' + b.time + ' 도착)' : '') + (ts.length > 1 && p ? ' · ' + p.name : ''), b.tasks.split('\n').filter(Boolean).map(function (x, i) { return (i + 1) + '. ' + x; })]);
@@ -191,7 +194,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
     return DECO.kfmt({ icon: '🛠', title: '작업 지시서' + (ts.length === 1 ? ' · ' + ts[0] : ''),
       info: [['📅', '날짜', dstr() + (one && one.time ? ' ' + one.time + ' 도착' : '')], ['📍', '현장', o.addr], ['👷', '현장 책임', o.lead], ['💡', '조명 색', o.color], ['🔖', '지시서', o.no],
         ['🔁', '같은 날', on.length > 1 ? on.map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → ') : '']],
-      secs: secs, foot: ['끝나면 완료 사진 보내 주세요. 수고하세요! 🙏'] }); }
+      secs: secs, foot: ['📸 끝나면 아래 주소를 눌러 완료 사진을 올려 주세요.', upLink(ts.length === 1 ? ts[0] : ''), '', '수고하세요! 🙏'] }); }
   $('kAll').addEventListener('click', function () { if (!save()) return; var on = TR.filter(function (x) { return o.trades[x].on; });
     if (!on.length) { $('msg').className = 'msg bad'; $('msg').textContent = '공종(목수·전기·도배)을 하나 이상 켜 주세요.'; return; } DECO.kakao(kOrder(on), '전체 작업 지시 카톡'); });
   $('trs').addEventListener('click', function (e) { var b = e.target.closest('[data-kk]'); if (!b) return; if (!save()) return; DECO.kakao(kOrder([b.dataset.kk]), b.dataset.kk + ' 작업 지시 카톡'); });
