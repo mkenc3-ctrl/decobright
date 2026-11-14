@@ -105,6 +105,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
         <button class="btn2" type="button" id="iAll" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 지시서 그림으로 카톡</button>
         <button class="btn2" type="button" id="kAll" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 전체 지시 카톡 (단톡방용)</button>
         <button class="btn2" type="button" id="kAS" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🔧 1년 무상 점검 안내 카톡</button>
+        <button class="btn2" type="button" id="nbr" style="font-weight:800">🏢 이웃 공사 안내문 (엘리베이터·현관 게시용 그림)</button>
         <button class="btn2" type="button" id="kPre" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🏠 시공 전날 고객 안내 카톡</button>
         <button class="btn2" type="button" id="kST" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">📋 고객용 진행 현황 링크 카톡</button>
         <button class="btn2" type="button" id="kWar" style="font-weight:800">📄 시공 완료 확인서·보증서 (그림)</button>
@@ -305,6 +306,18 @@ h2.s{font-size:19px;margin:20px 0 8px}
     DECO.kakao(DECO.kfmt({ icon: '📋', title: '시공 진행 현황 안내', info: [['👤', '고객', o.name ? o.name + ' 님' : ''], ['📍', '현장', o.addr]], secs: [['이 주소에서 볼 수 있어요', ['시공 날짜와 지금 진행 단계', '계약 금액·받은 금액·남은 금액', '시공 후 후기 남기기·하자 접수']]],
       foot: ['아래 주소를 저장해 두시면 언제든 진행 상황을 보실 수 있습니다.', '📋 진행 현황 보기\n' + u] }), '진행 현황 링크 카톡'); });
   // 시공 전날 고객 안내 (준비할 것)
+  // 이웃 공사 안내문 (그림 → 인쇄해 붙이거나 관리사무소에 보내기)
+  $('nbr').addEventListener('click', function () { var btn = this; if (btn.disabled || !save()) return; if (!o.workDate) { alert('먼저 시공일을 정해 주세요.'); return; }
+    var S = DECO.settings(), d = new Date(o.workDate + 'T00:00'), ds = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + '일월화수목금토'[d.getDay()] + ')';
+    var ho = (String(o.addr || '').match(/[0-9]+동\s*[0-9]+호|[0-9]+호/) || [''])[0], tr = TR.filter(function (t) { return o.trades[t] && o.trades[t].on; });
+    btn.disabled = true;
+    DECO.docImg({ title: '공사 안내', date: DECO.date(Date.now()), to: '이웃 주민 여러분께',
+      info: [['공사 세대', ho || '이 건물 세대'], ['공사 날짜', ds], ['작업 시간', (o.workTime || '09:00') + ' ~ 18:00 (소음 작업은 짧게 하겠습니다)'], ['공사 내용', '실내 조명·천장 공사 (' + (tr.join('·') || '조명') + ')']],
+      secs: [['양해 말씀', [['드릴·타카 소리가 잠깐씩 날 수 있습니다.', ''], ['엘리베이터는 보양재를 대고 깨끗하게 쓰겠습니다.', ''], ['작업 뒤 복도·엘리베이터 청소를 하겠습니다.', ''], ['불편하신 점은 아래 번호로 바로 연락 주세요.', '']]]],
+      notes: ['공사 동안 불편을 드려 죄송합니다. 너그러운 양해 부탁드립니다.', '시공 업체 : ' + S.company + ' · ' + S.phone] })
+      .then(function (bl) { return DECO.shareImg(bl, '공사안내문_' + (o.workDate || '') + '.jpg', '[' + S.company + '] ' + ds + ' 공사 안내문입니다. 엘리베이터·현관 게시 부탁드립니다.'); })
+      .then(function (m) { $('msg').className = 'msg'; $('msg').textContent = m; }, function (x) { $('msg').className = 'msg bad'; $('msg').textContent = '그림을 만들지 못했습니다: ' + (x && x.message || x); })
+      .then(function () { btn.disabled = false; }); });
   $('kPre').addEventListener('click', function () { if (!save()) return; var S = DECO.settings(), d = o.workDate ? new Date(o.workDate + 'T00:00') : null, tm = o.workTime || '';
     if (!d) { alert('먼저 시공일을 정해 주세요.'); return; }
     var wd = (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + '일월화수목금토'[d.getDay()] + ')' + (tm ? ' ' + (+tm.slice(0, 2) < 12 ? '오전 ' : '오후 ') + ((+tm.slice(0, 2) % 12) || 12) + '시' + (+tm.slice(3, 5) ? ' ' + (+tm.slice(3, 5)) + '분' : '') : ''), tr = Object.keys(o.trades || {}).filter(function (t) { return o.trades[t] && o.trades[t].on; });
