@@ -146,7 +146,7 @@ h2{font-size:17px;background:var(--pri);color:#fff;padding:8px 12px;border-radiu
     var A = { id: qid, qid: qid, act: b.dataset.a, at: Date.now(), name: (Q.cust && Q.cust.name) || '', no: Q.no || '', tm: $('tm').value.trim(), say: $('say').value.trim(), k: key };
     var R = drops(); if (R.length) { A.drop = R.map(function (x) { return x.n; }); A.want = want(); }
     var md = [$('mdD').value, $('mdT').value].filter(Boolean).join(' '); if (md) A.md = md;
-    C.from('records').upsert({ coll: 'okq', id: qid, data: A }, { onConflict: 'coll,id' }).then(function (r) { if (r.error) throw r.error; doneMsg(A); },
+    C.from('records').upsert({ coll: 'okq', id: qid, data: A }, { onConflict: 'coll,id' }).then(function (r) { if (r.error) throw r.error; doneMsg(A); C.functions.invoke('notify', { body: { coll: 'okq', id: qid } }).catch(function () {}); },
       function () { b.disabled = false; m.className = 'msg bad'; m.textContent = '보내지 못했습니다. 인터넷을 확인하거나 전화로 연락 주세요.'; }); });
 })();
 </script>

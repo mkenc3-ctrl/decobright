@@ -74,7 +74,7 @@ textarea{display:block;width:100%;margin-top:4px;font:inherit;font-size:18px;bor
   $('go').onclick = function () { var m = $('msg'), btn = this; if (!star) { m.className = 'msg bad'; m.textContent = '별을 눌러 주세요.'; return; }
     btn.disabled = true; m.className = 'msg'; m.textContent = '보내는 중…';
     var R = { id: oid, oid: oid, star: star, text: $('tx').value.trim(), ok: $('ok').checked, nm: mask(ord.name), area: String(ord.addr || '').split(/\s+/).slice(0, 2).join(' '), at: Date.now() };
-    C.from('records').upsert({ coll: 'rvq', id: oid, data: R }, { onConflict: 'coll,id' }).then(function (r) { if (r.error) throw r.error; $('main').hidden = true; $('done').hidden = false; $('done').textContent = '✔ 후기를 보냈습니다. 정말 감사합니다! 불편한 점이 생기면 언제든 연락 주세요.'; },
+    C.from('records').upsert({ coll: 'rvq', id: oid, data: R }, { onConflict: 'coll,id' }).then(function (r) { if (r.error) throw r.error; C.functions.invoke('notify', { body: { coll: 'rvq', id: oid } }).catch(function () {}); $('main').hidden = true; $('done').hidden = false; $('done').textContent = '✔ 후기를 보냈습니다. 정말 감사합니다! 불편한 점이 생기면 언제든 연락 주세요.'; },
       function () { btn.disabled = false; m.className = 'msg bad'; m.textContent = '보내지 못했습니다. 인터넷을 확인하고 다시 눌러 주세요.'; }); };
 })();
 </script>

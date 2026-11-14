@@ -176,8 +176,20 @@
     document.addEventListener('visibilitychange', function () { if (!document.hidden && S.member) sync(); });
     setInterval(function () { if (S.member && (!document.hidden || (window.Notification && Notification.permission === 'granted'))) sync(); }, 60000);
     window.addEventListener('online', function () { if (S.member) sync(); });
+    setTimeout(pushReg, 3000);
     emit();
   }
+  // ---------- 서버 알림 (앱을 꺼 둬도 휴대폰에 알림) ----------
+  var PUSH_PUB = 'BEF8hPtZJupghdggfkBwvOrYG7xplRP7zvPNA3XEsxRkqLyNIcMp7dl8iiOZMl9sfEAIyMavmNdpAXwkh5r1GDw';
+  function b64u(s) { var p = '='.repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+  function pushReg() { if (!S.client || !('serviceWorker' in navigator) || !('PushManager' in window) || !window.Notification || Notification.permission !== 'granted') return;
+    if (window.DECO && DECO.staff && DECO.staff()) return;
+    navigator.serviceWorker.ready.then(function (r) { return r.pushManager.getSubscription().then(function (s) { return s || r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(PUSH_PUB) }); }); }).then(function (s) {
+      var j = s.toJSON(), old = localStorage.getItem('deco-pushsub'); if (old === j.endpoint) return;
+      var h = 0; for (var i = 0; i < j.endpoint.length; i++) h = (h * 31 + j.endpoint.charCodeAt(i)) | 0; var id = 'ps' + (h >>> 0).toString(36);
+      return S.client.from('records').upsert({ coll: 'pushsub', id: id, data: { id: id, sub: j, at: Date.now(), dev: /iPhone|iPad/.test(navigator.userAgent) ? '아이폰' : /Android/.test(navigator.userAgent) ? '안드로이드' : '컴퓨터' } }, { onConflict: 'coll,id' })
+        .then(function (r) { if (!r.error) localStorage.setItem('deco-pushsub', j.endpoint); }); }).catch(function () {}); }
+  window.DECO_PUSH = pushReg;
 
   window.DECO_SYNC = {
     changed: changed, sync: function () { return sync(); }, state: function () { return S; }, on: function (f) { listeners.push(f); f(S); },

@@ -291,7 +291,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     A.forEach(function (a) { var t = '데코브라이트 · ' + (a.n === 0 ? '오늘 작업' : a.n === 1 ? '내일 작업' : a.n + '일 뒤 작업'), b = DECO.alertText(a);
       if (navigator.serviceWorker && navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(function (r) { r.showNotification(t, { body: b, tag: a.key, icon: 'icons/icon.svg' }); }).catch(function () { try { new Notification(t, { body: b }); } catch (e) {} });
       else try { new Notification(t, { body: b }); } catch (e) {} }); }
-  nb.addEventListener('click', function (e) { e.stopPropagation(); Notification.requestPermission().then(function (p) { if (p === 'granted') { nb.hidden = true; pop(); } }); });
+  nb.addEventListener('click', function (e) { e.stopPropagation(); Notification.requestPermission().then(function (p) { if (p === 'granted') { nb.hidden = true; pop(); if (window.DECO_PUSH) DECO_PUSH(); } }); });
   if (fresh()) pop();
 })();
 </script>

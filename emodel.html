@@ -408,14 +408,14 @@ body.tv .page,body.tv .cbar{display:none!important}
   $('aPh').onchange = function () { var fl = [].slice.call(this.files || []).filter(function (f) { return /^image\//.test(f.type); }).slice(0, 5), m = $('aMsg'); this.value = ''; if (!fl.length) return;
     var v = function (id) { return ($(id) && $(id).value || '').trim(); }, nm = v('aNm'), ad = v('aAd'), tel = v('aTel').replace(/[^\d-]/g, '');
     if (tel.replace(/\D/g, '').length < 9) { m.className = 'msg bad'; m.textContent = '사진을 보시고 연락드릴 수 있게 연락처를 먼저 적어 주세요.'; $('aTel').focus(); return; }
-    var ck = [].slice.call(document.querySelectorAll('#aCk input:checked')).map(function (x) { return x.value; }), done = 0;
+    var ck = [].slice.call(document.querySelectorAll('#aCk input:checked')).map(function (x) { return x.value; }), done = 0, LP = '';
     var memo = '[손님 사진] ' + [nm, ad, tel, v('aPy'), ck.join('·'), v('aTm') ? '편한 시간 ' + v('aTm') : ''].filter(Boolean).join(' · ');
     m.className = 'msg'; m.textContent = '사진 올리는 중… 화면을 닫지 마세요';
     sb().then(function (C) { return fl.reduce(function (p, f) { return p.then(function () { return shrink(f).then(function (b) {
       var now = Date.now(), id = 'p' + now.toString(36) + Math.random().toString(36).slice(2, 6), path = 'p/' + id + '.jpg';
       var meta = { id: id, job: '', stage: '시공 전', memo: memo, taken: f.lastModified || now, added: now, by: '손님 ' + (nm || tel), cust: { name: nm, phone: tel, addr: ad }, path: path };
       return C.storage.from('photos').upload(path, b, { upsert: true, contentType: 'image/jpeg' }).then(function (x) { if (x.error) throw x.error;
-        return C.from('records').upsert({ coll: 'photos', id: id, data: meta }, { onConflict: 'coll,id' }); }).then(function (x) { if (x.error) throw x.error; done++; }); }); }); }, Promise.resolve()); })
+        return C.from('records').upsert({ coll: 'photos', id: id, data: meta }, { onConflict: 'coll,id' }); }).then(function (x) { if (x.error) throw x.error; done++; LP = id; }); }); }); }, Promise.resolve()).then(function () { if (LP) C.functions.invoke('notify', { body: { coll: 'photos', id: LP, n: done } }).catch(function () {}); }); })
       .then(function () { m.className = 'msg'; m.textContent = '✔ 사진 ' + done + '장을 보냈습니다. 사진을 보고 대략 견적을 만들어 ' + tel + ' 로 연락드리겠습니다. (사진과 연락처는 상담에만 씁니다)'; },
         function () { m.className = 'msg bad'; m.textContent = '사진을 보내지 못했습니다. 인터넷을 확인하거나, 문자로 ' + (S.phone || '저희 번호') + ' 에 사진을 보내 주세요.'; }); };
   $('aPh0') && ($('aPh0').onchange = function () { var f = this.files && this.files[0], m = $('aMsg'); this.value = ''; if (!f) return;

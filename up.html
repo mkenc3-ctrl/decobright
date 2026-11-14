@@ -63,7 +63,7 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); }, P = new URLSearchParams(location.search), oid = P.get('o') || '', tr = P.get('t') || '', key = P.get('k') || '';
-  var C = null, ord = null, stage = '시공 후', n = 0;
+  var C = null, ord = null, stage = '시공 후', n = 0, LASTP = '';
   function bad(t) { $('main').hidden = true; $('bad').hidden = false; $('bad').textContent = t; $('hInfo').textContent = '데코브라이트'; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   try { $('nm').value = localStorage.getItem('deco-up-name') || ''; } catch (e) {}
@@ -85,7 +85,7 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
   $('ckGo').onclick = function () { var I = [].slice.call(document.querySelectorAll('#ckL input')), ok = I.filter(function (i) { return i.checked; }).map(function (i) { return i.value; }), no = I.filter(function (i) { return !i.checked; }).map(function (i) { return i.value; }), m = $('ckMsg'), btn = this;
     var nm = $('nm').value.trim(); try { localStorage.setItem('deco-up-name', nm); } catch (e) {} btn.disabled = true; m.className = 'msg'; m.textContent = '보내는 중…'; var id = oid + '_' + (tr || 'all');
     C.from('records').upsert({ coll: 'chk', id: id, data: { id: id, oid: oid, tr: tr, by: nm || '작업자', at: Date.now(), ok: ok, no: no, memo: $('ckM').value.trim() } }, { onConflict: 'coll,id' }).then(function (r) { if (r.error) throw r.error; btn.disabled = false;
-      m.className = 'msg ok'; m.textContent = no.length ? '✔ 보냈습니다. 못 한 것 ' + no.length + '개도 사장님께 전해졌습니다.' : '✔ 모두 확인해서 보냈습니다. 수고하셨습니다!'; }, function () { btn.disabled = false; m.className = 'msg bad'; m.textContent = '보내지 못했습니다. 인터넷을 확인하고 다시 눌러 주세요.'; }); };
+      C.functions.invoke('notify', { body: { coll: 'chk', id: id } }).catch(function () {}); m.className = 'msg ok'; m.textContent = no.length ? '✔ 보냈습니다. 못 한 것 ' + no.length + '개도 사장님께 전해졌습니다.' : '✔ 모두 확인해서 보냈습니다. 수고하셨습니다!'; }, function () { btn.disabled = false; m.className = 'msg bad'; m.textContent = '보내지 못했습니다. 인터넷을 확인하고 다시 눌러 주세요.'; }); };
   $('stg').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (!b) return; stage = b.dataset.s; [].forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', String(x === b)); }); });
   function shrink(f) { return new Promise(function (ok, no) { var u = URL.createObjectURL(f), im = new Image();
     im.onload = function () { var k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
@@ -100,9 +100,9 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
       var meta = { id: id, job: ord.quoteId || '', stage: stage, memo: memo, w: r.w, h: r.h, taken: f.lastModified || now, added: now, by: nm || '작업자', order: oid, path: path };
       return C.storage.from('photos').upload(path, r.blob, { upsert: true, contentType: 'image/jpeg' }).then(function (x) { if (x.error) throw x.error;
         return C.from('records').upsert({ coll: 'photos', id: id, data: meta }, { onConflict: 'coll,id' }); }).then(function (x) { if (x.error) throw x.error;
-        done++; n++; m.textContent = '올리는 중… ' + done + ' / ' + fl.length + '  (화면을 닫지 마세요)';
+        done++; n++; LASTP = id; m.textContent = '올리는 중… ' + done + ' / ' + fl.length + '  (화면을 닫지 마세요)';
         var im = document.createElement('img'); im.src = URL.createObjectURL(r.blob); im.alt = ''; $('gal').insertBefore(im, $('gal').firstChild); $('doneBox').hidden = false; $('doneT').textContent = '✔ 지금까지 올린 사진 ' + n + '장'; }); }); }); }, Promise.resolve())
-      .then(function () { m.className = 'msg ok'; m.textContent = '✔ ' + done + '장을 올렸습니다. 감사합니다! 더 올릴 사진이 있으면 계속 누르세요.'; },
+      .then(function () { if (LASTP) C.functions.invoke('notify', { body: { coll: 'photos', id: LASTP, n: done } }).catch(function () {}); m.className = 'msg ok'; m.textContent = '✔ ' + done + '장을 올렸습니다. 감사합니다! 더 올릴 사진이 있으면 계속 누르세요.'; },
         function (e) { m.className = 'msg bad'; m.textContent = '올리지 못했습니다 (' + done + '장까지 올라감). 인터넷을 확인하고 다시 눌러 주세요.'; }); }
   $('cam').onchange = function () { up(this.files); this.value = ''; };
   $('fs').onchange = function () { up(this.files); this.value = ''; };

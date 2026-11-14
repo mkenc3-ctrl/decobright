@@ -85,7 +85,7 @@ textarea,select{display:block;width:100%;margin-top:4px;font:inherit;font-size:1
         return C.from('records').upsert({ coll: 'photos', id: pid, data: { id: pid, job: ord.quoteId || '', stage: '하자·보수', memo: '[하자 접수] ' + K.join(', '), taken: f.lastModified || now, added: Date.now(), by: '손님 ' + (ord.name || ''), order: oid, path: path } }, { onConflict: 'coll,id' }); })
         .then(function (x) { if (x.error) throw x.error; PH.push(pid); }); }); }); }, Promise.resolve())
     .then(function () { return C.from('records').upsert({ coll: 'asreq', id: id, data: { id: id, oid: oid, custId: ord.custId || '', name: ord.name || '', addr: ord.addr || '', phone: tel, kinds: K, say: say, md: $('md').value, ph: PH, at: now } }, { onConflict: 'coll,id' }); })
-    .then(function (x) { if (x && x.error) throw x.error; $('main').hidden = true; $('ok').hidden = false; $('ok').textContent = '✔ 접수했습니다. 확인하고 ' + tel + ' 로 연락드리겠습니다. 불편을 드려 죄송합니다.'; },
+    .then(function (x) { if (x && x.error) throw x.error; C.functions.invoke('notify', { body: { coll: 'asreq', id: id } }).catch(function () {}); $('main').hidden = true; $('ok').hidden = false; $('ok').textContent = '✔ 접수했습니다. 확인하고 ' + tel + ' 로 연락드리겠습니다. 불편을 드려 죄송합니다.'; },
       function () { btn.disabled = false; m.className = 'msg bad'; m.textContent = '접수하지 못했습니다. 인터넷을 확인하거나 전화로 연락 주세요.'; }); };
 })();
 </script>
