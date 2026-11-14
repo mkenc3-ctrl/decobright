@@ -169,6 +169,15 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     <a class="main" href="quote.html"><b>새 견적 작성</b><span>견적 → 계약 안내 문자까지</span></a>
     <a href="list.html"><b>견적 목록</b><span id="cnt">이 기기에 저장한 견적</span></a>
   </nav>
+  <h2 class="grp">🏠 e모델하우스 <small style="font-size:14px;font-weight:400">고객과 같이 보는 전시관</small></h2>
+  <div class="card" style="background:linear-gradient(135deg,#2A211C,#5A3A22);color:#FBF2E4;border:0;padding:16px;margin-bottom:12px">
+    <p style="margin:0 0 10px;font-size:17px;line-height:1.5">실제 시공 현장에서 <b>불 켜 보기 · 빛 색 바꾸기</b>, 패키지 금액, <b>우리 집 예상 금액 계산</b>, 실측 날짜 고르기까지 고객이 한 화면에서 봅니다.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <a class="btn2" href="emodel.html" style="background:#F0B05A;border-color:#F0B05A;color:#2A211C;font-weight:800;font-size:17px">🏠 e모델하우스 열기</a>
+      <button class="btn2" type="button" id="emK" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 고객에게 링크 카톡</button>
+      <a class="btn2" href="qr.html" style="background:transparent;color:#FBF2E4;border-color:#8A6A4E">🔳 QR 전단</a>
+    </div>
+  </div>
   <h2 class="grp" id="favH" hidden>⭐ 자주 여는 화면</h2>
   <nav class="menu tiles" id="fav" aria-label="자주 여는 화면" hidden></nav>
   <h2 class="grp fold">고객·일정</h2>
@@ -181,7 +190,6 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <nav class="menu tiles" aria-label="현장 작업">
     <a href="orders.html"><i aria-hidden="true">📋</i><b>작업 지시서</b><span id="ocnt">목수·전기·도배 거래처 지시·연락처, 문자 보내기</span></a>
     <a href="mats.html"><i aria-hidden="true">📦</i><b>자재 준비 목록</b><span>이번 주 시공 자재를 모아 더하고 챙긴 것 체크</span></a>
-    <a href="emodel.html"><i aria-hidden="true">🏠</i><b>e모델하우스</b><span>고객과 함께 시공 후 모습 미리 켜 보기</span></a>
     <a href="expense.html"><i aria-hidden="true">🧾</i><b>지출 장부</b><span>기름값·공구·식대, 이달 순이익</span></a>
     <a href="stock.html"><i aria-hidden="true">🧰</i><b>자재 재고</b><span>남은 수량, 모자라면 주문 알림</span></a>
     <a href="photos.html"><i aria-hidden="true">📷</i><b>작업 사진 보관함</b><span>현장별 시공 전·중·후 사진</span></a>
@@ -319,6 +327,10 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   var q = document.getElementById('q'), box = document.getElementById('sres'), E = DECO.esc;
   function dg(s) { return String(s || '').replace(/\D/g, ''); }
   function hit(t, w, d) { t = String(t || '').toLowerCase(); return t.indexOf(w) >= 0 || (d.length >= 3 && dg(t).indexOf(d) >= 0); }
+  // e모델하우스 링크 카톡 + 공개용 바쁜 날 갱신
+  document.getElementById('emK').onclick = function () { var s = DECO.settings(), u = 'https://mkenc3-ctrl.github.io/decobright/house.html';
+    DECO.kakao(DECO.kfmt({ icon: '🏠', title: 'e모델하우스 안내', secs: [['이런 걸 보실 수 있어요', ['실제 시공 현장에서 불 켜 보기·빛 색 바꾸기', '패키지별 금액과 우리 집 예상 금액 계산', '실측 가능한 날 골라 상담 신청']]], foot: ['아래 주소를 눌러 둘러보세요 👇', u] }), 'e모델하우스 링크 카톡'); };
+  try { DECO.pubFree(); } catch (e) {}
   // 자주 여는 화면: 3번 넘게 연 화면 중 많이 연 4개
   (function () { var v = {}; try { v = JSON.parse(localStorage.getItem('deco-visits') || '{}'); } catch (e) {}
     var A = {}; [].forEach.call(document.querySelectorAll('nav.menu.tiles a[href]'), function (a) { var h = a.getAttribute('href'); if (!A[h]) A[h] = a; });

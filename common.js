@@ -136,6 +136,24 @@
   D.saveEvent = function (e) { var all = rd(KE, []); if (!e.id) e.id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); e.updated = Date.now();
     var next = all.filter(function (x) { return x.id !== e.id; }); next.push(e); return wr(KE, next) ? e : null; };
   D.delEvent = function (id) { return wr(KE, rd(KE, []).filter(function (x) { return x.id !== id; })); };
+  // ---------- 공개용 「바쁜 날」 (e모델하우스 실측 희망일 고르기에 씀, 개인 정보 없음) ----------
+  D.pubFree = function () { var t0 = D.today(), e = new Date(); e.setDate(e.getDate() + 35); var t1 = e.getFullYear() + '-' + pad(e.getMonth() + 1) + '-' + pad(e.getDate()), B = {};
+    D.orders().forEach(function (o) { if (o.workDate && o.workDate >= t0 && o.workDate <= t1 && o.status !== '보류' && o.status !== '완료') B[o.workDate] = (B[o.workDate] || 0) + 2; });
+    D.events().forEach(function (x) { if (x.date && x.date >= t0 && x.date <= t1 && !x.done && /실측|시공|하자/.test(x.kind || '')) B[x.date] = (B[x.date] || 0) + (x.kind === '시공 예정' ? 2 : 1); });
+    var old = rd('deco-pub', []).filter(function (x) { return x && x.id === 'free'; })[0];
+    if (old && JSON.stringify(old.busy) === JSON.stringify(B) && old.from === t0) return;
+    wr('deco-pub', [{ id: 'free', from: t0, busy: B, at: Date.now() }]); };
+  // ---------- 주소 → 시·군 / 구 (구가 없으면 읍·면·동) ----------
+  D.region = (function () {
+    return function (a) { var T = String(a || '').replace(/[(),]/g, ' ').split(/\s+/).filter(Boolean), si = '', gu = '', i = 0;
+    for (; i < T.length; i++) { var t = T[i];
+      if (/(특별시|광역시|특별자치시)$/.test(t) || /^(서울|부산|대구|인천|광주|대전|울산|세종)$/.test(t)) { si = t.replace(/(특별시|광역시|특별자치시)$/, ''); i++; break; }
+      if (/(도|특별자치도)$/.test(t) && !/(시|군)$/.test(t)) continue;
+      if (/[가-힣](시|군)$/.test(t)) { si = t; i++; break; } }
+    if (!si) return { si: '', gu: '' };
+    for (; i < T.length && i < 5; i++) { if (/[가-힣]구$/.test(T[i])) { gu = T[i]; break; } if (!gu && /[가-힣](읍|면|동|가)$/.test(T[i]) && !/[0-9]/.test(T[i])) { gu = T[i]; break; } }
+    return { si: si, gu: gu }; };
+  })();
   // ---------- 다른 화면에서 넣은 날짜 → 시공 달력에 자동 등록 (연결 일정 id는 L로 시작, 날짜를 지우면 달력에서도 빠짐) ----------
   function linkEv(id, date, kind, time, custId, title) { var all = rd(KE, []), old = all.filter(function (x) { return x.id === id; })[0];
     if (!date) { if (old) wr(KE, all.filter(function (x) { return x.id !== id; })); return; }

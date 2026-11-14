@@ -60,6 +60,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   </div>
   <h2 class="grp">이달 견적 상태</h2>
   <div class="card"><table class="tb" id="st"></table></div>
+  <h2 class="grp">지역별 고객·계약 <small style="font-size:14px;font-weight:400">(주소의 시·구 기준 · 전체 기간)</small></h2>
+  <div class="card" style="overflow-x:auto"><table class="tb" id="regT"></table></div>
   <h2 class="grp">고객을 알게 된 경로 (전체) <button class="btn2" type="button" id="imgSrc" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 경로 그림</button></h2>
   <div class="card"><table class="tb" id="src"></table></div>
   <h2 class="grp">이번 분기 부가세 미리 보기 <small style="font-size:14px;font-weight:400">(참고용 · 신고는 세무사와 확인)</small></h2>
@@ -310,6 +312,11 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
       rows += '<tr' + (m === now.getMonth() ? ' style="font-weight:800"' : '') + '><td>' + (m + 1) + '월</td><td class="n">' + (a ? W(a) : '-') + '</td><td class="n">' + (fut ? '' : b ? W(b) : '-') + '</td><td class="n" style="color:' + (b - a < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (fut || (!a && !b) ? '' : (b - a < 0 ? '－' + W(a - b) : '＋' + W(b - a))) + '</td></tr>'; }
     rows += '<tr style="font-weight:800;border-top:2px solid var(--line)"><td>1~' + (now.getMonth() + 1) + '월 합계</td><td class="n">' + W(cA) + '</td><td class="n">' + W(cB) + '</td><td class="n" style="color:' + (cB - cA < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (cA ? Math.round((cB - cA) / cA * 100) + '%' : '') + '</td></tr>';
     $('yoy').innerHTML = rows; })();
+  (function () { var G = {}, CS = DECO.customers(); if (!CS.length) { $('regT').innerHTML = '<tr><td>아직 고객이 없습니다.</td></tr>'; return; }
+    CS.forEach(function (c) { var r = DECO.region(c.addr), k = r.si ? r.si + (r.gu ? ' ' + r.gu : '') : '주소 없음', g = G[k] = G[k] || { n: 0, c: 0, s: 0 }, Qc = DECO.custQuotes(c).filter(function (q) { return DONE[q.status]; }); g.n++; if (Qc.length) g.c++; g.s += Qc.reduce(function (t, q) { return t + amt(q); }, 0); });
+    var ks = Object.keys(G).sort(function (a, b) { return G[b].s - G[a].s || G[b].n - G[a].n; }), mx = Math.max.apply(null, ks.map(function (k) { return G[k].s; })) || 1;
+    $('regT').innerHTML = '<tr><th>지역</th><th style="text-align:right">고객</th><th style="text-align:right">계약</th><th style="text-align:right">계약 금액</th><th style="width:28%"></th></tr>' + ks.map(function (k) { var g = G[k];
+      return '<tr><td><a href="customers.html">' + E(k) + '</a></td><td class="n">' + g.n + '명</td><td class="n">' + g.c + '명</td><td class="n">' + (g.s ? W(g.s) : '-') + '</td><td><div style="height:12px;border-radius:6px;background:#C4572A;width:' + Math.round(g.s / mx * 100) + '%"></div></td></tr>'; }).join(''); })();
   $('csvT').onclick = function () { var k = Y + '-' + String(M + 1).padStart(2, '0'), PT = DECO.partners(), r = [['구분', '날짜', '상대·항목', '내용', '공급가', '부가세', '합계', '증빙', '발행·영수증', '비고']], n = 0;
     DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, t = (q && q.totals) || {}, x = (q && q.tax) || {};
       r.push(['매출', o.workDate, o.name || (q && q.cust && q.cust.name) || '', (q && q.no ? '견적 ' + q.no + ' · ' : '') + (o.addr || ''), t.supply || 0, t.vat || 0, t.total || 0, x.k || '안 정함', x.done ? '발행함' : (x.k === '세금계산서' || x.k === '현금영수증' ? '아직' : ''), '']); n++;

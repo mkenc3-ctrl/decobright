@@ -58,3 +58,61 @@
     return n ? '가상 자료 ' + n + '개를 지웠습니다. (다른 기기에서도 곧 사라집니다)' : '지울 가상 자료가 없습니다.';
   };
 })();
+// ── 나머지 카테고리 가상 자료 (지출·고정 지출·재고·메모·일정·사진·평가·후기·하자 접수·손님 답·점검표) ──
+(function () {
+  var D = window.DECO; if (!D || !D.demoAdd) return;
+  var X = ['deco-exp', 'deco-fixexp', 'deco-stock', 'deco-memos', 'deco-asreq', 'deco-okq', 'deco-chk', 'deco-rvq'];
+  function rd(k) { try { return JSON.parse(localStorage.getItem(k) || '[]') || []; } catch (e) { return []; } }
+  function put(k, v) { localStorage.setItem(k, JSON.stringify(v)); if (window.DECO_SYNC && DECO_SYNC.changed) DECO_SYNC.changed(k, v); }
+  function day(n) { var d = new Date(); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function at(ds, h) { return new Date(ds + 'T' + String(h).padStart(2, '0') + ':00').getTime(); }
+  function rid(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function pic(t1, t2, warm) { return new Promise(function (ok) { var c = document.createElement('canvas'); c.width = 1080; c.height = 810; var g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 810);
+    gr.addColorStop(0, warm ? '#3a2a1e' : '#cfc8bf'); gr.addColorStop(1, warm ? '#f2c27a' : '#8f8a84'); g.fillStyle = gr; g.fillRect(0, 0, 1080, 810);
+    if (warm) { g.fillStyle = 'rgba(255,214,150,.85)'; g.fillRect(140, 150, 800, 16); g.fillRect(140, 150, 16, 120); g.fillRect(924, 150, 16, 120); }
+    g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 640, 1080, 170); g.fillStyle = '#fff'; g.font = '800 64px sans-serif'; g.fillText(t1, 50, 720); g.font = '500 38px sans-serif'; g.fillText(t2, 50, 780);
+    c.toBlob(function (b) { ok(b); }, 'image/jpeg', 0.85); }); }
+  var base = D.demoAdd, bdel = D.demoDel, bcnt = D.demoCount;
+  D.demoCount = function () { var n = bcnt(); X.forEach(function (k) { n += rd(k).filter(function (x) { return x && x.demo; }).length; }); return n; };
+  D.demoAdd = function () { var m = base(); if (/^이미/.test(m)) return m;
+    var C = {}; D.customers().filter(function (c) { return c.demo; }).forEach(function (c) { C[c.name.replace('(가상) ', '')] = c; });
+    var Q = {}; D.list().filter(function (q) { return q.demo; }).forEach(function (q) { Q[q.cust.name.replace('(가상) ', '')] = q; });
+    var O = {}; D.orders().filter(function (o) { return o.demo; }).forEach(function (o) { O[o.name.replace('(가상) ', '')] = o; });
+    var P = D.partners().filter(function (p) { return p.demo; }), pid = function (t) { return (P.filter(function (p) { return p.trade === t; })[0] || {}).id || ''; };
+    // 지시서: 출발·작업 시작·완료 시간, 거래처 평가, 고객 후기, 준비물
+    var RV = { '김민수': [5, '거실이 완전히 달라졌어요. 실링팬 바람도 조용하고 좋습니다.'], '한미경': [5, '꼼꼼하게 해 주시고 청소까지 깔끔했어요.'], '임동현': [4, '우물천장 조명 예쁩니다. 일정이 하루 밀린 것만 아쉬워요.'] };
+    Object.keys(O).forEach(function (k) { var o = O[k], wd = o.workDate;
+      if (o.status === '완료') { o.prog = { go: at(wd, 8), 'in': at(wd, 9), done: at(wd, 15) + Math.round(Math.random() * 5) * 600000 };
+        o.prate = { '목수': { s: 5, m: '마감 깔끔', pid: pid('목수'), at: at(wd, 18) }, '전기': { s: 4, m: '조금 늦게 도착', pid: pid('전기'), at: at(wd, 18) } };
+        if (RV[k]) o.review = { star: RV[k][0], text: RV[k][1], ok: true, at: at(wd, 20), from: 'app' }; }
+      if (o.status === '진행') { o.prog = { go: at(wd, 8), 'in': at(wd, 9) }; o.prep = { '타카·타카 핀': 1, '사다리': 1, 'LED 바·드라이버(SMPS)': 1 }; }
+      D.saveOrder(o); });
+    // 일정: 자재 입고·하자 보수 방문·기타·상담
+    [[3, '10:00', '자재 입고', '', '(가상) LED 바·T5 등기구 입고 (오성민 현장용)'], [6, '14:00', '하자 보수 방문', C['김민수'] && C['김민수'].id, '(가상) 간접등 한쪽 깜빡임 점검'], [8, '11:00', '기타', '', '(가상) 조명 자재 업체 미팅'], [1, '16:00', '상담', C['강수진'] && C['강수진'].id, '(가상) 전화 상담 약속']]
+      .forEach(function (e) { D.saveEvent({ date: day(e[0]), time: e[1], kind: e[2], custId: e[3] || '', title: e[4], done: false, demo: 1 }); });
+    // 메모
+    [['할 일', '(가상) 다음 주 자재 주문', 'T5 1200mm 20개\nLED 바 2m 30개\n타카 핀 2통', true], ['상담', '(가상) 김해 장유 문의 메모', '우물천장만 원함, 예산 100만 원 안쪽'], ['현장', '(가상) 상남동 대동아파트 주차', '지하 2층 방문 차량 등록 필요'], ['자재', '(가상) 실링팬 재고 확인', '우드 2대, 화이트 1대 남음']]
+      .forEach(function (m) { D.saveMemo({ cat: m[0], title: m[1], body: m[2], pin: !!m[3], demo: 1 }); });
+    // 지출 (이번 달·지난달) + 매달 고정 지출
+    [[-1, '기름값', 68000, '카드', '창원→부산 현장'], [-3, '식대', 36000, '카드', '현장 점심 3명'], [-5, '소모품', 42000, '현금', '타카 핀·실리콘'], [-8, '공구·장비', 189000, '카드', '레이저 수평기'], [-12, '광고', 150000, '계좌이체', '블로그 광고'], [-20, '차량', 55000, '카드', '엔진오일 교환'], [-35, '기름값', 72000, '카드', '김해 현장'], [-40, '소모품', 31000, '현금', '보양 비닐']]
+      .forEach(function (x) { D.saveExp({ d: day(x[0]), cat: x[1], amt: x[2], pm: x[3], memo: '(가상) ' + x[4], demo: 1 }); });
+    var fx = rd('deco-fixexp'); fx.push({ id: rid('f'), cat: '통신', amt: 66000, pm: '카드', memo: '(가상) 휴대폰 2대', day: 25, demo: 1 }, { id: rid('f'), cat: '차량', amt: 450000, pm: '계좌이체', memo: '(가상) 화물차 할부', day: 10, demo: 1 }); put('deco-fixexp', fx);
+    // 재고 (T5 등기구는 「주문 필요」)
+    [['(가상) LED 바 2m', 24, '개', 10], ['(가상) T5 등기구 1200mm', 6, '개', 8], ['(가상) 다운라이트 3인치', 40, '개', 15], ['(가상) 실링팬 우드', 2, '대', 1], ['(가상) SMPS 150W', 9, '개', 5], ['(가상) 타카 핀', 3, '통', 2]]
+      .forEach(function (s) { D.saveStock({ name: s[0], qty: s[1], unit: s[2], min: s[3], demo: 1 }); });
+    // 손님이 보낸 것: 하자 접수·견적 답·작업자 점검표
+    var now = Date.now(), om = O['김민수'], ol = O['이영희'], qj = Q['정우진'];
+    if (om) { var a = rd('deco-asreq'); a.push({ id: rid('a'), oid: om.id, custId: om.custId, name: om.name, addr: om.addr, phone: om.phone, kinds: ['간접등 깜빡임'], say: '(가상) 거실 커튼박스 간접등 한쪽이 가끔 깜빡여요.', md: '평일 오후', ph: [], at: now - 864e5, demo: 1 }); put('deco-asreq', a); }
+    if (qj) { var k = rd('deco-okq'); k.push({ id: qj.id, qid: qj.id, act: 'ok', at: now - 3 * 3600e3, name: qj.cust.name, no: qj.no, tm: '평일 저녁 7시 이후', say: '(가상) 이 견적으로 진행하고 싶어요. 실측 날짜 알려 주세요.', k: '', demo: 1 }); put('deco-okq', k); }
+    if (ol) { var h = rd('deco-chk'); h.push({ id: rid('h'), oid: ol.id, tr: '목수', by: '(가상) 박목수', at: now - 2 * 3600e3, ok: ['몰딩 마감', '커튼박스 보강', '먼지 청소'], no: [], memo: '(가상) 목공 끝, 전기팀 오후 투입', demo: 1 }); put('deco-chk', h); }
+    // 소개 감사 혜택 기록
+    if (C['김민수']) { var cm = D.getCustomer(C['김민수'].id); cm.perks = [{ d: D.date(Date.now() - 20 * 864e5), what: '(가상) 상품권 3만 원' }]; D.saveCustomer(cm); }
+    // 현장 사진 (그림으로 만든 가상 사진)
+    var PH = [['김민수', '시공 전', '(가상) 시공 전', '용호동 거실 · 공사 전', false], ['김민수', '시공 후', '(가상) 시공 후', '용호동 거실 · 실링팬·간접등', true], ['한미경', '시공 후', '(가상) 시공 후', '온천동 거실 · 간접등', true], ['이영희', '시공 중', '(가상) 시공 중', '상남동 · 목공 작업', false]];
+    PH.reduce(function (p, x) { return p.then(function () { var q = Q[x[0]]; if (!q) return; return pic(x[2], x[3], x[4]).then(function (b) { return D.photoAdd({ blob: b, job: q.id, stage: x[1], memo: x[2] + ' ' + x[3], taken: Date.now() - 864e5, by: '사장님', demo: 1 }); }); }); }, Promise.resolve());
+    return m + ' 지출·고정 지출·재고·메모·일정·사진 4장·평가·후기·하자 접수·손님 답·점검표도 넣었습니다.'; };
+  D.demoDel = function () { var m = bdel(), n = 0;
+    X.forEach(function (k) { var a = rd(k), b = a.filter(function (x) { return !(x && x.demo); }); n += a.length - b.length; if (a.length !== b.length) put(k, b); });
+    if (D.photoAll) D.photoAll().then(function (A) { A.filter(function (p) { return p.demo; }).forEach(function (p) { D.photoDel(p.id); }); });
+    return n ? '가상 자료를 모두 지웠습니다 (사진 포함). 다른 기기에서도 곧 사라집니다.' : m; };
+})();

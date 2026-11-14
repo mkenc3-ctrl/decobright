@@ -96,14 +96,7 @@
     return { nc: nc, nr: nr, c: c, n: Q.length, st: st, won: won, due: due, ago: last ? Math.floor((Date.now() - last) / 864e5) : 999 };
   });
   // ── 주소에서 시·군 / 구(없으면 읍·면·동) 뽑기 ──
-  function region(a) { var T = String(a || '').replace(/[(),]/g, ' ').split(/\s+/).filter(Boolean), si = '', gu = '', i = 0;
-    for (; i < T.length; i++) { var t = T[i];
-      if (/(특별시|광역시|특별자치시)$/.test(t) || /^(서울|부산|대구|인천|광주|대전|울산|세종)$/.test(t)) { si = t.replace(/(특별시|광역시|특별자치시)$/, ''); i++; break; }
-      if (/(도|특별자치도)$/.test(t) && !/(시|군)$/.test(t)) continue;
-      if (/[가-힣](시|군)$/.test(t)) { si = t; i++; break; } }
-    if (!si) return { si: '', gu: '' };
-    for (; i < T.length && i < 5; i++) { if (/[가-힣]구$/.test(T[i])) { gu = T[i]; break; } if (!gu && /[가-힣](읍|면|동|가)$/.test(T[i]) && !/[0-9]/.test(T[i])) { gu = T[i]; break; } }
-    return { si: si, gu: gu }; }
+  var region = DECO.region;
   C.forEach(function (x) { var r = region(x.c.addr); x.si = r.si || '주소 없음·모름'; x.gu = r.gu || '(구·동 모름)'; x.cd = x.c.created || x.c.updated || 0; x.ld = Date.now() - x.ago * 864e5; });
   var $f = function (id) { return document.getElementById(id); };
   function siOpts() { var N = {}; C.forEach(function (x) { N[x.si] = (N[x.si] || 0) + 1; }); var v = $f('fSi').value;

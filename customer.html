@@ -61,6 +61,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     <p class="msg" id="msg" role="status"></p>
   </form>
   <div id="more" hidden>
+    <div id="flow" style="margin:6px 0 14px"></div>
     <h2 class="s">상담 기록 <small>통화·방문 내용을 짧게 남기세요</small></h2>
     <div id="logs"></div>
     <div class="addlog"><input type="date" id="ld" aria-label="날짜"><input type="text" id="lt" data-mic placeholder="예: 실측 방문 약속, 실링팬 우드 원함" aria-label="상담 내용"><button class="btn2 pri" type="button" id="la">기록 추가</button></div>
@@ -118,6 +119,28 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
       .then(function (bl) { return DECO.shareImg(bl, '소개쿠폰_' + (c.name || code) + '.jpg', '[' + S.company + '] ' + (c.name ? c.name + ' 님, ' : '') + '시공을 맡겨 주셔서 감사합니다. 주변에 조명·천장 공사 생각하시는 분께 이 쿠폰을 전해 주세요 🎁'); })
       .then(function (m) { var x = $('msg'); x.className = 'msg'; x.textContent = m; }, function (er) { var x = $('msg'); x.className = 'msg bad'; x.textContent = '그림을 만들지 못했습니다: ' + (er && er.message || er); })
       .then(function () { btn.disabled = false; }); });
+  // 진행 한눈에: 상담 → 견적 → 실측 → 계약 → 시공 → 입금 → 완료 (가장 최근 견적 기준)
+  function flowD() { if (!c) return; var W = DECO.won, dt = function (t) { if (!t) return ''; var d = typeof t === 'string' ? new Date(t + 'T00:00') : new Date(t); return (d.getMonth() + 1) + '/' + d.getDate(); };
+    var Q = DECO.custQuotes(c).filter(function (q) { return q.status !== '보류'; }), q = Q[0] || null, R = ['상담', '실측', '계약', '시공', '완료'], si = q ? R.indexOf(q.status || '상담') : -1;
+    var o = q ? DECO.orders().filter(function (x) { return x.quoteId === q.id && x.status !== '보류'; })[0] : null, tot = q && q.totals ? q.totals.total || 0 : 0, pd = q ? (q.pays || []).reduce(function (s, p) { return s + (+p.amt || 0); }, 0) : 0, td = DECO.today();
+    var S = [['상담', true, dt(c.created || (c.logs && c.logs[0] && c.logs[0].date))], ['견적', !!q, q ? dt(q.created) : ''],
+      ['실측', si >= 1 || !!(q && q.visit && q.visit.d && q.visit.d <= td), q && q.visit && q.visit.d ? dt(q.visit.d) + (q.visit.d > td ? ' 예정' : '') : ''],
+      ['계약', si >= 2, q && q.sign && q.sign.at ? dt(q.sign.at) : (q && q.pays && q.pays[0] ? dt(q.pays[0].d) : '')],
+      ['시공', si >= 3 || !!(o && o.workDate && o.workDate <= td), o && o.workDate ? dt(o.workDate) + (o.workDate > td ? ' 예정' : '') : (q && q.wish ? dt(q.wish) + ' 희망' : '')],
+      ['입금', tot > 0 && pd >= tot, tot ? (pd >= tot ? '완납' : W(pd) + ' / ' + W(tot)) : ''], ['완료', si >= 4, o && o.status === '완료' ? dt(o.workDate) : '']];
+    var cur = S.map(function (x) { return x[1]; }).indexOf(false), nx = '';
+    if (!q) nx = '견적을 만들어 보내세요. <a href="quote.html?cust=' + encodeURIComponent(c.id) + '">새 견적 ›</a>';
+    else if (cur === 2) nx = q.visit && q.visit.d ? '실측 방문 ' + dt(q.visit.d) + (q.visit.t ? ' ' + q.visit.t : '') + ' — 다녀오면 견적 상태를 「실측」으로 바꾸세요.' : '실측 날짜를 잡으세요. <a href="quote.html?id=' + encodeURIComponent(q.id) + '">견적서 일정 칸 ›</a>';
+    else if (cur === 3) nx = '계약을 받으세요. <a href="contract.html?id=' + encodeURIComponent(q.id) + '">계약 안내 ›</a> · <a href="sign.html?id=' + encodeURIComponent(q.id) + '">전자 계약서 ›</a>';
+    else if (cur === 4) nx = o ? '시공일 ' + dt(o.workDate) + ' — <a href="order.html?id=' + encodeURIComponent(o.id) + '">작업 지시서 ›</a>' : '작업 지시서를 만들고 시공일을 정하세요. <a href="order.html?quote=' + encodeURIComponent(q.id) + '">지시서 만들기 ›</a>';
+    else if (cur === 5) nx = '받을 돈 <b>' + W(Math.max(0, tot - pd)) + '</b> — <a href="stats.html#pay">수금 관리 ›</a>';
+    else if (cur === 6) nx = o ? '시공 끝나면 지시서를 「완료」로 바꾸고 확인서·보증서를 보내세요. <a href="order.html?id=' + encodeURIComponent(o.id) + '">지시서 ›</a>' : '';
+    else if (cur < 0) nx = '모두 끝났습니다 👏 후기·소개 쿠폰을 보내 보세요.';
+    $('flow').innerHTML = '<div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px"><b style="font-size:18px">🧭 진행 한눈에</b>' + (q && q.pkgName ? ' <small style="color:var(--muted)">' + E(q.pkgName) + (q.no ? ' · ' + E(q.no) : '') + '</small>' : '') +
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">' + S.map(function (x, i) { var st = x[1] ? 'background:#2E6A4E;color:#fff;border-color:#2E6A4E' : i === cur ? 'background:#FFF1D6;color:#8A5A12;border-color:#E0952B;border-width:2px' : 'background:#F4F1EC;color:#9A9089;border-color:#E2DBD2';
+        return '<span style="flex:1 1 74px;min-width:74px;text-align:center;border:1px solid;border-radius:10px;padding:6px 4px;' + st + '"><b style="display:block;font-size:16px">' + (x[1] ? '✔ ' : i === cur ? '▶ ' : '') + x[0] + '</b><small style="font-size:13px">' + E(x[2] || '') + '</small></span>'; }).join('') + '</div>' +
+      (nx ? '<p style="margin:0;font-size:16px">👉 <b>다음 할 일 :</b> ' + nx + '</p>' : '') + '</div>'; }
+  if (c) setTimeout(flowD, 0);
   $('kCust').addEventListener('click', function () { if (!c) return; var W = DECO.won;
     var Q = DECO.list().filter(function (q) { return q.custId === c.id || (c.phone && q.cust && q.cust.phone && q.cust.phone.replace(/\D/g, '') === String(c.phone).replace(/\D/g, '')); });
     var O = DECO.orders().filter(function (o) { return Q.some(function (q) { return q.id === o.quoteId; }); });

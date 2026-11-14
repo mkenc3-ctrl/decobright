@@ -149,6 +149,7 @@
     var a = document.createElement('a'), u = URL.createObjectURL(bl); a.href = u; a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
     alert('일정 ' + V.length + '건 파일을 받았습니다. 받은 파일을 누르면 휴대폰 달력에 들어갑니다.\n(같은 파일을 다시 넣어도 겹치지 않고 고쳐집니다)'); });
   // 앞으로 2주 중 시공이 없는 날(일요일 빼고)을 손님에게 안내
+  try { DECO.pubFree(); } catch (e) {}
   $('kFree').addEventListener('click', function () { var busy = {}, L = [], d = new Date(); DECO.orders().forEach(function (o) { if (o.workDate && o.status !== '보류' && o.status !== '완료') busy[o.workDate] = (busy[o.workDate] || 0) + 1; });
     DECO.events().forEach(function (e) { if (e.kind === '시공' && e.date) busy[e.date] = (busy[e.date] || 0) + 1; });
     for (var i = 1; i <= 21 && L.length < 8; i++) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate() + i), ds = DECO.ymd(x); if (x.getDay() === 0 || busy[ds]) continue; L.push((x.getMonth() + 1) + '월 ' + x.getDate() + '일 (' + '일월화수목금토'[x.getDay()] + ')'); }
