@@ -71,7 +71,7 @@
   $('nw').addEventListener('click', function () { clearTimeout(timer); save(); open(null); $('tt').focus(); });
   $('cp').addEventListener('click', function (e) { e.stopImmediatePropagation(); var t = $('tt').value.trim(), b = $('bd').value.trim(); DECO.kakao((t ? '📝 ' + t + '\n' + DECO.KL + '\n' : '') + b, '메모 카톡'); });
   $('cp').addEventListener('click', function () { var t = ($('tt').value + '\n' + $('bd').value).trim(); navigator.clipboard && navigator.clipboard.writeText(t).then(function () { $('msg').textContent = '복사했습니다.'; }); });
-  $('dl').addEventListener('click', function () { if (!cur || !confirm('이 메모를 지울까요?\n지운 메모는 되살릴 수 없습니다.')) return; DECO.delMemo(cur.id); open(null); draw(); $('msg').textContent = '지웠습니다.'; });
+  $('dl').addEventListener('click', function () { if (!cur || !confirm('이 메모를 지울까요?\n30일 안에는 휴지통에서 되살릴 수 있습니다.')) return; DECO.delMemo(cur.id); open(null); draw(); $('msg').textContent = '지웠습니다.'; });
   $('qs').addEventListener('input', draw);
   window.addEventListener('pagehide', function () { clearTimeout(timer); save(); });
   chips($('fcats'), '', true); open(null); draw();

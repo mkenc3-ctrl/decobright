@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>휴지통 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.L{display:flex;flex-direction:column;gap:8px}
+.ti{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.ti b{font-size:17px}
+.ti small{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+.k{display:inline-block;font-size:13px;font-weight:800;background:var(--warm-s);color:#8A5A12;border-radius:6px;padding:2px 8px;margin-right:6px}
+</style>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">🛟 휴지통</h1>
+  <p class="sub">이 기기에서 지운 견적·고객·작업 지시서·거래처·일정·메모·지출이 <b>30일 동안</b> 남아 있습니다. 「되살리기」를 누르면 원래대로 돌아오고 다른 기기에도 다시 보입니다.</p>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="L" id="L"></div>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc;
+  function nm(t) { var x = t.item || {}, c = x.cust || {}; return x.title || x.name || c.name || x.no || x.memo || x.cat || x.kind || '(이름 없음)'; }
+  function sub(t) { var x = t.item || {}; return [x.no, x.phone || (x.cust && x.cust.phone), x.addr || (x.cust && x.cust.addr), x.workDate || x.date || x.d, x.amt ? DECO.won(x.amt) : '', x.totals && x.totals.total ? DECO.won(x.totals.total) : ''].filter(Boolean).join(' · '); }
+  function draw() { var L = DECO.trash(); $('L').innerHTML = L.length ? L.map(function (t) { var d = new Date(t.at), left = 30 - Math.floor((Date.now() - t.at) / 864e5);
+    return '<div class="ti"><div><b><span class="k">' + E(t.kind) + '</span>' + E(nm(t)) + '</b><small>' + E(sub(t)) + (sub(t) ? ' · ' : '') + (d.getMonth() + 1) + '/' + d.getDate() + ' 지움 · ' + left + '일 뒤 사라짐</small></div><button class="btn2 pri" type="button" data-r="' + t.at + '">↩ 되살리기</button></div>'; }).join('') : '<div class="empty">휴지통이 비어 있습니다.</div>'; }
+  $('L').addEventListener('click', function (e) { var b = e.target.closest('[data-r]'); if (!b) return; var ok = DECO.restore(+b.dataset.r); $('msg').className = 'msg' + (ok ? '' : ' bad'); $('msg').textContent = ok ? '✔ 되살렸습니다.' : '되살리지 못했습니다.'; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

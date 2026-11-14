@@ -78,6 +78,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
       <div class="chk" id="chk"></div>
       <h2 class="s">내부 정산 <small style="font-weight:400;font-size:14px">(거래처 문자·인쇄에는 안 나갑니다)</small></h2>
       <div class="cost" id="cost"></div>
+      <div id="stOut" style="margin-top:8px"></div>
       <h2 class="s">거래처 작업 평가 <small style="font-weight:400;font-size:14px">(시공 뒤 · 거래처 목록에 평균 별점으로 보임)</small></h2>
       <div id="prt"></div>
       <h2 class="s">고객 후기 <small style="font-weight:400;font-size:14px">(시공 뒤 고객 반응)</small></h2>
@@ -155,6 +156,15 @@ h2.s{font-size:19px;margin:20px 0 8px}
   var CN = TR.map(function (t) { return [t, t + ' 인건비']; }).concat([['자재', '자재비'], ['기타', '기타 비용 (운반·주차 등)']]);
   function rateOf(t) { var b = o.trades && o.trades[t]; if (!b || !b.on || !b.partner) return 0; var p = ptn(b.partner); return p ? +p.rate || 0 : 0; }
   function costFill() { var n = 0; $('cost').querySelectorAll('[data-c]').forEach(function (i) { var v = rateOf(i.dataset.c); if (!i.value && v) { i.value = v; n++; } }); if (n) { costSum(); save(); } return n; }
+  // 견적 항목 수량만큼 재고에서 빼기 (한 번만)
+  function stDraw() { var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, n = q ? (q.items || []).filter(function (i) { return +i.qty > 0; }).length : 0; if (!n) { $('stOut').innerHTML = ''; return; }
+    $('stOut').innerHTML = o.stockOut ? '<span style="color:var(--ok);font-weight:700">✔ ' + E(o.stockOut.d) + ' 재고에서 뺐습니다 (' + E(o.stockOut.t) + ')</span>' : '<button class="btn2" type="button" id="stGo">📦 이 현장 자재 재고에서 빼기 (' + n + '가지)</button>'; }
+  document.addEventListener('click', function (e) { if (e.target.id !== 'stGo') return; var q = DECO.getQuote(o.quoteId), S = DECO.stock(), done = [], miss = [];
+    (q.items || []).forEach(function (i) { if (!(+i.qty > 0)) return; var s = S.filter(function (x) { return x.name === i.name; })[0] || S.filter(function (x) { return x.name.indexOf(i.name) >= 0 || i.name.indexOf(x.name) >= 0; })[0];
+      if (!s) { miss.push(i.name); return; } s.qty = Math.max(0, (+s.qty || 0) - (+i.qty)); DECO.saveStock(s); done.push(s.name + ' －' + i.qty + ' (남은 ' + s.qty + ')'); });
+    if (!done.length) { alert('재고 목록에 같은 이름의 자재가 없습니다.' + (miss.length ? '\n(' + miss.join(', ') + ')' : '')); return; }
+    o.stockOut = { d: DECO.today(), t: done.join(', ') }; save(); stDraw(); if (miss.length) alert('재고 목록에 없어서 못 뺀 것: ' + miss.join(', ')); });
+  setTimeout(stDraw, 0);
   function costDraw() { var c = o.cost || {}, p = o.costPaid || {};
     $('cost').innerHTML = CN.map(function (x) { return '<label>' + x[1] + '<input type="number" inputmode="numeric" min="0" step="10000" data-c="' + x[0] + '" value="' + (c[x[0]] || '') + '" placeholder="' + (rateOf(x[0]) ? '기본 ' + DECO.won(rateOf(x[0])) : '0') + '"><span class="pd"><input type="checkbox" data-p="' + x[0] + '"' + (p[x[0]] ? ' checked' : '') + '> 지급함</span></label>'; }).join('') + '<div class="sum" id="csum"></div>' + (CN.some(function (x) { return rateOf(x[0]); }) ? '<button class="btn2" type="button" id="cFill" style="margin-top:6px">거래처 기본 금액으로 빈칸 채우기</button>' : ''); costSum(); }
   document.addEventListener('click', function (e) { if (e.target.id === 'cFill') { var n = costFill(); e.target.textContent = n ? '✔ ' + n + '칸 채웠습니다' : '채울 빈칸이 없습니다'; } });
@@ -271,7 +281,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
     if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(function () {});
     $('msg').className = 'msg'; $('msg').textContent = '인사 문자를 복사했습니다.' + (tel ? ' 문자 창이 열리면 확인하고 보내세요.' : ' 고객 전화번호가 없어 문자 창은 열지 않습니다.');
     if (tel) location.href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt); });
-  $('del').addEventListener('click', function () { if (!confirm('이 작업 지시서를 지울까요?\n지운 지시서는 되살릴 수 없습니다.')) return; DECO.delOrder(o.id); location.href = 'orders.html'; });
+  $('del').addEventListener('click', function () { if (!confirm('이 작업 지시서를 지울까요?\n30일 안에는 휴지통에서 되살릴 수 있습니다.')) return; DECO.delOrder(o.id); location.href = 'orders.html'; });
   // 작업자가 링크로 올린 사진
   if (o.id && DECO.photoAll) DECO.photoAll().then(function (a) { var L = a.filter(function (p) { return p.order === o.id; }); if (!L.length) return;
     $('upPh').hidden = false; $('upN').textContent = L.length + '장';

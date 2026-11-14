@@ -144,7 +144,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: $('ld').value || DECO.today(), text: t }); c.touched = Date.now(); DECO.saveCustomer(c); $('lt').value = ''; logs(); });
   $('logs').addEventListener('click', function (e) { var b = e.target.closest('[data-l]'); if (!b || !confirm('이 상담 기록을 지울까요?')) return;
     c.logs = c.logs.filter(function (l) { return l.id !== b.dataset.l; }); DECO.saveCustomer(c); logs(); });
-  $('del').addEventListener('click', function () { if (!confirm((c.name || '이 고객') + ' 님을 고객 목록에서 지울까요?\n견적·지시서·사진은 지워지지 않습니다. 지운 고객은 되살릴 수 없습니다.')) return; DECO.delCustomer(c.id); location.href = 'customers.html'; });
+  $('del').addEventListener('click', function () { if (!confirm((c.name || '이 고객') + ' 님을 고객 목록에서 지울까요?\n견적·지시서·사진은 지워지지 않습니다. 30일 안에는 휴지통에서 되살릴 수 있습니다.')) return; DECO.delCustomer(c.id); location.href = 'customers.html'; });
   if (c) fill();
 })();
 </script>

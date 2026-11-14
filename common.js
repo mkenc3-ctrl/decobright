@@ -304,6 +304,15 @@
     document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { w.remove(); document.removeEventListener('keydown', esc); } });
     cp(); return w; };
 
+  // ---------- 휴지통 (이 기기, 30일) ----------
+  var TRK = { delQuote: [KQ, '견적'], delOrder: [KO, '작업 지시서'], delCustomer: [KC, '고객'], delPartner: [KT, '거래처'], delExp: [KX, '지출'], delMemo: [KM, '메모'], delEvent: [KE, '일정'] };
+  function trAll() { return rd('deco-trash', []).filter(function (t) { return t && t.item && Date.now() - t.at < 30 * 864e5; }); }
+  Object.keys(TRK).forEach(function (fn) { var f = D[fn]; if (!f) return; D[fn] = function (id) { var k = TRK[fn][0], it = rd(k, []).filter(function (x) { return x && x.id === id; })[0];
+    if (it) { var T = trAll(); T.unshift({ k: k, kind: TRK[fn][1], item: it, at: Date.now() }); for (var n = Math.min(T.length, 150); n > 0; n--) { try { localStorage.setItem('deco-trash', JSON.stringify(T.slice(0, n))); break; } catch (e) {} } }
+    return f.apply(this, arguments); }; });
+  D.trash = trAll;
+  D.restore = function (at) { var T = trAll(), t = T.filter(function (x) { return x.at === at; })[0]; if (!t) return false; var a = rd(t.k, []).filter(function (x) { return x && x.id !== t.item.id; });
+    t.item.updated = Date.now(); a.push(t.item); if (!wr(t.k, a)) return false; try { localStorage.setItem('deco-trash', JSON.stringify(T.filter(function (x) { return x.at !== at; }))); } catch (e) {} return true; };
   window.DECO = D;
   // 말로 입력: data-mic 가 붙은 칸 옆에 🎤 버튼 (안드로이드 크롬·삼성 인터넷 등 지원 브라우저만)
   function micInit() { var SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return;

@@ -84,7 +84,7 @@
     if (cp) { var src = DECO.getQuote(cp.dataset.copy), c2 = JSON.parse(JSON.stringify(src)); c2.id = null; c2.status = '상담';
       var nq = DECO.saveQuote(c2); if (nq) location.href = 'quote.html?id=' + encodeURIComponent(nq.id); return; }
     var b = e.target.closest('[data-del]'); if (!b) return; var q = DECO.getQuote(b.dataset.del);
-    if (q && confirm((q.cust && q.cust.name || '이 견적') + ' 견적(' + q.no + ')을 지울까요?\n지운 견적은 되살릴 수 없습니다.')) { DECO.delQuote(q.id); draw(); }
+    if (q && confirm((q.cust && q.cust.name || '이 견적') + ' 견적(' + q.no + ')을 지울까요?\n30일 안에는 휴지통에서 되살릴 수 있습니다.')) { DECO.delQuote(q.id); draw(); }
   });
   box.addEventListener('change', function (e) { var s = e.target.closest('[data-st]'); if (!s) return; DECO.setQuoteStatus(s.dataset.st, s.value);
     var old = document.getElementById('nextStep'); if (old) old.remove(); if (s.value !== '계약') return;
