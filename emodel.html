@@ -85,6 +85,14 @@ body.big .pk button span{font-size:16px}
 #lb p{color:#fff;margin:0;font-size:16px}
 body.cust .owner{display:none!important}
 .cbar{display:none}
+.upb{margin:14px 0 0;border:2px dashed #f0cf9e;background:var(--warm-s);border-radius:12px;padding:12px 14px}
+.upb input:not([type=file]){font:inherit;font-size:17px;height:48px;border:1px solid var(--bd);border-radius:10px;padding:0 12px;box-sizing:border-box}
+.upb input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.upl{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:10px}
+.upl figure{margin:0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13px}
+.upl img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.upl figcaption{padding:4px 6px;word-break:keep-all}
+.upl button{width:100%;border:0;border-top:1px solid var(--line);background:#fff;color:#b3261e;font:inherit;font-size:14px;padding:6px;cursor:pointer}
 .guide{background:#fff;border:2px solid #f0cf9e;border-radius:12px;padding:12px 14px;margin:0 0 12px;position:relative}
 .guide b.t{display:block;font-size:18px;margin-bottom:6px}
 .guide ol{margin:0;padding:0;list-style:none;display:grid;gap:6px}
@@ -228,6 +236,14 @@ body.tv .page,body.tv .cbar{display:none!important}
   <div class="hsInfo" id="hsInfo" aria-live="polite"></div>
   <div class="strip" id="strip"></div>
   <div class="acts" style="justify-content:center"><button class="btn2" type="button" id="exAuto">▶ 자동으로 넘겨 보기</button><button class="btn2" type="button" id="exSh">📤 이 사진 보내기</button></div>
+  <div class="upb owner" id="upb">
+    <b style="font-size:18px">📷 핸드폰으로 전시실 사진 올리기</b>
+    <p class="sub" style="margin:4px 0 8px">① 사진 설명을 적고 ② 사진을 찍거나 고르면 바로 올라갑니다. 손님 화면 전시실 맨 뒤에 붙습니다. 큰 사진은 저절로 줄여 올립니다.</p>
+    <label style="display:block;font-weight:700">사진 설명 <small>(예: 거실 · 사각 우물 간접등)</small><input id="upT" maxlength="40" placeholder="비워 두면 「시공 사진」" style="display:block;width:100%;margin-top:4px"></label>
+    <div class="acts"><label class="btn2 pri" for="upCam">📸 사진 찍기</label><input id="upCam" type="file" accept="image/*" capture="environment"><label class="btn2" for="upFs">🖼 사진 여러 장 고르기</label><input id="upFs" type="file" accept="image/*" multiple></div>
+    <p class="msg" id="upM" role="status"></p>
+    <div class="upl" id="upL"></div>
+  </div>
 
   <h2 class="grp" id="s3">③ 영상관</h2>
   <p class="sub">실제 현장에서 찍은 영상입니다. 짧은 영상은 화면에 보이면 저절로 돌아갑니다(소리 없음).</p>
@@ -416,6 +432,7 @@ body.tv .page,body.tv .cbar{display:none!important}
     mold: ['몰딩 없이 모서리를 둥글게 마감한 우물입니다. 선이 깔끔해 보입니다.', 'i5', '식'],
     mag: ['천장 레일에 조명을 자석으로 붙여 위치와 개수를 바꿀 수 있습니다.', 'i14', '미터'],
     bath: ['욕실 거울장 아래를 비추는 간접등입니다. 밤에 켜 두기 좋은 은은한 빛입니다.'] };
+  function exSrc(r) { return /^(https?:|blob:)/.test(r[0]) ? r[0] : 'img/m/' + r[0] + '.jpg'; }
   var EX = [
     ['m5', '거실 · 자유곡선 우물과 커튼박스', [[40, 23, 'cove', '자유곡선 우물 간접등'], [76, 29, 'curtain', '커튼박스 간접등'], [81, 20, 'fan', '실링팬'], [12, 4, 'down', '다운라이트']]],
     ['m2', '거실 · TV 벽과 커튼박스', [[78, 44, 'cove', '우물 간접등'], [56, 39, 'fan', '실링팬'], [70, 51, 'down', 'TV 벽 다운라이트'], [18, 43, 'curtain', '커튼박스 간접등'], [85, 83, 'tvbox', 'TV장 아래 간접등']]],
@@ -433,7 +450,7 @@ body.tv .page,body.tv .cbar{display:none!important}
   function hint() { $('hsInfo').innerHTML = '<span style="color:var(--muted)">사진 위 <b style="color:var(--acc);font-size:16px">●</b> 점을 눌러 보세요.</span>'; }
   function exShow(i) { ex = (i + EX.length) % EX.length; var r = EX[ex], im = $('exI');
     im.onload = function () { var w = im.naturalWidth, h = im.naturalHeight; $('exv').style.aspectRatio = w + '/' + h; $('exv').style.width = 'min(100%,' + (70 * w / h).toFixed(1) + 'vh)'; };
-    im.src = 'img/m/' + r[0] + '.jpg'; im.alt = r[1]; $('exT').textContent = r[1]; $('exN').textContent = (ex + 1) + ' / ' + EX.length;
+    im.src = exSrc(r); im.alt = r[1]; $('exT').textContent = r[1]; $('exN').textContent = (ex + 1) + ' / ' + EX.length;
     $('hs').innerHTML = r[2].map(function (p, k) { return '<button type="button" class="hp" style="left:' + p[0] + '%;top:' + p[1] + '%" data-h="' + k + '" aria-label="' + p[3] + '">' + (k + 1) + '</button>'; }).join('');
     [].forEach.call($('strip').children, function (b, k) { b.classList.toggle('on', k === ex); if (k === ex && b.scrollIntoView) b.parentNode.scrollLeft = b.offsetLeft - b.parentNode.clientWidth / 2 + 42; });
     var on = LK.indexOf(ex) >= 0; $('lkB').classList.toggle('on', on); $('lkB').textContent = (on ? '♥' : '♡') + ' 마음에 들어요'; $('lkB').setAttribute('aria-pressed', on);
@@ -443,7 +460,7 @@ body.tv .page,body.tv .cbar{display:none!important}
   var LK = []; try { LK = (JSON.parse(localStorage.getItem('deco-em-like') || '[]') || []).filter(function (k) { return k >= 0 && k < EX.length; }); } catch (e) { LK = []; }
   function lkDraw() { [].forEach.call($('strip').children, function (b, k) { b.classList.toggle('lk', LK.indexOf(k) >= 0); });
     $('aLk').hidden = !LK.length; $('aLkN').textContent = LK.length + '장';
-    $('aLkL').innerHTML = LK.map(function (k) { return '<img src="img/m/' + EX[k][0] + '.jpg" alt="' + EX[k][1] + '" title="' + EX[k][1] + '">'; }).join('');
+    $('aLkL').innerHTML = LK.map(function (k) { return '<img src="' + exSrc(EX[k]) + '" alt="' + EX[k][1] + '" title="' + EX[k][1] + '">'; }).join('');
     try { localStorage.setItem('deco-em-like', JSON.stringify(LK)); } catch (e) {} }
   $('lkB').onclick = function () { stopAuto(); var i = LK.indexOf(ex); if (i >= 0) LK.splice(i, 1); else LK.push(ex); LK.sort(function (a, b) { return a - b; }); lkDraw(); exShow(ex);
     if (i < 0) { $('hsInfo').innerHTML = '♥ 마음에 든 사진에 담았습니다. 아래 상담 신청 문자에 함께 들어갑니다.'; } };
@@ -459,7 +476,8 @@ body.tv .page,body.tv .cbar{display:none!important}
   function stopAuto() { if (autoT) { clearInterval(autoT); autoT = null; $('exAuto').textContent = '▶ 자동으로 넘겨 보기'; } }
   $('exAuto').onclick = function () { if (autoT) return stopAuto(); this.textContent = '⏸ 멈추기'; exShow(ex + 1); autoT = setInterval(function () { exShow(ex + 1); }, 4500); };
   ['exP', 'exX', 'strip', 'hs'].forEach(function (id) { $(id).addEventListener('click', function (e) { if (e.isTrusted) stopAuto(); }); });
-  $('strip').innerHTML = EX.map(function (r, k) { return '<button type="button" data-k="' + k + '" aria-label="' + r[1] + '"><img src="img/m/' + r[0] + '.jpg" alt="" loading="lazy"></button>'; }).join('');
+  function stripDraw() { $('strip').innerHTML = EX.map(function (r, k) { return '<button type="button" data-k="' + k + '" aria-label="' + r[1] + '"><img src="' + exSrc(r) + '" alt="" loading="lazy"></button>'; }).join(''); }
+  stripDraw();
   $('strip').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (b) exShow(+b.dataset.k); });
   $('exP').onclick = function () { exShow(ex - 1); }; $('exX').onclick = function () { exShow(ex + 1); };
   var tx = null; $('exv').addEventListener('touchstart', function (e) { tx = e.touches[0].clientX; }, { passive: true });
@@ -470,6 +488,36 @@ body.tv .page,body.tv .cbar{display:none!important}
   $('exSh').onclick = function () { stopAuto(); var u = HOUSE + '?e=' + (ex + 1), t = S.company + ' 시공 사진 — ' + EX[ex][1];
     if (navigator.share) { navigator.share({ title: t, text: t, url: u }).catch(function () {}); return; }
     (navigator.clipboard ? navigator.clipboard.writeText(t + '\n' + u) : Promise.reject()).then(function () { $('hsInfo').textContent = '이 사진 주소를 복사했습니다. 문자·카톡에 붙여넣으세요.'; }, function () { $('hsInfo').textContent = u; }); };
+  // ── 핸드폰으로 올린 전시실 사진 (서버 사진 보관함 photos 의 e/ 폴더, 기록 coll 'emodel') ──
+  var SBP = null, UP = [];
+  function sb() { if (SBP) return SBP; SBP = new Promise(function (ok, no) { function mk() { ok(window.supabase.createClient('https://dypvqgaayumrhaiphatu.supabase.co', 'sb_publishable_5-LUZwZQ3VwBxDKDA_nJpw_ddF6QKdE', { auth: { persistSession: false } })); }
+    if (window.supabase && window.supabase.createClient) return mk(); var sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js'; sc.onload = mk; sc.onerror = no; document.head.appendChild(sc); }); return SBP; }
+  function upLoad() { return sb().then(function (c) { return c.from('records').select('id,data').eq('coll', 'emodel').then(function (r) {
+      if (r.error) throw r.error; var rows = (r.data || []).filter(function (x) { return x.data && !x.data._del && x.data.path; }).sort(function (a, b) { return (a.data.at || '') < (b.data.at || '') ? -1 : 1; });
+      if (!rows.length) return [];
+      return c.storage.from('photos').createSignedUrls(rows.map(function (x) { return x.data.path; }), 60 * 60 * 24 * 7).then(function (u) { if (u.error) throw u.error;
+        return rows.map(function (x, k) { return { id: x.id, path: x.data.path, title: x.data.title || '시공 사진', url: u.data[k] && u.data[k].signedUrl }; }).filter(function (x) { return x.url; }); }); }); }); }
+  function upApply(list) { var base = EX.filter(function (r) { return !r.up; }); UP = list;
+    list.forEach(function (x) { var r = [x.url, x.title, []]; r.up = x.id; base.push(r); }); EX = base; stripDraw(); lkDraw(); exShow(!upApply.d && e0 > 0 && e0 <= EX.length ? e0 - 1 : Math.min(ex, EX.length - 1)); upApply.d = 1;
+    $('upL').innerHTML = list.length ? list.map(function (x) { return '<figure><img src="' + E(x.url) + '" alt=""><figcaption>' + E(x.title) + '</figcaption><button type="button" data-del="' + E(x.id) + '">지우기</button></figure>'; }).join('') : '<p class="sub" style="grid-column:1/-1;margin:0">아직 올린 사진이 없습니다.</p>'; }
+  upLoad().then(upApply, function () { if (!cust) $('upM').textContent = '서버에 연결하지 못했습니다. 인터넷을 확인해 주세요.'; });
+  function shrink(f) { return new Promise(function (ok, no) { var im = new Image(), u = URL.createObjectURL(f); im.onload = function () { var m = 1600, w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, m / Math.max(w, h)), cv = document.createElement('canvas');
+      cv.width = Math.round(w * k); cv.height = Math.round(h * k); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u); cv.toBlob(function (b) { b ? ok(b) : no(new Error('변환 실패')); }, 'image/jpeg', 0.82); };
+    im.onerror = function () { URL.revokeObjectURL(u); no(new Error('사진을 열 수 없습니다')); }; im.src = u; }); }
+  function upFiles(fl) { fl = [].slice.call(fl || []).filter(function (f) { return /^image\//.test(f.type); }); if (!fl.length) return;
+    var t = $('upT').value.trim() || '시공 사진', m = $('upM'), n = 0; m.className = 'msg'; m.textContent = '올리는 중… 0 / ' + fl.length;
+    sb().then(function (c) { return fl.reduce(function (p, f) { return p.then(function () { return shrink(f).then(function (b) {
+        var id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), path = 'e/' + id + '.jpg';
+        return c.storage.from('photos').upload(path, b, { upsert: true, contentType: 'image/jpeg' }).then(function (r) { if (r.error) throw r.error;
+          return c.from('records').upsert({ coll: 'emodel', id: id, data: { title: t, path: path, at: new Date().toISOString() } }, { onConflict: 'coll,id' }); }).then(function (r) { if (r.error) throw r.error; n++; m.textContent = '올리는 중… ' + n + ' / ' + fl.length; }); }); }); }, Promise.resolve()); })
+      .then(upLoad).then(function (l) { upApply(l); exShow(EX.length - 1); m.textContent = n + '장을 올렸습니다. 손님 화면 전시실 맨 뒤에 나옵니다.'; }, function (e) { m.className = 'msg bad'; m.textContent = '올리지 못했습니다 (' + n + '장까지 올라감): ' + (e && e.message || e); }); }
+  $('upCam').onchange = function () { upFiles(this.files); this.value = ''; };
+  $('upFs').onchange = function () { upFiles(this.files); this.value = ''; };
+  var upDelId = null;
+  $('upL').addEventListener('click', function (e) { var b = e.target.closest('[data-del]'); if (!b) return; var id = b.dataset.del, x = UP.filter(function (u) { return u.id === id; })[0]; if (!x) return;
+    if (upDelId !== id) { upDelId = id; b.textContent = '한 번 더 누르면 지움'; return; } upDelId = null; b.textContent = '지우는 중…';
+    sb().then(function (c) { return c.storage.from('photos').remove([x.path]).then(function () { return c.from('records').upsert({ coll: 'emodel', id: id, data: { _del: true } }, { onConflict: 'coll,id' }); }); })
+      .then(upLoad).then(function (l) { upApply(l); $('upM').className = 'msg'; $('upM').textContent = '지웠습니다.'; }, function (e) { $('upM').className = 'msg bad'; $('upM').textContent = '지우지 못했습니다: ' + (e && e.message || e); }); });
   // 처음 안내 (닫으면 이 기기에서 다시 안 보임)
   try { if (localStorage.getItem('deco-em-guide') || document.body.classList.contains('tv')) $('guide').hidden = true; } catch (e) {}
   $('gX').onclick = function () { $('guide').hidden = true; try { localStorage.setItem('deco-em-guide', '1'); } catch (e) {} };
