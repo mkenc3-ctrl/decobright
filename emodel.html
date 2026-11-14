@@ -282,6 +282,7 @@ body.tv .page,body.tv .cbar{display:none!important}
   <h2 class="grp">다른 시공 사례</h2>
   <div class="gal" id="gal"></div>
 
+  <div id="rvS" hidden><h2 class="grp">⭐ 고객 후기 <small id="rvN" style="font-size:15px;color:var(--muted);font-weight:500"></small></h2><div id="rvL" style="display:grid;gap:10px"></div></div>
   <h2 class="grp">시공은 이렇게 진행됩니다</h2>
   <ol class="steps">
     <li><b>상담</b><br>전화·문자로 원하는 구성을 알려 주세요.</li>
@@ -522,6 +523,10 @@ body.tv .page,body.tv .cbar{display:none!important}
   function upApply(list) { var base = EX.filter(function (r) { return !r.up; }); UP = list;
     list.forEach(function (x) { var r = [x.url, x.title, []]; r.up = x.id; base.push(r); }); EX = base; stripDraw(); lkDraw(); exShow(!upApply.d && e0 > 0 && e0 <= EX.length ? e0 - 1 : Math.min(ex, EX.length - 1)); upApply.d = 1;
     $('upL').innerHTML = list.length ? list.map(function (x) { return '<figure><img src="' + E(x.url) + '" alt=""><figcaption>' + E(x.title) + '</figcaption><button type="button" data-del="' + E(x.id) + '">지우기</button></figure>'; }).join('') : '<p class="sub" style="grid-column:1/-1;margin:0">아직 올린 사진이 없습니다.</p>'; }
+  // 손님이 남긴 후기 (공개 허락한 것만)
+  sb().then(function (c) { return c.from('records').select('data').eq('coll', 'rvq'); }).then(function (r) { var L = ((r && r.data) || []).map(function (x) { return x.data; }).filter(function (d) { return d && !d._del && d.ok && d.text && d.star >= 4; }).sort(function (a, b) { return b.at - a.at; }).slice(0, 6);
+    if (!L.length) return; $('rvS').hidden = false; $('rvN').textContent = L.length + '건';
+    $('rvL').innerHTML = L.map(function (d) { var t = new Date(d.at); return '<div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px"><div style="color:#E0952B;font-size:20px">' + '★★★★★'.slice(0, d.star) + '<span style="color:#d8cfc6">' + '★★★★★'.slice(d.star) + '</span></div><p style="margin:6px 0;font-size:18px">“' + E(d.text) + '”</p><small style="color:var(--muted)">' + E(d.nm || '고객') + ' 님' + (d.area ? ' · ' + E(d.area) : '') + ' · ' + t.getFullYear() + '.' + (t.getMonth() + 1) + '</small></div>'; }).join(''); }).catch(function () {});
   upLoad().then(upApply, function () { if (!cust) $('upM').textContent = '서버에 연결하지 못했습니다. 인터넷을 확인해 주세요.'; });
   function shrink(f) { return new Promise(function (ok, no) { var im = new Image(), u = URL.createObjectURL(f); im.onload = function () { var m = 1600, w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, m / Math.max(w, h)), cv = document.createElement('canvas');
       cv.width = Math.round(w * k); cv.height = Math.round(h * k); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u); cv.toBlob(function (b) { b ? ok(b) : no(new Error('변환 실패')); }, 'image/jpeg', 0.82); };
@@ -560,7 +565,7 @@ body.tv .page,body.tv .cbar{display:none!important}
     tv.innerHTML = '<img class="a" alt=""><img class="b" alt=""><div class="cap"><b></b><span>' + E(S.company) + ' 간접조명 · 실링팬 · 상담 ' + E(S.phone || '') + '</span></div><div class="go">화면을 누르면 전체 화면으로 바뀝니다</div><button type="button" class="x" aria-label="끝내기">✕</button>';
     document.body.appendChild(tv);
     var im = [tv.querySelector('.a'), tv.querySelector('.b')], k = 0, cur = 0;
-    function show() { var s = SL[k % SL.length], nx = im[1 - cur]; nx.src = 'img/m/' + s[0] + '.jpg';
+    function show() { var A = UP.slice().reverse().slice(0, 8).map(function (x) { return [x.url, '최근 시공 · ' + x.title]; }).concat(SL), s = A[k % A.length], nx = im[1 - cur]; nx.src = /^(https?:|blob:)/.test(s[0]) ? s[0] : 'img/m/' + s[0] + '.jpg';
       nx.onload = function () { nx.classList.remove('kb'); void nx.offsetWidth; nx.classList.add('on', 'kb'); im[cur].classList.remove('on'); cur = 1 - cur; tv.querySelector('.cap b').textContent = s[1]; };
       setTimeout(show, k % SL.length < 5 ? 3500 : 5500); k++; }
     show();

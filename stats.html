@@ -60,7 +60,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   </div>
   <h2 class="grp">이달 견적 상태</h2>
   <div class="card"><table class="tb" id="st"></table></div>
-  <h2 class="grp">고객을 알게 된 경로 (전체)</h2>
+  <h2 class="grp">고객을 알게 된 경로 (전체) <button class="btn2" type="button" id="imgSrc" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 경로 그림</button></h2>
   <div class="card"><table class="tb" id="src"></table></div>
   <h2 class="grp" id="profit">이달 시공 정산 (남는 돈)</h2>
   <div class="card"><p class="sub" style="margin-top:0">작업 지시서 시공일이 이달인 현장입니다. 지시서 「내부 정산」에 적은 인건비·자재비를 뺍니다. 매출은 부가세를 뺀 공급가입니다.</p><table class="tb" id="pf"></table></div>
@@ -165,7 +165,11 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
       var qs = Q.filter(function (q) { return q.custId === c.id && DONE[q.status]; }); if (qs.length) g[s].c++; g[s].a += qs.reduce(function (t, q) { return t + amt(q); }, 0); });
     var ks = Object.keys(g).sort(function (a, b) { return g[b].n - g[a].n; });
     $('src').innerHTML = ks.length ? '<tr><th>경로</th><th style="text-align:right">고객</th><th style="text-align:right">계약</th><th style="text-align:right">계약 금액</th></tr>' + ks.map(function (s) {
-      return '<tr><td>' + E(s) + '</td><td class="n">' + g[s].n + '명</td><td class="n">' + g[s].c + '명</td><td class="n">' + W(g[s].a) + '</td></tr>'; }).join('') : '<tr><td>아직 고객이 없습니다.</td></tr>'; })();
+      var mx = g[ks[0]].n; return '<tr><td>' + E(s) + '<div style="height:12px;border-radius:6px;background:#E0952B;margin-top:4px;width:' + Math.max(6, Math.round(g[s].n / mx * 100)) + '%"></div><div style="height:8px;border-radius:4px;background:#2E6A4E;margin-top:2px;width:' + Math.round(g[s].c / mx * 100) + '%"></div></td><td class="n">' + g[s].n + '명</td><td class="n">' + g[s].c + '명</td><td class="n">' + W(g[s].a) + '</td></tr>'; }).join('') : '<tr><td>아직 고객이 없습니다.</td></tr>';
+    $('imgSrc').onclick = function () { if (!ks.length) return; var tot = ks.reduce(function (t, s) { return t + g[s].n; }, 0);
+      DECO.docImg({ title: '고객을 알게 된 경로', date: DECO.today(), info: [['전체 고객', tot + '명'], ['계약한 고객', ks.reduce(function (t, s) { return t + g[s].c; }, 0) + '명']],
+        secs: [['경로별 (고객 · 계약 · 비율)', ks.map(function (s) { return [s + '  ' + '■'.repeat(Math.max(1, Math.round(g[s].n / tot * 20))), g[s].n + '명 · 계약 ' + g[s].c + ' · ' + Math.round(g[s].n / tot * 100) + '%']; })], ['계약 금액', ks.filter(function (s) { return g[s].a; }).map(function (s) { return [s, W(g[s].a)]; })]], notes: ['※ 고객 등록 때 고른 「알게 된 경로」 기준'] })
+        .then(function (bl) { return DECO.shareImg(bl, '고객경로.jpg', '고객을 알게 된 경로'); }).catch(function () {}); }; })();
   $('prtM').onclick = function () { $('ptitle').textContent = DECO.settings().company + ' · ' + Y + '년 ' + (M + 1) + '월 보고서 · 출력일 ' + DECO.today(); window.print(); };
   $('prev').onclick = function () { M--; if (M < 0) { M = 11; Y--; } draw(); };
   $('next').onclick = function () { M++; if (M > 11) { M = 0; Y++; } draw(); };
