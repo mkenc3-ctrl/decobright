@@ -182,6 +182,42 @@
     im.onerror = function () { URL.revokeObjectURL(u); no(new Error('사진을 열 수 없음')); }; im.src = u; }); };
   D.today = function () { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
 
+  // ── 문서를 그림 한 장으로 (카톡으로 사진처럼 보내기) ──
+  // D.docImg({ title, no, date, to, info:[[이름,값]], secs:[[제목, [[왼쪽, 오른쪽], ...]]], totals:[[이름, 값, 굵게]], notes:[...], pic: dataURL }) → Promise<Blob>
+  D.docImg = function (o) { var s = D.settings(), W = 1080, P = 56, F = "'Noto Sans KR', sans-serif";
+    function load(u) { return new Promise(function (ok) { if (!u) return ok(null); var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = u; }); }
+    var ready = document.fonts && document.fonts.load ? Promise.all([document.fonts.load('800 40px "Noto Sans KR"'), document.fonts.load('500 26px "Noto Sans KR"')]).catch(function () {}) : Promise.resolve();
+    return Promise.all([load(o.pic), ready]).then(function (r) { var pic = r[0];
+      function wrap(g, t, w) { var out = [], line = ''; String(t).split('').forEach(function (ch) { if (ch === '\n') { out.push(line); line = ''; return; } if (g.measureText(line + ch).width > w && line) { out.push(line); line = ch; } else line += ch; }); out.push(line); return out; }
+      // 1차: 높이 계산, 2차: 그리기
+      function pass(g, draw) { var y = 0;
+        function txt(t, x, yy, font, col, al) { if (!draw) return; g.font = font; g.fillStyle = col || '#221C18'; g.textAlign = al || 'left'; g.fillText(t, x, yy); }
+        function rect(x, yy, w, h, col) { if (draw) { g.fillStyle = col; g.fillRect(x, yy, w, h); } }
+        rect(0, 0, W, 9999, '#FBF6EE');
+        rect(0, 0, W, 190, '#2A211C'); txt(s.company, P, 70, '800 30px ' + F, '#F3C98A'); txt(o.title, P, 140, '800 58px ' + F, '#FFFFFF');
+        txt((o.no ? o.no + '   ' : '') + (o.date || ''), W - P, 70, '500 24px ' + F, '#E9DCCB', 'right'); y = 190;
+        if (o.to) { y += 66; txt(o.to, P, y, '800 38px ' + F); }
+        y += 20; (o.info || []).forEach(function (x) { if (!x[1]) return; g.font = '500 27px ' + F; var ls = wrap(g, x[1], W - P * 2 - 170); ls.forEach(function (l, k) { y += 42; if (!k) txt(x[0], P, y, '700 26px ' + F, '#7A6E66'); txt(l, P + 170, y, '500 27px ' + F); }); });
+        (o.secs || []).forEach(function (sc) { var rows = (sc[1] || []).filter(function (x) { return x && (x[0] || x[1]); }); if (!rows.length) return;
+          y += 40; rect(P, y, W - P * 2, 52, '#3B2F2A'); txt(sc[0], P + 18, y + 36, '800 27px ' + F, '#FFFFFF'); y += 52;
+          rows.forEach(function (x, k) { g.font = '500 27px ' + F; var rw = x[1] ? g.measureText(x[1]).width + 30 : 0, ls = wrap(g, x[0], W - P * 2 - 36 - rw), h = ls.length * 38 + 22;
+            rect(P, y, W - P * 2, h, k % 2 ? '#FFFFFF' : '#F6EBDD'); ls.forEach(function (l, j) { txt(l, P + 18, y + 40 + j * 38, '500 27px ' + F); }); if (x[1]) txt(x[1], W - P - 18, y + 40, '700 27px ' + F, '#221C18', 'right'); y += h; }); });
+        if (o.totals && o.totals.length) { y += 30; o.totals.forEach(function (x) { if (!x) return; var big = x[2]; y += big ? 70 : 44;
+          if (big) { rect(P, y - 50, W - P * 2, 68, '#FCEBD2'); txt(x[0], P + 18, y, '800 34px ' + F); txt(x[1], W - P - 18, y, '800 40px ' + F, '#B5541C', 'right'); }
+          else { txt(x[0], P + 18, y, '500 27px ' + F, '#4A403A'); txt(x[1], W - P - 18, y, '700 27px ' + F, '#221C18', 'right'); } }); }
+        if (pic) { var ph = Math.round((W - P * 2) * pic.height / pic.width); y += 70; txt(o.picCap || '예상 모습', P, y, '800 27px ' + F); y += 14; if (draw) g.drawImage(pic, P, y, W - P * 2, ph); y += ph; }
+        (o.notes || []).forEach(function (n, k) { if (!n) return; g.font = '500 24px ' + F; wrap(g, n, W - P * 2).forEach(function (l, j) { y += (k || j) ? 36 : 56; txt(l, P, y, '500 24px ' + F, '#4A403A'); }); });
+        y += 50; rect(0, y, W, 120, '#2A211C'); txt(s.company + (s.ceo ? '  대표 ' + s.ceo : ''), P, y + 50, '800 28px ' + F, '#F3C98A'); txt('📞 ' + (s.phone || ''), W - P, y + 50, '800 30px ' + F, '#FFFFFF', 'right');
+        txt([s.addr, s.bizno ? '사업자 ' + s.bizno : ''].filter(Boolean).join('  ·  '), P, y + 92, '500 21px ' + F, '#E9DCCB'); return y + 120; }
+      var c = document.createElement('canvas'), g = c.getContext('2d'); c.width = W; c.height = 100; var H = pass(g, false); c.height = H; pass(c.getContext('2d'), true);
+      return new Promise(function (ok, no) { c.toBlob(function (b) { b ? ok(b) : no(new Error('그림을 만들지 못했습니다')); }, 'image/jpeg', 0.9); }); }); };
+  // 그림 보내기: 핸드폰은 공유 창(카톡 고르기), 컴퓨터는 내려받기
+  D.shareImg = function (blob, name, text) { var f = new File([blob], name, { type: 'image/jpeg' }), ok = false;
+    try { ok = !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) {}
+    if (ok) return navigator.share({ files: [f], text: text || '' }).then(function () { return '보냈습니다.'; }, function () { return '보내기를 취소했습니다.'; });
+    var a = document.createElement('a'), u = URL.createObjectURL(blob); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+    return Promise.resolve('그림 파일을 내려받았습니다. 카톡 대화방에서 📎(+) → 사진으로 보내세요.'); };
+
   // ── 카톡에 붙여넣기 좋은 글 ──
   // D.kfmt({ title, info:[['👤','고객','홍길동 님'],...], secs:[['작업 내용',[...]],...], total:['💰 합계 : 1,000원', ...], foot:['※ ...'] })
   D.KL = '━━━━━━━━━━━━━━';

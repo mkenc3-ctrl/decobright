@@ -88,6 +88,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
         <button class="btn2 pri" type="submit">저장</button>
         <button class="btn2" type="button" id="prt">전체 인쇄 · PDF (공종별 한 장씩)</button>
         <a class="btn2" id="toPh" href="photos.html">현장 사진 보관함</a>
+        <button class="btn2" type="button" id="iAll" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 지시서 그림으로 카톡</button>
         <button class="btn2" type="button" id="kAll" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 전체 지시 카톡 (단톡방용)</button>
         <button class="btn2" type="button" id="thx">고객에게 완료 인사·후기 부탁 문자</button>
         <button class="btn2 no" type="button" id="del" hidden>지우기</button>
@@ -195,6 +196,18 @@ h2.s{font-size:19px;margin:20px 0 8px}
       info: [['📅', '날짜', dstr() + (one && one.time ? ' ' + one.time + ' 도착' : '')], ['📍', '현장', o.addr], ['👷', '현장 책임', o.lead], ['💡', '조명 색', o.color], ['🔖', '지시서', o.no],
         ['🔁', '같은 날', on.length > 1 ? on.map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → ') : '']],
       secs: secs, foot: ['📸 끝나면 아래 주소를 눌러 완료 사진을 올려 주세요.', upLink(ts.length === 1 ? ts[0] : ''), '', '수고하세요! 🙏'] }); }
+  // 지시서를 그림 한 장으로 (켠 공종 전부)
+  $('iAll').addEventListener('click', function () { var btn = this; if (btn.disabled || !save()) return; var on = TR.filter(function (x) { return o.trades[x].on; });
+    if (!on.length) { $('msg').className = 'msg bad'; $('msg').textContent = '공종(목수·전기·도배)을 하나 이상 켜 주세요.'; return; }
+    btn.disabled = true; var old = btn.textContent; btn.textContent = '그림 만드는 중…'; var secs = [];
+    on.forEach(function (t) { var b = o.trades[t], p = ptn(b.partner);
+      secs.push(['[' + t + '] ' + (b.time ? b.time + ' 도착' : '') + (p ? '  ·  ' + p.name + ' ' + (p.phone || '') : ''), b.tasks.split('\n').filter(Boolean).map(function (x, i) { return [(i + 1) + '. ' + x, '']; }).concat(b.mats ? [['준비 자재 : ' + String(b.mats).replace(/\n/g, ', '), '']] : [])]); });
+    if (MS.length) secs.push(['실측 (cm)', MS.map(function (x) { return [x, '']; })]); if (o.notes) secs.push(['⚠ 주의사항', [[o.notes, '']]]);
+    DECO.docImg({ title: '작업 지시서', no: o.no, date: dstr(), to: (o.name ? o.name + ' 님 현장' : ''), info: [['현장', o.addr], ['현장 책임', o.lead], ['조명 색', o.color], ['순서', on.map(function (x) { return x + ' ' + (o.trades[x].time || ''); }).join(' → ')]],
+      secs: secs, pic: o.layout && o.layout.img, picCap: '조명 배치도', notes: ['📸 완료 사진 올리기 : ' + upLink('')] })
+      .then(function (bl) { return DECO.shareImg(bl, '작업지시서_' + (o.name || o.no || '') + '.jpg', '[' + s.company + '] 작업 지시서 ' + dstr() + '\n📸 완료 사진: ' + upLink('')); })
+      .then(function (m) { $('msg').className = 'msg'; $('msg').textContent = m; }, function (e) { $('msg').className = 'msg bad'; $('msg').textContent = '그림을 만들지 못했습니다: ' + (e && e.message || e); })
+      .then(function () { btn.disabled = false; btn.textContent = old; }); });
   $('kAll').addEventListener('click', function () { if (!save()) return; var on = TR.filter(function (x) { return o.trades[x].on; });
     if (!on.length) { $('msg').className = 'msg bad'; $('msg').textContent = '공종(목수·전기·도배)을 하나 이상 켜 주세요.'; return; } DECO.kakao(kOrder(on), '전체 작업 지시 카톡'); });
   $('trs').addEventListener('click', function (e) { var b = e.target.closest('[data-kk]'); if (!b) return; if (!save()) return; DECO.kakao(kOrder([b.dataset.kk]), b.dataset.kk + ' 작업 지시 카톡'); });
