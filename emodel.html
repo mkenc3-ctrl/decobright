@@ -304,7 +304,7 @@ body.tv .page,body.tv .cbar{display:none!important}
     <div class="ck2" id="aCk"></div>
     <div id="aLk" hidden style="margin-top:12px"><b>♥ 마음에 든 사진 <span id="aLkN"></span></b> <small style="color:var(--muted)">(문자에 함께 담깁니다)</small><div class="lkl" id="aLkL"></div></div>
     <label class="fl" style="margin-top:10px">전화 받기 편한 시간 <small>(선택)</small><input id="aTm" placeholder="예: 평일 저녁 6시 이후"></label>
-    <div class="acts"><a class="btn2 pri" id="aSend" href="#">💬 문자로 상담 신청</a><button class="btn2" type="button" id="fam">👪 가족에게 이 화면 보내기</button></div>
+    <div class="acts"><a class="btn2 pri" id="aSend" href="#">💬 문자로 상담 신청</a><label class="btn2" for="aPh">📷 우리 집 천장 사진 보내기</label><input id="aPh" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0"><button class="btn2" type="button" id="fam">👪 가족에게 이 화면 보내기</button></div>
     <p class="msg" id="aMsg" role="status"></p>
     <p class="sub" style="margin:6px 0 0;font-size:13px">적어 주신 내용은 상담 연락에만 씁니다. 이 화면에는 저장되지 않습니다.</p>
   </div>
@@ -401,6 +401,13 @@ body.tv .page,body.tv .cbar{display:none!important}
   var HOUSE = 'https://mkenc3-ctrl.github.io/decobright/house.html';
   function askText() { var v = function (id) { return $(id).value.trim(); }, ck = [].filter.call($('aCk').querySelectorAll('input'), function (i) { return i.checked; }).map(function (i) { return i.value; });
     return ['[e모델하우스 상담 신청]', v('aNm') ? '성함: ' + v('aNm') : '', v('aAd') ? '사는 곳: ' + v('aAd') : '', v('aPy') ? '평형: ' + v('aPy') : '', ck.length ? '관심: ' + ck.join(', ') : '', best ? '본 패키지: ' + best.name : '', LK.length ? '마음에 든 사진: ' + LK.map(function (k) { return EX[k][1]; }).join(', ') : '', v('aWh') ? '희망 시기: ' + v('aWh') : '', v('aTm') ? '편한 시간: ' + v('aTm') : ''].filter(Boolean).join('\n'); }
+  // 우리 집 천장 사진 → 카톡·문자로 사장님께 (사진은 이 화면 서버에 올리지 않음)
+  $('aPh').onchange = function () { var f = this.files && this.files[0], m = $('aMsg'); this.value = ''; if (!f) return;
+    var t = askText() + '\n(우리 집 천장 사진을 함께 보냅니다)\n' + S.company + ' ' + (S.phone || '');
+    var ok = false; try { ok = !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) {}
+    if (ok) { navigator.share({ files: [f], text: t }).then(function () { m.className = 'msg'; m.textContent = '보내 주셔서 감사합니다. 사진을 보고 연락드리겠습니다.'; }, function () {});
+      m.className = 'msg'; m.textContent = '카톡이나 문자를 고르고, 받는 사람에 ' + (S.phone || '저희 번호') + ' 을(를) 넣어 보내 주세요.'; return; }
+    m.className = 'msg'; m.textContent = '이 휴대폰에서는 바로 보내기가 안 됩니다. 문자 앱에서 ' + (S.phone || '저희 번호') + ' 으로 사진을 첨부해 보내 주세요.'; };
   $('aSend').onclick = function (e) { var t = askText(), m = $('aMsg');
     if (t.split('\n').length < 2) { e.preventDefault(); m.className = 'msg bad'; m.textContent = '사시는 곳이나 관심 있는 것을 하나 이상 골라 주세요.'; return; }
     var tel = String(S.phone || '').replace(/[^\d]/g, ''), ios = /iPhone|iPad/.test(navigator.userAgent); this.href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(t);
