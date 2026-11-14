@@ -33,6 +33,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
   <div class="quick" id="quick" hidden>
     <a class="btn2 pri" id="call" href="#">전화 걸기</a>
     <a class="btn2" id="sms" href="#">문자 보내기</a>
+    <button class="btn2" type="button" id="kCust" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 고객 정보 카톡 (직원 공유)</button>
     <span id="maps" style="display:contents"></span>
     <a class="btn2" id="newQ" href="quote.html">이 고객 새 견적</a>
     <a class="btn2" id="newE" href="calendar.html">실측·상담 일정 잡기</a>
@@ -87,6 +88,14 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     $('newQ').href = 'quote.html?cust=' + encodeURIComponent(c.id); $('newE').href = 'calendar.html?cust=' + encodeURIComponent(c.id); $('newAS').href = 'calendar.html?kind=as&cust=' + encodeURIComponent(c.id);
     logs(); rel();
   }
+  $('kCust').addEventListener('click', function () { if (!c) return; var W = DECO.won;
+    var Q = DECO.list().filter(function (q) { return q.custId === c.id || (c.phone && q.cust && q.cust.phone && q.cust.phone.replace(/\D/g, '') === String(c.phone).replace(/\D/g, '')); });
+    var O = DECO.orders().filter(function (o) { return Q.some(function (q) { return q.id === o.quoteId; }); });
+    var L = (c.logs || []).slice().sort(function (a, b) { return b.date.localeCompare(a.date); }).slice(0, 5);
+    DECO.kakao(DECO.kfmt({ icon: '👤', title: '고객 정보', info: [['👤', '고객', (c.name || '이름 없음') + ' 님'], ['📱', '연락처', c.phone], ['📍', '주소', c.addr], ['🔎', '알게 된 곳', c.source], ['🤝', '소개', c.ref]],
+      secs: [['견적 ' + Q.length + '건', Q.map(function (q) { return (q.no || '') + ' · ' + (q.status || '상담') + (q.totals ? ' · ' + W(q.totals.total) : '') + (q.pkgName ? ' · ' + q.pkgName : ''); })],
+        ['시공', O.map(function (o) { return (o.workDate || '') + ' · ' + (o.status || '') + (o.addr ? ' · ' + o.addr : ''); })],
+        ['최근 상담 기록', L.map(function (l) { return l.date + '  ' + l.text; })], ['메모', [c.memo || c.note || '']]] }), '고객 정보 카톡'); });
   function logs() {
     var L = (c.logs || []).slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
     $('logs').innerHTML = L.length ? L.map(function (l) { return '<div class="log"><span class="d">' + E(l.date) + '</span><span class="t">' + E(l.text) + '</span><button type="button" data-l="' + E(l.id) + '" aria-label="기록 지우기">×</button></div>'; }).join('') : '<div class="empty">상담 기록이 없습니다.</div>';

@@ -154,7 +154,12 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   var PV = 'due', OPEN = null, ST = DECO.settings();
   function smsBtn(q, rem) { var c = q.cust || {}, tel = String(c.phone || '').replace(/[^\d+]/g, ''); if (rem <= 0 || !tel) return '';
     var t = '[' + ST.company + '] ' + (c.name ? c.name + ' 님, ' : '') + '시공 대금 안내드립니다.\n합계 ' + W(amt(q)) + (paid(q) ? '\n받은 금액 ' + W(paid(q)) : '') + '\n남은 금액 ' + W(rem) + (ST.bank ? '\n입금 계좌: ' + ST.bank : '') + '\n문의: ' + ST.phone + '\n감사합니다.';
-    return '<a class="btn2" href="sms:' + tel + (/iPhone|iPad/.test(navigator.userAgent) ? '&' : '?') + 'body=' + encodeURIComponent(t) + '">문자로 안내</a>'; }
+    return '<button type="button" class="btn2" data-kpay="' + E(q.id) + '" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 카톡 안내</button> <a class="btn2" href="sms:' + tel + (/iPhone|iPad/.test(navigator.userAgent) ? '&' : '?') + 'body=' + encodeURIComponent(t) + '">문자로 안내</a>'; }
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-kpay]'); if (!b) return; var q = Q.filter(function (x) { return x.id === b.dataset.kpay; })[0]; if (!q) return;
+    var c = q.cust || {}, rem = Math.max(0, amt(q) - paid(q));
+    DECO.kakao(DECO.kfmt({ icon: '💳', title: '시공 대금 안내', info: [['👤', '고객', c.name ? c.name + ' 님' : ''], ['📍', '현장', c.addr], ['🔖', '견적번호', q.no]],
+      total: ['합계 금액 : ' + W(amt(q)), paid(q) ? '받은 금액 : ' + W(paid(q)) : '', '💰 남은 금액 : ' + W(rem)],
+      foot: [ST.bank ? '🏦 입금 계좌 : ' + ST.bank : '', '시공을 맡겨 주셔서 감사합니다. 🙏'] }), '대금 안내 카톡'); });
   function payDraw() {
     var C = Q.filter(function (q) { return DONE[q.status]; }), due = 0, mon = 0, k = now.getFullYear() * 12 + now.getMonth();
     C.forEach(function (q) { due += Math.max(0, amt(q) - paid(q)); });
