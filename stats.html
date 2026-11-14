@@ -62,6 +62,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card"><table class="tb" id="st"></table></div>
   <h2 class="grp">고객을 알게 된 경로 (전체) <button class="btn2" type="button" id="imgSrc" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 경로 그림</button></h2>
   <div class="card"><table class="tb" id="src"></table></div>
+  <h2 class="grp">이번 분기 부가세 미리 보기 <small style="font-size:14px;font-weight:400">(참고용 · 신고는 세무사와 확인)</small></h2>
+  <div class="card" id="vatQ"></div>
   <h2 class="grp">패키지별 견적·계약 <small style="font-size:14px;font-weight:400">(전체 견적 기준 · 보류 빼고)</small></h2>
   <div class="card"><table class="tb" id="pkgT"></table></div>
   <h2 class="grp" id="profit">이달 시공 정산 (남는 돈)</h2>
@@ -266,6 +268,13 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     var ks = Object.keys(G).sort(function (a, b) { return G[b].n - G[a].n; }); if (!ks.length) { $('pkgT').innerHTML = '<tr><td>아직 견적이 없습니다.</td></tr>'; return; }
     $('pkgT').innerHTML = '<tr><th>패키지</th><th style="text-align:right">견적</th><th style="text-align:right">계약 (비율)</th><th style="text-align:right">계약 평균</th></tr>' + ks.map(function (k) { var g = G[k];
       return '<tr><td>' + E(k) + '</td><td class="n">' + g.n + '건</td><td class="n">' + g.c + '건 (' + Math.round(g.c / g.n * 100) + '%)</td><td class="n">' + (g.c ? W(Math.round(g.s / g.c / 10000) * 10000) : '-') + '</td></tr>'; }).join(''); })();
+  (function () { var q0 = Math.floor(now.getMonth() / 3) * 3, ks = [0, 1, 2].map(function (i) { return now.getFullYear() + '-' + String(q0 + i + 1).padStart(2, '0'); }), sp = 0, vt = 0, n = 0, miss = 0;
+    DECO.orders().forEach(function (o) { if (!o.workDate || ks.indexOf(o.workDate.slice(0, 7)) < 0 || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, t = (q && q.totals) || {}, x = (q && q.tax) || {};
+      sp += +t.supply || 0; vt += +t.vat || 0; n++; if ((x.k === '세금계산서' || x.k === '현금영수증') && !x.done) miss++; });
+    var due = { 0: '4월 25일 (예정)', 3: '7월 25일 (1기 확정)', 6: '10월 25일 (예정)', 9: '다음 해 1월 25일 (2기 확정)' }[q0];
+    $('vatQ').innerHTML = '<p style="margin:0 0 6px;font-size:18px"><b>' + (q0 / 3 + 1) + '분기</b> (' + (q0 + 1) + '~' + (q0 + 3) + '월) 시공 ' + n + '곳</p><table class="tb"><tr><td>매출 공급가</td><td class="n">' + W(sp) + '</td></tr><tr><td>받은 부가세 (매출세액)</td><td class="n" style="font-weight:800">' + W(vt) + '</td></tr></table>' +
+      '<p style="margin:8px 0 0;font-size:15px">신고·납부 때 : ' + due + '. 낼 부가세 ≈ 받은 부가세 － 자재·장비를 살 때 낸 부가세(세금계산서·카드 영수증). 간이과세자는 계산이 다릅니다.</p>' +
+      (miss ? '<p style="margin:6px 0 0;color:var(--no);font-weight:700">⚠ 세금계산서·현금영수증 아직 발행 안 한 현장 ' + miss + '곳 — 작업 지시서·견적에서 확인하세요.</p>' : ''); })();
   $('csvT').onclick = function () { var k = Y + '-' + String(M + 1).padStart(2, '0'), PT = DECO.partners(), r = [['구분', '날짜', '상대·항목', '내용', '공급가', '부가세', '합계', '증빙', '발행·영수증', '비고']], n = 0;
     DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, t = (q && q.totals) || {}, x = (q && q.tax) || {};
       r.push(['매출', o.workDate, o.name || (q && q.cust && q.cust.name) || '', (q && q.no ? '견적 ' + q.no + ' · ' : '') + (o.addr || ''), t.supply || 0, t.vat || 0, t.total || 0, x.k || '안 정함', x.done ? '발행함' : (x.k === '세금계산서' || x.k === '현금영수증' ? '아직' : ''), '']); n++;

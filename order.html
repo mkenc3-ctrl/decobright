@@ -74,6 +74,9 @@ h2.s{font-size:19px;margin:20px 0 8px}
       <div id="msBox" hidden><h2 class="s">현장 실측 기록 <small style="font-weight:400;font-size:14px">(단위 cm)</small></h2><pre id="ms" style="white-space:pre-wrap;font:inherit;font-size:15px;background:#fffaf1;border:1px solid var(--bd);border-radius:10px;padding:10px;margin:0"></pre></div>
       <h2 class="s">공통 주의사항·고객 요청</h2>
       <label class="fl"><textarea name="notes" data-mic rows="3" placeholder="예: 엘리베이터 사용 예약, 오후 6시 이전 마감, 반려견 있음"></textarea></label>
+      <h2 class="s">출발 전 준비물 <small style="font-weight:400;font-size:14px">(챙긴 것은 눌러서 ✔ · 이 기기와 다른 기기에 같이 저장)</small></h2>
+      <div id="prep"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px"><input id="prepIn" placeholder="더 챙길 것 (예: 사다리 2개)" style="flex:1;min-width:180px;font-size:16px;padding:9px"><button class="btn2" type="button" id="prepAdd">＋ 넣기</button><button class="btn2" type="button" id="prepK" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 준비물 카톡</button></div>
       <h2 class="s">현장 점검표</h2>
       <div class="chk" id="chk"></div>
       <h2 class="s">내부 정산 <small style="font-weight:400;font-size:14px">(거래처 문자·인쇄에는 안 나갑니다)</small></h2>
@@ -323,6 +326,18 @@ h2.s{font-size:19px;margin:20px 0 8px}
       .then(function (bl) { if (pu) URL.revokeObjectURL(pu); return DECO.shareImg(bl, '시공완료확인서_' + (o.name || o.no || '') + '.jpg', '[' + S.company + '] 시공 완료 확인서·보증서입니다. 보관해 주세요.\n🛠 하자 접수: ' + asU); })
       .then(function (m) { $('msg').className = 'msg'; $('msg').textContent = m; }, function (x) { $('msg').className = 'msg bad'; $('msg').textContent = '그림을 만들지 못했습니다: ' + (x && x.message || x); })
       .then(function () { btn.disabled = false; btn.textContent = old; }); });
+  // 출발 전 준비물 (작업마다 기본 목록 + 더 넣기, o.prep = {이름: 1})
+  var PREP = { '목수': ['타카·타카 핀', '각재·석고보드 여분', '레이저 수평기', '줄자·연필', '집진기·보양 비닐'], '전기': ['LED 바·드라이버(SMPS)', '전선·커넥터', '테스터기', '절연 테이프', '타공 비트(다운라이트용)'], '도배': ['초배지·벽지 여분', '풀·풀솔', '커터칼·칼날', '헤라·롤러', '걸레·물통'] };
+  function prepL() { var L = []; TR.forEach(function (t) { if (o.trades && o.trades[t] && o.trades[t].on) (PREP[t] || []).forEach(function (x) { L.push([t, x]); }); }); ['사다리', '공구함·충전 드릴(배터리)', '보양재(바닥·문틀)', '쓰레기 봉투'].forEach(function (x) { L.push(['공통', x]); }); (o.prepX || []).forEach(function (x) { L.push(['추가', x]); }); return L; }
+  function prepD() { var P = o.prep || {}, L = prepL(), n = L.filter(function (x) { return P[x[1]]; }).length;
+    $('prep').innerHTML = '<p style="margin:0 0 6px;font-weight:700;color:' + (n === L.length ? 'var(--ok)' : 'inherit') + '">' + n + ' / ' + L.length + ' 챙김' + (n === L.length ? ' ✔ 다 챙겼습니다' : '') + '</p><div style="display:flex;flex-wrap:wrap;gap:6px">' + L.map(function (x) { var on = !!P[x[1]];
+      return '<button type="button" class="btn2" data-pp="' + E(x[1]) + '" aria-pressed="' + on + '" style="font-size:16px;' + (on ? 'background:#e9f5ec;border-color:#5a9b6c;' : '') + '">' + (on ? '✔ ' : '') + E(x[1]) + ' <small style="color:var(--muted)">' + E(x[0]) + '</small></button>'; }).join('') + '</div>'; }
+  $('prep').addEventListener('click', function (e) { var b = e.target.closest('[data-pp]'); if (!b) return; o.prep = o.prep || {}; var k = b.dataset.pp; if (o.prep[k]) delete o.prep[k]; else o.prep[k] = 1; DECO.saveOrder(o); prepD(); });
+  $('prepAdd').addEventListener('click', function () { var v = $('prepIn').value.trim(); if (!v) return; o.prepX = (o.prepX || []).filter(function (x) { return x !== v; }).concat([v]); $('prepIn').value = ''; DECO.saveOrder(o); prepD(); });
+  $('prepK').addEventListener('click', function () { if (!save()) return; var P = o.prep || {}, G = {}; prepL().forEach(function (x) { (G[x[0]] = G[x[0]] || []).push((P[x[1]] ? '✔ ' : '☐ ') + x[1]); });
+    DECO.kakao(DECO.kfmt({ icon: '🧰', title: '출발 전 준비물', info: [['📅', '날짜', o.workDate || ''], ['📍', '현장', o.addr]], secs: Object.keys(G).map(function (k) { return [k, G[k]]; }) }), '준비물 카톡'); });
+  f.addEventListener('change', function (e) { if (e.target.type === 'checkbox') setTimeout(function () { read(); prepD(); }, 0); });
+  setTimeout(prepD, 0);
   // 후기 받기 링크
   $('kRV').addEventListener('click', function () { if (!save()) return; upLink(''); var u = 'https://mkenc3-ctrl.github.io/decobright/rv.html?o=' + encodeURIComponent(o.id) + '&k=' + o.upk;
     DECO.kakao(DECO.kfmt({ icon: '⭐', title: '시공 후기 부탁드립니다', info: [['👤', '고객', o.name ? o.name + ' 님' : ''], ['📍', '현장', o.addr]],
