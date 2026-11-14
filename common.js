@@ -217,11 +217,48 @@
       var c = document.createElement('canvas'), g = c.getContext('2d'); c.width = W; c.height = 100; var H = pass(g, false); c.height = H; pass(c.getContext('2d'), true);
       return new Promise(function (ok, no) { c.toBlob(function (b) { b ? ok(b) : no(new Error('그림을 만들지 못했습니다')); }, 'image/jpeg', 0.9); }); }); };
   // 그림 보내기: 핸드폰은 공유 창(카톡 고르기), 컴퓨터는 내려받기
-  D.shareImg = function (blob, name, text) { var f = new File([blob], name, { type: 'image/jpeg' }), ok = false;
-    try { ok = !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) {}
-    if (ok) return navigator.share({ files: [f], text: text || '' }).then(function () { return '보냈습니다.'; }, function () { return '보내기를 취소했습니다.'; });
-    var a = document.createElement('a'), u = URL.createObjectURL(blob); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
-    return Promise.resolve('그림 파일을 내려받았습니다. 카톡 대화방에서 📎(+) → 사진으로 보내세요.'); };
+  // ── 그림 보내기 (카톡에 맞춤) ──
+  // 1) 긴 그림은 카톡에서 글씨가 작아지지 않게 빈 줄에서 나눠 여러 장으로
+  // 2) 미리보기 창의 노란 버튼을 눌러야 공유 창이 열림 (휴대폰이 「누른 직후」만 공유를 허락하기 때문)
+  // 3) 사진만 공유하고, 함께 갈 글은 복사해 둠 → 카톡 입력칸에 붙여넣기 (사진+글을 같이 넘기면 카톡이 한쪽을 빠뜨림)
+  function splitImg(blob) {
+    return new Promise(function (ok) { var u = URL.createObjectURL(blob), im = new Image();
+      im.onerror = function () { URL.revokeObjectURL(u); ok([blob]); };
+      im.onload = function () { var w = im.naturalWidth, h = im.naturalHeight; if (h <= w * 1.6) { URL.revokeObjectURL(u); ok([blob]); return; }
+        try { var c = document.createElement('canvas'); c.width = w; c.height = h; var g = c.getContext('2d'); g.drawImage(im, 0, 0); URL.revokeObjectURL(u);
+          var plain = function (y) { var d = g.getImageData(0, y, w, 1).data; for (var i = 4; i < d.length; i += 16) { if (Math.abs(d[i] - d[0]) + Math.abs(d[i + 1] - d[1]) + Math.abs(d[i + 2] - d[2]) > 18) return false; } return true; };
+          var n = Math.ceil(h / (w * 1.35)), cuts = [0];
+          for (var k = 1; k < n; k++) { var t = Math.round(h * k / n), best = t; for (var dd = 0; dd < 260; dd += 2) { if (plain(t - dd)) { best = t - dd; break; } if (plain(t + dd)) { best = t + dd; break; } } cuts.push(best); }
+          cuts.push(h);
+          Promise.all(cuts.slice(1).map(function (y2, i) { var y1 = cuts[i], p = document.createElement('canvas'); p.width = w; p.height = y2 - y1;
+            var pg = p.getContext('2d'); pg.fillStyle = '#fff'; pg.fillRect(0, 0, w, p.height); pg.drawImage(c, 0, y1, w, y2 - y1, 0, 0, w, y2 - y1);
+            return new Promise(function (r) { p.toBlob(function (b) { r(b); }, 'image/jpeg', 0.9); }); })).then(function (L) { ok(L.every(Boolean) ? L : [blob]); });
+        } catch (e) { ok([blob]); } };
+      im.src = u; }); }
+  D.shareImg = function (blob, name, text) {
+    return splitImg(blob).then(function (B) { return new Promise(function (done) {
+      if (!document.getElementById('ksSt')) { var st = document.createElement('style'); st.id = 'ksSt';
+        st.textContent = '#ks{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:210;display:flex;align-items:flex-end;justify-content:center}#ks>div{background:#fff;width:100%;max-width:560px;max-height:94vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));box-sizing:border-box;color:#221C18}#ks b{font-size:19px}#ks p{margin:6px 0 10px;color:#7A6E66;font-size:15px}#ks .pv{max-height:44vh;overflow:auto;border:1px solid #CDBBA3;border-radius:10px;background:#F4EEE6;padding:6px;display:grid;gap:6px}#ks .pv img{width:100%;display:block;border-radius:6px}#ks .tx{white-space:pre-wrap;background:#FFFBEA;border:1px solid #E8D9A8;border-radius:10px;padding:8px 10px;font-size:14px;color:#221C18;max-height:16vh;overflow:auto}#ks .r{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}#ks .r button{flex:1 1 140px;font:inherit;font-size:17px;font-weight:800;height:56px;border-radius:12px;border:1px solid #CDBBA3;background:#fff;color:#221C18;cursor:pointer}#ks .r .y{background:#FEE500;border-color:#FEE500;color:#191919;flex-basis:100%;font-size:19px;height:62px}#ks .m{min-height:22px;font-weight:700;color:#2E6A4E;margin:8px 0 0}@media(min-width:600px){#ks{align-items:center}#ks>div{border-radius:16px}}';
+        document.head.appendChild(st); }
+      var old = document.getElementById('ks'); if (old) old.remove();
+      var F = B.map(function (b, i) { return new File([b], B.length > 1 ? name.replace(/(\.jpe?g)?$/i, '_' + (i + 1) + '.jpg') : name, { type: 'image/jpeg' }); }), can = false, U = B.map(function (b) { return URL.createObjectURL(b); }), last = '';
+      try { can = !!(navigator.canShare && navigator.canShare({ files: F })); } catch (e) {}
+      var w = document.createElement('div'); w.id = 'ks'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-modal', 'true');
+      w.innerHTML = '<div><b>💬 카톡으로 보내기</b><p>' + (B.length > 1 ? '글씨가 잘 보이게 <b style="font-size:inherit">' + B.length + '장</b>으로 나눴습니다. ' : '') + (can ? '노란 버튼을 누르고 「카카오톡」 → 받을 사람을 고르세요.' : '「사진 저장」 뒤 카톡 대화방에서 ＋ → 사진(앨범)으로 보내세요.') + '</p>' +
+        '<div class="pv">' + U.map(function (u, i) { return '<img src="' + u + '" alt="보낼 그림 ' + (i + 1) + '">'; }).join('') + '</div>' +
+        (text ? '<p style="margin:10px 0 4px">함께 보낼 글 <small>(버튼을 누르면 복사해 둡니다 → 사진을 보낸 뒤 입력칸을 길게 눌러 「붙여넣기」)</small></p><div class="tx"></div>' : '') +
+        '<div class="r">' + (can ? '<button type="button" class="y" data-a="sh">💬 카톡으로 보내기' + (B.length > 1 ? ' (' + B.length + '장)' : '') + '</button>' : '') + '<button type="button" data-a="sv">💾 사진 저장</button><button type="button" data-a="x">닫기</button></div><p class="m" role="status"></p></div>';
+      document.body.appendChild(w); if (text) w.querySelector('.tx').textContent = text; var m = w.querySelector('.m');
+      function say(t) { last = t; m.textContent = t; }
+      function cp() { if (!text) return Promise.resolve(false); return (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { return true; }, function () { return false; }); }
+      function close() { w.remove(); setTimeout(function () { U.forEach(function (u) { URL.revokeObjectURL(u); }); }, 1000); done(last || '닫았습니다.'); }
+      w.addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (e.target === w || (b && b.dataset.a === 'x')) { close(); return; } if (!b) return;
+        if (b.dataset.a === 'sh') { var c0 = cp(); navigator.share({ files: F }).then(function () { return c0.then(function (c) { say('✔ 보냈습니다.' + (c ? ' 안내 글도 복사해 두었으니, 카톡 입력칸을 길게 눌러 「붙여넣기」 하세요.' : '')); }); },
+          function (er) { say(er && er.name === 'AbortError' ? '보내기를 취소했습니다. 다시 누르면 됩니다.' : '공유 창을 열지 못했습니다. 「사진 저장」 뒤 카톡에서 보내 주세요.'); }); }
+        if (b.dataset.a === 'sv') { F.forEach(function (f, i) { setTimeout(function () { var a = document.createElement('a'), u = URL.createObjectURL(f); a.href = u; a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000); }, i * 400); });
+          cp().then(function (c) { say('✔ 사진 ' + F.length + '장을 저장했습니다. 카톡 대화방 ＋ → 앨범에서 보내세요.' + (c ? ' 안내 글은 복사해 두었습니다.' : '')); }); } });
+      document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { document.removeEventListener('keydown', esc); if (document.body.contains(w)) close(); } });
+    }); }); };
 
   // ── 카톡에 붙여넣기 좋은 글 ──
   // D.kfmt({ title, info:[['👤','고객','홍길동 님'],...], secs:[['작업 내용',[...]],...], total:['💰 합계 : 1,000원', ...], foot:['※ ...'] })

@@ -159,7 +159,7 @@
   $('vshare').hidden = !canShare();
   $('vshare').addEventListener('click', function () { var b = baBlob || (cur && cur.blob); if (!b) return; var s = DECO.settings();
     var f = new File([b], (cur ? '현장사진_' + cur.stage.replace('·', '') : '시공전후') + '.jpg', { type: 'image/jpeg' });
-    navigator.share({ files: [f], title: s.company + ' 시공 사진', text: s.company + ' ' + (s.phone || '') }).catch(function () {}); });
+    navigator.share({ files: [f] }).catch(function () {}); });
   $('vkeep').addEventListener('click', function () { if (!baBlob) return; var j = $('job').value === '*' ? '' : $('job').value;
     DECO.photoAdd({ job: j, stage: '시공 후', memo: '전·후 비교', blob: baBlob, taken: Date.now() }).then(function () { close(); say('비교 사진을 「' + jobName(j) + ' · 시공 후」에 저장했습니다.'); load(); }); });
   // 사진 위에 손으로 표시(작업자에게 보낼 위치·하자 부위) → 새 사진으로 보관
