@@ -90,6 +90,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
         <a class="btn2" id="toPh" href="photos.html">현장 사진 보관함</a>
         <button class="btn2" type="button" id="iAll" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 지시서 그림으로 카톡</button>
         <button class="btn2" type="button" id="kAll" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 전체 지시 카톡 (단톡방용)</button>
+        <button class="btn2" type="button" id="kAS" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🔧 1년 무상 점검 안내 카톡</button>
         <button class="btn2" type="button" id="thx">고객에게 완료 인사·후기 부탁 문자</button>
         <button class="btn2 no" type="button" id="del" hidden>지우기</button>
       </div>
@@ -235,6 +236,11 @@ h2.s{font-size:19px;margin:20px 0 8px}
     var tel = p ? String(p.phone).replace(/[^\d+]/g, '') : '', ios = /iPhone|iPad/.test(navigator.userAgent);
     $('msg').className = 'msg'; $('msg').textContent = t + ' 지시 내용을 복사했습니다.' + (p ? ' 문자 창이 열리면 내용을 확인하고 보내세요.' : ' 거래처를 고르지 않아 문자 창은 열지 않습니다. 붙여넣어 보내세요.');
     if (p) location.href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt); });
+  $('kAS').addEventListener('click', function () { if (!save()) return; var d = o.workDate ? new Date(o.workDate + 'T00:00') : null, y = d ? new Date(d.getFullYear() + 1, d.getMonth(), d.getDate()) : null;
+    var done = TR.filter(function (x) { return o.trades[x].on; }).map(function (t) { return o.trades[t].tasks.split('\n').filter(Boolean).join(', '); }).filter(Boolean);
+    DECO.kakao(DECO.kfmt({ icon: '🔧', title: '1년 무상 점검 안내', info: [['👤', '고객', o.name ? o.name + ' 님' : ''], ['📍', '현장', o.addr], ['📅', '시공일', d ? DECO.date(d) : ''], ['🗓', '점검 기간', y ? DECO.date(y) + ' 까지 무상' : '']],
+      secs: [['시공한 내용', done], ['이럴 때 연락 주세요', ['간접등 일부가 안 켜지거나 깜빡일 때', '실링팬 소리·흔들림이 생겼을 때', '리모컨·벽 스위치가 잘 안 될 때', '천장 마감에 금이 보일 때']]],
+      foot: [(o.name ? o.name + ' 님, ' : '') + '시공하신 지 1년이 되어 갑니다. 불편한 곳이 있으면 편하게 말씀해 주세요. 방문 날짜를 잡아 무상으로 점검해 드립니다. 🙏'] }), '1년 점검 안내 카톡'); });
   $('thx').addEventListener('click', function () { if (!save()) return; var s = DECO.settings(), tel = String(o.phone || '').replace(/[^\d+]/g, ''), ios = /iPhone|iPad/.test(navigator.userAgent);
     var txt = '[' + s.company + '] ' + (o.name ? o.name + ' 님, ' : '') + '간접조명·실링팬 시공을 잘 마쳤습니다. 믿고 맡겨 주셔서 감사합니다.\n\n사용하시다 불편한 점은 언제든 연락 주세요. 시공 후 1년 동안 무상 점검해 드립니다.\n\n만족하셨다면 주변 분들께 소개 한마디 부탁드립니다. 큰 힘이 됩니다.' + (s.blog ? '\n시공 사례: ' + s.blog : '') + '\n문의: ' + s.phone;
     if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(function () {});

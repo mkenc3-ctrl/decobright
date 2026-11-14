@@ -120,6 +120,10 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     $('st').innerHTML = '<tr><th>상태</th><th class="n" style="text-align:right">건수</th><th style="text-align:right">금액</th></tr>' + DECO.STATUS.map(function (s) {
       var a = mq.filter(function (q) { return (q.status || '상담') === s; }); return '<tr><td>' + s + '</td><td class="n">' + a.length + '</td><td class="n">' + W(sum(a)) + '</td></tr>'; }).join('');
   }
+  var KSET = {};
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-kset]'); if (!b) return; var g = KSET[b.dataset.kset]; if (!g) return;
+    DECO.kakao(DECO.kfmt({ icon: '🧾', title: '정산 내역', info: [['👷', '받는 분', b.dataset.kset + ' 님'], ['📅', '보낸 날', DECO.date(Date.now())]],
+      secs: [['현장별 금액', g.ln.map(function (l) { return l.replace(/^- /, ''); })]], total: ['💰 합계 : ' + W(g.a)], foot: ['확인 부탁드립니다. 늘 수고 많으십니다! 🙏'] }), '정산 카톡'); });
   function profit() { var k = Y * 12 + M, O = DECO.orders().filter(function (o) { return o.workDate && ym(o.workDate + 'T00:00') === k && o.status !== '보류'; });
     var tS = 0, tC = 0, rows = O.map(function (o) { var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, sup = q && q.totals ? q.totals.supply || 0 : 0, c = 0; for (var x in (o.cost || {})) c += +o.cost[x] || 0; tS += sup; tC += c;
       return '<tr><td><a href="order.html?id=' + encodeURIComponent(o.id) + '">' + E(o.workDate.slice(5)) + ' ' + E(o.name || o.addr || o.no) + '</a></td><td class="n">' + W(sup) + '</td><td class="n">' + W(c) + '</td><td class="n"><b>' + W(sup - c) + '</b></td></tr>'; });
@@ -129,9 +133,9 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     var G = {}, PT = {}, PH = {}; DECO.partners().forEach(function (p) { PT[p.id] = p.name; PH[p.name] = String(p.phone || '').replace(/[^\d+]/g, ''); });
     DECO.orders().forEach(function (o) { var c = o.cost || {}, pd = o.costPaid || {}; Object.keys(c).forEach(function (t) { if (pd[t] || !c[t]) return; var who = (o.trades && o.trades[t] && PT[o.trades[t].partner]) || (t === '자재' ? '자재비' : t === '기타' ? '기타 비용' : t + ' (거래처 미지정)');
       G[who] = G[who] || { a: 0, at: [], ln: [] }; G[who].a += +c[t]; G[who].at.push((o.workDate || '').slice(5) + ' ' + (o.name || '')); G[who].ln.push('- ' + (o.workDate || '').slice(5) + ' ' + (o.name || o.addr || '') + ' 현장 ' + t + ' ' + W(+c[t])); }); });
-    var ks = Object.keys(G), co = DECO.settings().company, ios = /iPhone|iPad/.test(navigator.userAgent);
+    var ks = Object.keys(G), co = DECO.settings().company, ios = /iPhone|iPad/.test(navigator.userAgent); KSET = G;
     $('unpaid').innerHTML = ks.length ? '<tr><th>누구</th><th>현장</th><th style="text-align:right">금액</th></tr>' + ks.map(function (w) { var tel = PH[w], txt = '[' + co + '] ' + w + ' 님, 정산 내역 보내드립니다.\n' + G[w].ln.join('\n') + '\n합계 ' + W(G[w].a) + '\n확인 후 입금해 드리겠습니다. 늘 감사합니다.';
-      return '<tr><td>' + E(w) + (tel ? '<br><a class="btn2" style="margin-top:4px;font-size:13px;padding:4px 8px" href="sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt) + '">정산 문자</a>' : '') + '</td><td style="font-size:13px">' + E(G[w].at.join(', ')) + '</td><td class="n">' + W(G[w].a) + '</td></tr>'; }).join('') : '<tr><td>안 준 돈이 없습니다. (지시서 「내부 정산」의 「지급함」을 체크하면 빠집니다)</td></tr>'; }
+      return '<tr><td>' + E(w) + '<br><button type="button" class="btn2" data-kset="' + E(w) + '" style="margin-top:4px;font-size:13px;padding:4px 8px;background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 정산 카톡</button>' + (tel ? '<br><a class="btn2" style="margin-top:4px;font-size:13px;padding:4px 8px" href="sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(txt) + '">정산 문자</a>' : '') + '</td><td style="font-size:13px">' + E(G[w].at.join(', ')) + '</td><td class="n">' + W(G[w].a) + '</td></tr>'; }).join('') : '<tr><td>안 준 돈이 없습니다. (지시서 「내부 정산」의 「지급함」을 체크하면 빠집니다)</td></tr>'; }
   (function () { var R = DECO.orders().filter(function (o) { return o.review && (o.review.star || o.review.text); }).sort(function (a, b) { return (b.workDate || '').localeCompare(a.workDate || ''); });
     var st = R.filter(function (o) { return o.review.star; }), avg = st.length ? (st.reduce(function (s, o) { return s + o.review.star; }, 0) / st.length).toFixed(1) : '-';
     $('rvSum').textContent = R.length ? '후기 ' + R.length + '건 · 평균 별점 ' + avg + ' / 5 · 홍보 사용 허락 ' + R.filter(function (o) { return o.review.ok; }).length + '건' : '아직 후기가 없습니다. 작업 지시서 아래 「고객 후기」에 별점과 한마디를 남겨 주세요.';
@@ -152,9 +156,18 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   draw();
   // ── 수금
   var PV = 'due', OPEN = null, ST = DECO.settings();
-  function smsBtn(q, rem) { var c = q.cust || {}, tel = String(c.phone || '').replace(/[^\d+]/g, ''); if (rem <= 0 || !tel) return '';
+  function smsBtn(q, rem) { var kp = paid(q) ? '<button type="button" class="btn2" data-kpaid="' + E(q.id) + '" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 입금 확인·시공 안내 카톡</button> ' : '';
+    return kp + smsBtn0(q, rem); }
+  function smsBtn0(q, rem) { var c = q.cust || {}, tel = String(c.phone || '').replace(/[^\d+]/g, ''); if (rem <= 0 || !tel) return '';
     var t = '[' + ST.company + '] ' + (c.name ? c.name + ' 님, ' : '') + '시공 대금 안내드립니다.\n합계 ' + W(amt(q)) + (paid(q) ? '\n받은 금액 ' + W(paid(q)) : '') + '\n남은 금액 ' + W(rem) + (ST.bank ? '\n입금 계좌: ' + ST.bank : '') + '\n문의: ' + ST.phone + '\n감사합니다.';
     return '<button type="button" class="btn2" data-kpay="' + E(q.id) + '" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 카톡 안내</button> <a class="btn2" href="sms:' + tel + (/iPhone|iPad/.test(navigator.userAgent) ? '&' : '?') + 'body=' + encodeURIComponent(t) + '">문자로 안내</a>'; }
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-kpaid]'); if (!b) return; var q = Q.filter(function (x) { return x.id === b.dataset.kpaid; })[0]; if (!q) return;
+    var c = q.cust || {}, P = (q.pays || []).slice(-1)[0] || {}, rem = Math.max(0, amt(q) - paid(q)), o = DECO.orders().filter(function (x) { return x.quoteId === q.id && x.status !== '보류'; })[0], wd = '';
+    if (o && o.workDate) { var d = new Date(o.workDate + 'T00:00'); wd = (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + '일월화수목금토'[d.getDay()] + ')' + (o.workTime ? ' ' + o.workTime : ''); }
+    DECO.kakao(DECO.kfmt({ icon: '✅', title: '입금 확인 안내', info: [['👤', '고객', c.name ? c.name + ' 님' : ''], ['📍', '현장', (o && o.addr) || c.addr], ['📅', '시공일', wd || '날짜를 정해 다시 연락드리겠습니다']],
+      secs: [['시공 전에 부탁드립니다', ['거실·방 천장 아래 가구는 조금 옮겨 주세요', '차단기(두꺼비집) 위치를 알려 주세요', '엘리베이터 사용·주차는 관리실에 미리 말씀해 주세요', '먼지가 날 수 있어 귀중품은 치워 주세요']]],
+      total: [(P.kind || '입금') + ' : ' + W(P.amt || 0) + ' (' + (P.d || '') + ') 확인했습니다', '받은 금액 합계 : ' + W(paid(q)), '💰 남은 금액 : ' + W(rem) + (rem ? ' (시공 후)' : '')],
+      foot: ['믿고 맡겨 주셔서 감사합니다. 깔끔하게 시공하겠습니다! 🙏'] }), '입금 확인 카톡'); });
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-kpay]'); if (!b) return; var q = Q.filter(function (x) { return x.id === b.dataset.kpay; })[0]; if (!q) return;
     var c = q.cust || {}, rem = Math.max(0, amt(q) - paid(q));
     DECO.kakao(DECO.kfmt({ icon: '💳', title: '시공 대금 안내', info: [['👤', '고객', c.name ? c.name + ' 님' : ''], ['📍', '현장', c.addr], ['🔖', '견적번호', q.no]],
