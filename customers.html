@@ -52,7 +52,8 @@
     var won = Q.filter(function (q) { return ['계약', '시공', '완료'].indexOf(q.status) >= 0; }).reduce(function (s, q) { return s + ((q.totals && q.totals.total) || 0); }, 0);
     var due = Q.filter(function (q) { return ['계약', '시공', '완료'].indexOf(q.status) >= 0; }).reduce(function (s, q) { return s + Math.max(0, ((q.totals && q.totals.total) || 0) - (q.pays || []).reduce(function (a, p) { return a + (+p.amt || 0); }, 0)); }, 0);
     var last = Math.max(c.touched || 0, c.updated || 0, Q.length ? Q[0].updated || 0 : 0, c.logs && c.logs.length ? new Date(c.logs[c.logs.length - 1].date + 'T12:00').getTime() || 0 : 0);
-    return { c: c, n: Q.length, st: st, won: won, due: due, ago: last ? Math.floor((Date.now() - last) / 864e5) : 999 };
+    var nc = Q.filter(function (q) { return ['계약', '시공', '완료'].indexOf(q.status) >= 0; }).length, nr = c.name ? DECO.customers().filter(function (y) { return y.id !== c.id && y.ref && String(y.ref).indexOf(c.name) === 0; }).length : 0;
+    return { nc: nc, nr: nr, c: c, n: Q.length, st: st, won: won, due: due, ago: last ? Math.floor((Date.now() - last) / 864e5) : 999 };
   });
   fs.innerHTML = '<option value="">전체 상태</option><option value="_call">☎ 연락할 고객 (상담·실측, 3일 넘게 연락 없음)</option><option value="_due">💰 받을 돈 남은 고객</option>' + ['견적 전'].concat(DECO.STATUS).map(function (s) { return '<option>' + s + '</option>'; }).join('');
   var cnt = function (s) { return C.filter(function (x) { return x.st === s; }).length; };
@@ -64,7 +65,7 @@
     if (fs.value === '_call') L.sort(function (a, b) { return a.ago - b.ago; }); if (fs.value === '_due') L.sort(function (a, b) { return b.due - a.due; });
     if (!L.length) { box.innerHTML = '<div class="empty">' + (k || fs.value ? '찾는 고객이 없습니다.' : '아직 고객이 없습니다. 견적을 저장하거나 「+ 고객 등록」을 누르세요.') + '</div>'; return; }
     box.innerHTML = L.map(function (x) { var c = x.c;
-      return '<a class="c" href="customer.html?id=' + encodeURIComponent(c.id) + '"><div><h3>' + E(c.name || '이름 없음') + ' 님<span class="tag">' + E(x.st) + '</span></h3>' +
+      return '<a class="c" href="customer.html?id=' + encodeURIComponent(c.id) + '"><div><h3>' + E(c.name || '이름 없음') + ' 님<span class="tag">' + E(x.st) + '</span>' + (x.nc >= 2 ? '<span class="tag" style="background:#FFF1D6;color:#8A5A12;border-color:#E9C27A">🏅 단골 ' + x.nc + '번</span>' : '') + (x.nr ? '<span class="tag" style="background:#E8F3EC;color:#2E6A4E;border-color:#9BC7AE">🤝 소개 ' + x.nr + '명</span>' : '') + '</h3>' +
         '<div class="m">' + E(c.phone || '전화 없음') + (c.addr ? ' · ' + E(c.addr) : '') + '</div>' +
         '<div class="m">견적 ' + x.n + '건' + (c.source ? ' · ' + E(c.source) : '') + (c.logs && c.logs.length ? ' · 최근 상담 ' + E(c.logs[c.logs.length - 1].date) : '') + (x.ago < 999 ? ' · ' + (x.ago ? x.ago + '일 전 연락' : '오늘 연락') : '') + (x.due ? ' · <b style="color:#b5462f">받을 돈 ' + DECO.won(x.due) + '</b>' : '') + '</div></div>' +
         '<div class="r">' + (x.won ? '<b>' + DECO.won(x.won) + '</b><span class="m">계약 금액</span>' : '') + '</div></a>';

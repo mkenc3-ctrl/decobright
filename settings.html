@@ -37,6 +37,7 @@
       <label class="fl" style="grid-column:1/-1">첫 인사 소개말<input name="slogan" placeholder="예: 간접 조명 · 실링팬 전문 브랜드"><small>「○○ ○○입니다.」로 시작합니다.</small></label>
       <label class="fl">기본 계약금(원)<input name="deposit" type="number" min="0" step="10000"></label>
       <label class="fl">부가세<select name="vat" style="font:inherit;font-size:17px;border:1px solid var(--bd);border-radius:10px;padding:9px 10px;background:#fff"><option value="separate">별도 (요청 시 발행)</option><option value="include">포함</option></select></label>
+      <div class="fl" style="grid-column:1/-1"><b>회사 도장 (견적서 대표자 옆)</b><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px"><img id="stImg" alt="도장 미리 보기" style="height:70px;border:1px dashed var(--bd);border-radius:8px;background:#fff;padding:4px" hidden><label class="btn2" style="cursor:pointer">📷 도장 사진 올리기<input type="file" id="stF" accept="image/*" hidden></label><button class="btn2 no" type="button" id="stX" hidden>도장 빼기</button></div><input type="hidden" name="stamp"><small>흰 종이에 찍은 도장을 가까이서 찍어 올리면 흰 바탕을 빼고 넣습니다. 고른 뒤 「저장」을 누르세요.</small></div>
       <label class="fl" style="grid-column:1/-1">계약금 안내<input name="refund"></label>
       <label class="fl" style="grid-column:1/-1">맺음말<textarea name="closing" rows="4"></textarea></label>
     </div>
@@ -60,6 +61,15 @@
 (function () {
   var f = document.getElementById('f'), s = DECO.settings(), m = document.getElementById('msg');
   Array.prototype.forEach.call(f.elements, function (el) { if (el.name && s[el.name] != null) el.value = s[el.name]; });
+  // 도장 사진: 240px 로 줄이고 흰 바탕을 투명하게
+  (function () { var hid = f.elements.stamp, im = document.getElementById('stImg'), X = document.getElementById('stX');
+    function show() { var v = hid.value; im.hidden = X.hidden = !/^data:image\//.test(v); if (!im.hidden) im.src = v; } show();
+    X.onclick = function () { hid.value = ''; show(); m.className = 'msg'; m.textContent = '도장을 뺐습니다. 「저장」을 눌러 주세요.'; };
+    document.getElementById('stF').onchange = function () { var fl = this.files && this.files[0]; this.value = ''; if (!fl) return; var u = URL.createObjectURL(fl), g = new Image();
+      g.onload = function () { var k = Math.min(1, 240 / Math.max(g.width, g.height)), c = document.createElement('canvas'); c.width = Math.round(g.width * k); c.height = Math.round(g.height * k); var x = c.getContext('2d'); x.drawImage(g, 0, 0, c.width, c.height);
+        var d = x.getImageData(0, 0, c.width, c.height), p = d.data; for (var i = 0; i < p.length; i += 4) { var mn = Math.min(p[i], p[i + 1], p[i + 2]); if (mn > 200) p[i + 3] = 0; else if (mn > 150) p[i + 3] = Math.round((200 - mn) / 50 * 255); } x.putImageData(d, 0, 0);
+        hid.value = c.toDataURL('image/png'); URL.revokeObjectURL(u); show(); m.className = 'msg'; m.textContent = '도장을 넣었습니다. 「저장」을 눌러야 견적서에 들어갑니다.'; };
+      g.src = u; }; })();
   function stS() { document.getElementById('stS').textContent = DECO.staff() ? '🔒 지금 이 기기는 직원 기기 모드입니다' : '지금은 꺼져 있습니다 (사장님 기기)'; } stS();
   document.getElementById('stOn').onclick = function () { var v = document.getElementById('stN').value.trim(), M = document.getElementById('stMsg');
     if (!/^\d{4,}$/.test(v)) { M.className = 'msg bad'; M.textContent = '숫자 4자리 이상으로 넣어 주세요.'; return; }

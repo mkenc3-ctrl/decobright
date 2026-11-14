@@ -3,7 +3,7 @@
   var KQ = 'deco-quotes', KS = 'deco-settings';
   function rd(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function wr(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return false; } try { window.DECO_SYNC && window.DECO_SYNC.changed(k, v); } catch (e) {} return true; }
-  var DEF = { goal: '', company: '데코브라이트', bizName: '데코브라이트 간접조명 실링팬', ceo: '이상호 외 1명', bizno: '480-38-01362', addr: '경상남도 창원시 의창구 봉곡로120번길 1(봉곡동)',
+  var DEF = { goal: '', stamp: '', company: '데코브라이트', bizName: '데코브라이트 간접조명 실링팬', ceo: '이상호 외 1명', bizno: '480-38-01362', addr: '경상남도 창원시 의창구 봉곡로120번길 1(봉곡동)',
     bizType: '건설업, 도매 및 소매업', bizItem: '일반 전기 공사업, 그 외 기타 건축 마무리 공사업, 전구·램프 및 조명장치 도매업, 전기용품 및 조명장치 소매업', phone: '010-5854-2143', email: '', bank: '', staff: '', validDays: 30,
     slogan: '간접 조명 · 실링팬 전문 브랜드', deposit: 500000, vat: 'separate',
     refund: '계약금은 시공 일정 확정으로 인해 반환이 불가합니다.',
@@ -225,6 +225,17 @@
   // ── 카톡에 붙여넣기 좋은 글 ──
   // D.kfmt({ title, info:[['👤','고객','홍길동 님'],...], secs:[['작업 내용',[...]],...], total:['💰 합계 : 1,000원', ...], foot:['※ ...'] })
   D.KL = '━━━━━━━━━━━━━━';
+  // 자주 쓰는 답장 (reply.html · 고객 화면 공용)
+  D.REPLY_DEF = [
+  { id: 'r1', title: '가격 문의', body: '안녕하세요, {회사}입니다 😊\n천장 조명 공사는 집 크기와 원하시는 조명 종류에 따라 금액이 달라집니다.\n집 평수와 원하시는 곳(거실·주방·방)을 알려 주시거나, 천장 사진을 보내 주시면 바로 견적을 보내 드리겠습니다.\n📞 {전화}' },
+  { id: 'r2', title: '시공 기간·시간', body: '보통 30평대 아파트 기준으로 하루(아침 8시 ~ 오후) 안에 끝납니다.\n목수 작업 → 전기 작업 → 도배 마무리 순서로 진행하고, 작업이 끝나면 청소까지 해 드립니다.' },
+  { id: 'r3', title: '실측 방문 안내', body: '정확한 견적을 위해 실측 방문을 해 드립니다 (무료).\n편하신 날짜와 시간을 알려 주시면 맞춰 찾아뵙겠습니다.\n방문 시간은 20~30분 정도 걸립니다.' },
+  { id: 'r4', title: '계약금·입금 안내', body: '계약금 입금 후 시공 날짜가 확정됩니다.\n입금 계좌: {계좌}\n입금하신 뒤 성함을 알려 주시면 확인해 드리겠습니다. 감사합니다.' },
+  { id: 'r5', title: '하자 보증(A/S)', body: '{회사} 시공은 1년 무상 점검을 해 드립니다.\n조명이 깜빡이거나 꺼지는 등 문제가 생기면 사진과 함께 연락 주세요. 빠르게 찾아뵙겠습니다.\n📞 {전화}' },
+  { id: 'r6', title: '시공 사례 보기', body: '{지역} 지역 시공 사례는 아래 블로그에서 보실 수 있습니다.\n마음에 드시는 사진을 보내 주시면 같은 느낌으로 견적 드리겠습니다.' }
+];
+  D.replies = function () { var a = rd('deco-reply', null); a = Array.isArray(a) ? a.filter(function (x) { return x && x.id && !x._del; }) : null; var init = false; try { init = !!localStorage.getItem('deco-reply-init'); } catch (e) {} return a && (a.length || init) ? a : D.REPLY_DEF.slice(); };
+  D.replyFill = function (t) { var S = D.settings(); return String(t || '').replace(/\{회사\}/g, S.company || '데코브라이트').replace(/\{전화\}/g, S.phone || '').replace(/\{계좌\}/g, S.bank || '(계좌는 회사 정보 설정에 적어 주세요)').replace(/\{지역\}/g, S.area || '') + (/\{지역\}|블로그/.test(t) && S.blog ? '\n' + (/^http/.test(S.blog) ? '' : 'https://') + S.blog : ''); };
   // 손님용 온라인 견적서 주소 · 손님 답(okq)
   D.viewLink = function (q) { return q && q.vk ? 'https://mkenc3-ctrl.github.io/decobright/view.html?q=' + encodeURIComponent(q.id) + '&k=' + q.vk : ''; };
   D.seen = function () { var m = {}; rd('deco-seen', []).forEach(function (x) { if (x && x.qid && !x._del) m[x.qid] = x; }); return m; };

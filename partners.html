@@ -28,6 +28,7 @@ h2.s{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding
       <label class="fl">공종<select name="trade" id="trade"></select></label>
       <label class="fl"><span class="need">이름·상호</span><input name="name" required placeholder="예: 김목수"></label>
       <label class="fl"><span class="need">휴대폰</span><input name="phone" required inputmode="tel" placeholder="010-0000-0000"></label>
+      <label class="fl">기본 금액(원)<input name="rate" type="number" inputmode="numeric" min="0" step="10000" placeholder="예: 250000 (하루 일당)"></label>
       <label class="fl">메모<input name="memo" placeholder="예: 오전만 가능, 일당 ○○"></label>
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -58,7 +59,7 @@ h2.s{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding
         : '<div class="empty">' + t + ' 거래처가 없습니다.</div>'); }).join(''); }
   function reset() { ed = null; f.reset(); $('sv').textContent = '거래처 추가'; $('cancel').hidden = true; }
   f.addEventListener('submit', function (e) { e.preventDefault(); var p = ed || {};
-    ['trade', 'name', 'phone', 'memo'].forEach(function (k) { p[k] = f.elements[k].value.trim(); });
+    ['trade', 'name', 'phone', 'memo', 'rate'].forEach(function (k) { p[k] = f.elements[k].value.trim(); });
     var r = DECO.savePartner(p); $('msg').className = 'msg' + (r ? '' : ' bad'); $('msg').textContent = r ? p.name + ' (' + p.trade + ') 저장했습니다.' : '저장하지 못했습니다.'; if (r) { reset(); draw(); } });
   $('cancel').addEventListener('click', reset);
   $('box').addEventListener('click', function (e) { var b = e.target.closest('[data-wk]'); if (!b) return; var p = DECO.partners().filter(function (x) { return x.id === b.dataset.wk; })[0]; if (!p) return;
@@ -68,7 +69,7 @@ h2.s{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding
       secs: [['일정', lines.length ? lines : ['이번 주 잡힌 일정이 없습니다']]], foot: ['일정 확인 부탁드립니다. 어려운 날은 미리 말씀해 주세요. 🙏'] }), p.name + ' 님 이번 주 일정'); });
   $('box').addEventListener('click', function (e) { var b = e.target.closest('[data-ed],[data-del]'); if (!b) return; var A = DECO.partners();
     if (b.dataset.del) { var d = A.filter(function (x) { return x.id === b.dataset.del; })[0]; if (d && confirm(d.name + ' 거래처를 지울까요?')) { DECO.delPartner(d.id); draw(); } return; }
-    ed = A.filter(function (x) { return x.id === b.dataset.ed; })[0]; ['trade', 'name', 'phone', 'memo'].forEach(function (k) { f.elements[k].value = ed[k] || ''; });
+    ed = A.filter(function (x) { return x.id === b.dataset.ed; })[0]; ['trade', 'name', 'phone', 'memo', 'rate'].forEach(function (k) { f.elements[k].value = ed[k] || ''; });
     $('sv').textContent = '고친 내용 저장'; $('cancel').hidden = false; window.scrollTo({ top: 0, behavior: 'smooth' }); });
   draw();
 })();

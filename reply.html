@@ -43,16 +43,8 @@
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, K = 'deco-reply', cur = null;
-  var DEF = [
-    { id: 'r1', title: '가격 문의', body: '안녕하세요, {회사}입니다 😊\n천장 조명 공사는 집 크기와 원하시는 조명 종류에 따라 금액이 달라집니다.\n집 평수와 원하시는 곳(거실·주방·방)을 알려 주시거나, 천장 사진을 보내 주시면 바로 견적을 보내 드리겠습니다.\n📞 {전화}' },
-    { id: 'r2', title: '시공 기간·시간', body: '보통 30평대 아파트 기준으로 하루(아침 8시 ~ 오후) 안에 끝납니다.\n목수 작업 → 전기 작업 → 도배 마무리 순서로 진행하고, 작업이 끝나면 청소까지 해 드립니다.' },
-    { id: 'r3', title: '실측 방문 안내', body: '정확한 견적을 위해 실측 방문을 해 드립니다 (무료).\n편하신 날짜와 시간을 알려 주시면 맞춰 찾아뵙겠습니다.\n방문 시간은 20~30분 정도 걸립니다.' },
-    { id: 'r4', title: '계약금·입금 안내', body: '계약금 입금 후 시공 날짜가 확정됩니다.\n입금 계좌: {계좌}\n입금하신 뒤 성함을 알려 주시면 확인해 드리겠습니다. 감사합니다.' },
-    { id: 'r5', title: '하자 보증(A/S)', body: '{회사} 시공은 1년 무상 점검을 해 드립니다.\n조명이 깜빡이거나 꺼지는 등 문제가 생기면 사진과 함께 연락 주세요. 빠르게 찾아뵙겠습니다.\n📞 {전화}' },
-    { id: 'r6', title: '시공 사례 보기', body: '{지역} 지역 시공 사례는 아래 블로그에서 보실 수 있습니다.\n마음에 드시는 사진을 보내 주시면 같은 느낌으로 견적 드리겠습니다.' }
-  ];
-  function rd() { try { var a = JSON.parse(localStorage.getItem(K) || 'null'); return Array.isArray(a) ? a.filter(function (x) { return x && x.id && !x._del; }) : null; } catch (e) { return null; } }
-  function all() { var a = rd(); return a && (a.length || localStorage.getItem('deco-reply-init')) ? a : DEF.slice(); }
+  function all() { return DECO.replies(); }
+  var fill = DECO.replyFill;
   function wr(L) { try { localStorage.setItem(K, JSON.stringify(L)); localStorage.setItem('deco-reply-init', '1'); window.DECO_SYNC && DECO_SYNC.changed && DECO_SYNC.changed(K, L); return true; } catch (e) { return false; } }
   function fill(t) { var S = DECO.settings(); return String(t || '').replace(/\{회사\}/g, S.company || '데코브라이트').replace(/\{전화\}/g, S.phone || '').replace(/\{계좌\}/g, S.bank || '(계좌는 회사 정보 설정에 적어 주세요)').replace(/\{지역\}/g, S.area || '') + (/\{지역\}|블로그/.test(t) && S.blog ? '\n' + (/^http/.test(S.blog) ? '' : 'https://') + S.blog : ''); }
   function say(t, bad) { $('msg').className = 'msg' + (bad ? ' bad' : ''); $('msg').textContent = t; }

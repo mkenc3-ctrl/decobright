@@ -153,8 +153,11 @@ h2.s{font-size:19px;margin:20px 0 8px}
       '<label class="fl w">작업 내용 (한 줄에 하나씩)<textarea class="tk" rows="5">' + E(b.tasks) + '</textarea></label>' +
       '<label class="fl w">준비 자재·장비<textarea class="mt" rows="2" placeholder="예: 다운라이트 3인치 12개, 사다리">' + E(b.mats) + '</textarea></label></div></div>'; }).join('');
   var CN = TR.map(function (t) { return [t, t + ' 인건비']; }).concat([['자재', '자재비'], ['기타', '기타 비용 (운반·주차 등)']]);
+  function rateOf(t) { var b = o.trades && o.trades[t]; if (!b || !b.on || !b.partner) return 0; var p = ptn(b.partner); return p ? +p.rate || 0 : 0; }
+  function costFill() { var n = 0; $('cost').querySelectorAll('[data-c]').forEach(function (i) { var v = rateOf(i.dataset.c); if (!i.value && v) { i.value = v; n++; } }); if (n) { costSum(); save(); } return n; }
   function costDraw() { var c = o.cost || {}, p = o.costPaid || {};
-    $('cost').innerHTML = CN.map(function (x) { return '<label>' + x[1] + '<input type="number" inputmode="numeric" min="0" step="10000" data-c="' + x[0] + '" value="' + (c[x[0]] || '') + '" placeholder="0"><span class="pd"><input type="checkbox" data-p="' + x[0] + '"' + (p[x[0]] ? ' checked' : '') + '> 지급함</span></label>'; }).join('') + '<div class="sum" id="csum"></div>'; costSum(); }
+    $('cost').innerHTML = CN.map(function (x) { return '<label>' + x[1] + '<input type="number" inputmode="numeric" min="0" step="10000" data-c="' + x[0] + '" value="' + (c[x[0]] || '') + '" placeholder="' + (rateOf(x[0]) ? '기본 ' + DECO.won(rateOf(x[0])) : '0') + '"><span class="pd"><input type="checkbox" data-p="' + x[0] + '"' + (p[x[0]] ? ' checked' : '') + '> 지급함</span></label>'; }).join('') + '<div class="sum" id="csum"></div>' + (CN.some(function (x) { return rateOf(x[0]); }) ? '<button class="btn2" type="button" id="cFill" style="margin-top:6px">거래처 기본 금액으로 빈칸 채우기</button>' : ''); costSum(); }
+  document.addEventListener('click', function (e) { if (e.target.id === 'cFill') { var n = costFill(); e.target.textContent = n ? '✔ ' + n + '칸 채웠습니다' : '채울 빈칸이 없습니다'; } });
   function costSum() { var t = 0; $('cost').querySelectorAll('[data-c]').forEach(function (i) { t += +i.value || 0; }); var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, sup = q && q.totals ? (q.totals.supply || 0) : 0;
     $('csum').textContent = '비용 합계 ' + DECO.won(t) + (sup ? ' · 견적 공급가 ' + DECO.won(sup) + ' · 남는 돈 ' + DECO.won(sup - t) : ''); }
   costDraw(); $('cost').addEventListener('input', costSum);

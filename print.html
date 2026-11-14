@@ -76,7 +76,7 @@ th{background:#f1eee7;font-weight:500;white-space:nowrap}
       '<div>견적번호 : ' + E(q.no) + '</div><div>견적일자 : ' + DECO.date(q.updated) + '</div>' +
       (c.addr ? '<div>현장주소 : ' + E(c.addr) + '</div>' : '') + (c.phone ? '<div>연락처 : ' + E(c.phone) + '</div>' : '') +
       '<div>유효기간 : ' + DECO.date(valid) + '까지</div><div style="margin-top:6px">아래와 같이 견적합니다.</div></div>' +
-    '<table class="sup"><tr><td class="vt" rowspan="6">공<br>급<br>자</td><th>상호</th><td>' + E(s.bizName || s.company) + '</td><th>대표자</th><td>' + E(s.ceo) + '</td></tr>' +
+    '<table class="sup"><tr><td class="vt" rowspan="6">공<br>급<br>자</td><th>상호</th><td>' + E(s.bizName || s.company) + '</td><th>대표자</th><td style="position:relative">' + E(s.ceo) + (/^data:image\//.test(s.stamp || '') ? ' (인)<img src="' + s.stamp + '" alt="도장" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);height:52px;opacity:.92">' : ' (인)') + '</td></tr>' +
       '<tr><th>사업자번호</th><td colspan="3">' + E(s.bizno) + '</td></tr><tr><th>주소</th><td colspan="3">' + E(s.addr) + '</td></tr><tr><th>업태·종목</th><td colspan="3" style="font-size:12px">' + E(s.bizType) + (s.bizItem ? ' / ' + E(s.bizItem) : '') + '</td></tr>' +
       '<tr><th>전화</th><td>' + E(s.phone) + '</td><th>담당</th><td>' + E(c.staff || s.staff) + '</td></tr><tr><th>전자우편</th><td colspan="3">' + E(s.email) + '</td></tr></table></div>' +
     '<div class="amt"><span>합계금액 (부가세 포함)</span><b>일금 ' + DECO.hanWon(t.total) + '원정 (' + W(t.total) + ')</b></div>' +
