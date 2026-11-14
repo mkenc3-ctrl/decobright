@@ -50,7 +50,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <h1 class="t">매출·계약 현황</h1>
   <p class="sub">견적을 만든 달 기준입니다. 「계약」은 상태가 계약·시공·완료인 견적입니다. 금액은 부가세 포함 합계입니다.</p>
   <div class="mbar"><button class="btn2" type="button" id="prev">‹ 지난달</button><b id="mt"></b><button class="btn2" type="button" id="next">다음달 ›</button></div>
-  <div class="noprint" style="text-align:right;margin:-4px 0 10px"><button class="btn2" type="button" id="prtM">이달 보고서 인쇄 · PDF</button> <button class="btn2" type="button" id="imgM" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 이달 보고 그림 카톡</button></div>
+  <div class="noprint" style="text-align:right;margin:-4px 0 10px"><button class="btn2" type="button" id="prtM">이달 보고서 인쇄 · PDF</button> <button class="btn2" type="button" id="imgM" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 이달 보고 그림 카톡</button> <button class="btn2" type="button" id="imgY" style="font-weight:800">📅 올해 결산 그림</button></div>
   <div class="ponly" id="ptitle"></div>
   <div class="kpis" id="kpis"></div>
   <h2 class="grp">최근 12개월</h2>
@@ -141,6 +141,24 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     if (!confirm(w + ' 님께 ' + W(g.a) + ' 지급을 마쳤다고 기록할까요?')) return; var td = DECO.today();
     g.it.forEach(function (x) { var o = DECO.orders().filter(function (y) { return y.id === x[0]; })[0]; if (!o) return; o.costPaid = o.costPaid || {}; o.costPaid[x[1]] = td; DECO.saveOrder(o); });
     profit(); DECO.kakao(DECO.kfmt({ icon: '💸', title: '지급 완료 안내', info: [['👷', '받는 분', w + ' 님'], ['📅', '지급일', DECO.date(Date.now())]], secs: [['지급 내역', g.ln.map(function (l) { return l.replace(/^- /, ''); })]], total: ['💰 지급 합계 : ' + W(g.a)], foot: ['입금했습니다. 확인 부탁드립니다. 늘 수고 많으십니다! 🙏'] }), '지급 내역 카톡'); });
+  // 올해 결산 그림 (보고 있는 해, 1월~지금)
+  $('imgY').onclick = function () { var btn = this, ys = String(Y), yq = Q.filter(function (q) { return new Date(q.created || q.updated || 0).getFullYear() === Y; }), yc = yq.filter(function (q) { return DONE[q.status]; });
+    var O = DECO.orders().filter(function (o) { return (o.workDate || '').slice(0, 4) === ys && o.status !== '보류'; }), sale = 0, cost = 0, inn = 0, PK = {}, MO = {}, SR = {};
+    O.forEach(function (o) { var q = o.quoteId ? DECO.getQuote(o.quoteId) : null; sale += q && q.totals ? q.totals.supply || 0 : 0; for (var x in (o.cost || {})) cost += +o.cost[x] || 0; });
+    var ex = DECO.exps().filter(function (x) { return (x.d || '').slice(0, 4) === ys; }).reduce(function (a, x) { return a + (+x.amt || 0); }, 0);
+    Q.forEach(function (q) { (q.pays || []).forEach(function (p) { if ((p.d || '').slice(0, 4) === ys) inn += +p.amt || 0; }); });
+    yc.forEach(function (q) { var k = q.pkgName || '맞춤 견적'; PK[k] = (PK[k] || 0) + 1; var m = new Date(q.created || q.updated).getMonth() + 1; MO[m] = (MO[m] || 0) + amt(q); });
+    DECO.customers().forEach(function (c) { if (new Date(c.created || 0).getFullYear() === Y) { var s = c.source || '모름'; SR[s] = (SR[s] || 0) + 1; } });
+    var top = function (o, n) { return Object.keys(o).sort(function (a, b) { return o[b] - o[a]; }).slice(0, n); }, bm = top(MO, 1)[0];
+    btn.disabled = true;
+    DECO.docImg({ title: Y + '년 결산', date: DECO.date(Date.now()), info: [['기간', Y + '년 1월 ~ ' + (Y === now.getFullYear() ? (now.getMonth() + 1) + '월 (지금까지)' : '12월')], ['견적', yq.length + '건'], ['계약', yc.length + '건' + (yq.length ? ' (' + Math.round(yc.length / yq.length * 100) + '%)' : '') + ' · ' + W(yc.reduce(function (s, q) { return s + amt(q); }, 0))], ['시공 현장', O.length + '곳']],
+      secs: [['돈 흐름', [['시공 매출 (공급가)', W(sale)], ['현장 비용 (인건비·자재)', '－' + W(cost)], ['공통 지출', '－' + W(ex)], ['들어온 돈 (입금 합계)', W(inn)]]],
+        ['잘 나간 패키지', top(PK, 3).map(function (k, i) { return [(i + 1) + '. ' + k, PK[k] + '건']; })],
+        ['손님이 알게 된 곳', top(SR, 3).map(function (k, i) { return [(i + 1) + '. ' + k, SR[k] + '명']; })],
+        ['가장 바빴던 달', bm ? [[bm + '월', W(MO[bm])]] : []]],
+      totals: [['올해 순이익 (참고)', W(sale - cost - ex), true]], notes: ['※ 앱에 적은 기록으로 계산한 참고 금액입니다. 세금 신고는 세무사와 확인하세요.'] })
+      .then(function (bl) { return DECO.shareImg(bl, Y + '년_결산.jpg', '[' + DECO.settings().company + '] ' + Y + '년 결산 (참고용)'); })
+      .then(function () {}, function (x) { alert('그림을 만들지 못했습니다: ' + (x && x.message || x)); }).then(function () { btn.disabled = false; }); };
   // 이달 보고 그림
   $('imgM').onclick = function () { var k = Y * 12 + M, mk = Y + '-' + String(M + 1).padStart(2, '0'), mq = Q.filter(function (q) { return ym(q.created || q.updated) === k; });
     var O = DECO.orders().filter(function (o) { return o.workDate && ym(o.workDate + 'T00:00') === k && o.status !== '보류'; }), sale = 0, cost = 0;
