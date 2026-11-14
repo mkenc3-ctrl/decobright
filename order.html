@@ -99,6 +99,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
         <button class="btn2" type="button" id="iAll" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 지시서 그림으로 카톡</button>
         <button class="btn2" type="button" id="kAll" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 전체 지시 카톡 (단톡방용)</button>
         <button class="btn2" type="button" id="kAS" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🔧 1년 무상 점검 안내 카톡</button>
+        <button class="btn2" type="button" id="kST" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">📋 고객용 진행 현황 링크 카톡</button>
         <button class="btn2" type="button" id="kRV" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">⭐ 후기 받기 링크 카톡</button>
         <a class="btn2" id="toSns2" href="sns.html">📣 완료 사진으로 홍보 글</a>
         <button class="btn2" type="button" id="kASL" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🛠 하자 접수 링크 카톡</button>
@@ -272,6 +273,10 @@ h2.s{font-size:19px;margin:20px 0 8px}
       done: DECO.kfmt({ icon: '✅', title: '시공 완료 안내', info: [['👤', '고객', nm], ['📍', '현장', o.addr]], secs: [['사용 안내', ['간접등은 처음 며칠 밝기가 조금 달라 보일 수 있습니다', '실링팬은 여름엔 정방향, 겨울엔 역방향으로 쓰세요', '리모컨 건전지는 1년에 한 번 바꿔 주세요']], ['무상 점검', ['시공일부터 1년 동안 무상으로 점검해 드립니다']]], foot: ['오늘 작업을 모두 마쳤습니다. 믿고 맡겨 주셔서 감사합니다! 🙏'] }) };
     DECO.kakao(M[k], PGN[k] + ' 카톡'); });
   pgT();
+  // 고객용 진행 현황 링크 (시공일·진행 단계·남은 금액을 고객이 직접 봄)
+  $('kST').addEventListener('click', function () { if (!save()) return; upLink(''); var u = 'https://mkenc3-ctrl.github.io/decobright/status.html?o=' + encodeURIComponent(o.id) + '&k=' + o.upk;
+    DECO.kakao(DECO.kfmt({ icon: '📋', title: '시공 진행 현황 안내', info: [['👤', '고객', o.name ? o.name + ' 님' : ''], ['📍', '현장', o.addr]], secs: [['이 주소에서 볼 수 있어요', ['시공 날짜와 지금 진행 단계', '계약 금액·받은 금액·남은 금액', '시공 후 후기 남기기·하자 접수']]],
+      foot: ['아래 주소를 저장해 두시면 언제든 진행 상황을 보실 수 있습니다.', '📋 진행 현황 보기\n' + u] }), '진행 현황 링크 카톡'); });
   // 후기 받기 링크
   $('kRV').addEventListener('click', function () { if (!save()) return; upLink(''); var u = 'https://mkenc3-ctrl.github.io/decobright/rv.html?o=' + encodeURIComponent(o.id) + '&k=' + o.upk;
     DECO.kakao(DECO.kfmt({ icon: '⭐', title: '시공 후기 부탁드립니다', info: [['👤', '고객', o.name ? o.name + ' 님' : ''], ['📍', '현장', o.addr]],

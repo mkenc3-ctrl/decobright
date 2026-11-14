@@ -264,7 +264,11 @@ input[type=range]{flex:1;accent-color:#e9a23b}
         <div><span>부가세(10%)</span><span id="sumVat">0원</span></div>
         <div class="tot"><span>합계금액</span><span id="sumTotal">0원</span></div>
       </div>
-      <button class="btn btn-ghost" id="resetQ" type="button" style="align-self:flex-start">견적 초기화</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-ghost" id="resetQ" type="button">견적 초기화</button>
+        <button class="btn btn-ghost" id="tplSave" type="button">⭐ 이 구성 저장</button>
+        <select id="tplSel" class="fld" aria-label="자주 쓰는 구성 불러오기" style="flex:1;min-width:180px"><option value="">⭐ 자주 쓰는 구성 불러오기</option></select>
+      </div>
       <p class="fine">사진 기준 예상 금액입니다. 실측과 현장 여건(천장 구조, 배선, 실링팬 모델)에 따라 달라질 수 있으며 방문 확인 후 확정됩니다.</p>
       <div class="contact">
         <div class="step">3단계 · 저장·인쇄·보내기</div>
@@ -662,6 +666,18 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       lb.addEventListener("input",()=>{ r.label=lb.value; }); am.addEventListener("input",()=>{ r.amount=parseInt(am.value)||0; totals(); });
       row.querySelector(".del").addEventListener("click",()=>{ etcRows=etcRows.filter(x=>x!==r); renderEtc(); totals(); }); el.append(row); }); }
   $("addEtc").addEventListener("click",()=>{ etcRows.push({id:etcId++,label:"",amount:0}); renderEtc(); const ins=$("etcList").querySelectorAll(".etc-row input"); if(ins.length) ins[ins.length-2].focus(); });
+  // 자주 쓰는 구성 (패키지·항목·수량·기타·빛 색)
+  const TPL=()=>{ try{ return (JSON.parse(localStorage.getItem("deco-qtpl")||"[]")||[]).filter(t=>t&&!t._del); }catch(e){ return []; } };
+  function tplDraw(){ $("tplSel").innerHTML='<option value="">⭐ 자주 쓰는 구성 불러오기</option>'+TPL().map(t=>'<option value="'+t.id+'">'+DECO.esc(t.name)+' · '+DECO.won(t.total||0)+'</option>').join("")+(TPL().length?'<option value="_del">― 저장한 구성 지우기 ―</option>':''); }
+  $("tplSave").addEventListener("click",()=>{ const s=snapshot(); if(!s.items.length && s.pkg==="none" && !s.etc.length){ toast("항목을 하나 이상 넣고 저장하세요.",true); return; }
+    const nm=(prompt("이 구성의 이름을 적어 주세요 (예: 30평 거실 기본)", (s.pkgName||"")+" 구성")||"").trim(); if(!nm) return;
+    const L=TPL(); L.push({ id:"t"+Date.now().toString(36), name:nm, pkg:s.pkg, items:s.items, etc:s.etc, kelvin:s.kelvin, memo:s.memo, discount:s.discount, total:s.totals.total, at:Date.now() });
+    try{ localStorage.setItem("deco-qtpl", JSON.stringify(L)); window.DECO_SYNC && DECO_SYNC.changed && DECO_SYNC.changed("deco-qtpl", L); }catch(e){} tplDraw(); toast("「"+nm+"」 구성을 저장했습니다."); });
+  $("tplSel").addEventListener("change",()=>{ const v=$("tplSel").value; $("tplSel").value=""; if(!v) return;
+    if(v==="_del"){ const L=TPL(), nm=prompt("지울 구성 이름을 그대로 적어 주세요:\n"+L.map(t=>"· "+t.name).join("\n")); const k=L.filter(t=>t.name!==(nm||"").trim()); if(k.length===L.length) return; localStorage.setItem("deco-qtpl", JSON.stringify(k)); window.DECO_SYNC && DECO_SYNC.changed && DECO_SYNC.changed("deco-qtpl", k); tplDraw(); toast("지웠습니다."); return; }
+    const t=TPL().find(x=>x.id===v); if(!t) return; const c=snapshot();
+    restore({ ...t, cust:c.cust, status:c.status }); toast("「"+t.name+"」 구성을 불러왔습니다. 수량만 맞추세요."); });
+  tplDraw();
   $("resetQ").addEventListener("click",()=>{ QI=QI0.map(x=>({...x,qty:0,opt:""})); etcRows=[]; pkg="p3"; ["custName","custPhone","custAddr","custStaff","memoInput","discount"].forEach(id=>$(id).value=""); $("qStatus").value="상담"; renderPanel(); render(); curId=null; curCust=""; history.replaceState(null,"","quote.html"); $("qno").textContent=""; toast("견적을 초기화했습니다. 저장하면 새 견적으로 저장됩니다."); });
   $("syncQty").addEventListener("click",()=>{ const f=P().f, cnt=k=>items.filter(i=>i.type===k).length, set=(id,n)=>{ QI.find(x=>x.id===id).qty=Math.max(0,n); };
     if (!items.length){ toast("사진에 붙인 조명이 없습니다. 위에서 조명을 먼저 붙여 주세요.",true); return; }

@@ -253,6 +253,17 @@
   D.wxLoad = function () { var m = rd('deco-wx', {}); if (m._at && Date.now() - m._at < 3 * 36e5) return Promise.resolve();
     return fetch('https://api.open-meteo.com/v1/forecast?latitude=35.23&longitude=128.68&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FSeoul&forecast_days=3').then(function (r) { return r.json(); }).then(function (j) { var d = j.daily, o = { _at: Date.now() };
       d.time.forEach(function (t, i) { o[t] = { c: d.weather_code[i], hi: d.temperature_2m_max[i], lo: d.temperature_2m_min[i], p: d.precipitation_probability_max ? d.precipitation_probability_max[i] : null }; }); try { localStorage.setItem('deco-wx', JSON.stringify(o)); } catch (e) {} }).catch(function () {}); };
+  // 하루 마감 보고 (저녁)
+  D.dayEnd = function (ds) { ds = ds || D.today(); var d = new Date(ds + 'T00:00'), t0 = d.getTime(), t1 = t0 + 864e5, wd = function (x) { return (x.getMonth() + 1) + '월 ' + x.getDate() + '일 (' + '일월화수목금토'[x.getDay()] + ')'; };
+    var O = D.orders().filter(function (o) { return o.workDate === ds && o.status !== '보류'; }), site = O.map(function (o) { var pg = o.prog || {}; return (o.status === '완료' || pg.done ? '✅ ' : pg['in'] ? '🔨 ' : pg.go ? '🚚 ' : '⏳ ') + (o.name ? o.name + ' 님' : o.addr || '현장') + (o.status === '완료' || pg.done ? ' 완료' : pg['in'] ? ' 작업 중' : pg.go ? ' 출발함' : ' 시작 기록 없음'); });
+    var ins = [], sum = 0; D.list().forEach(function (q) { (q.pays || []).forEach(function (p) { if (p.d === ds) { sum += +p.amt || 0; ins.push(((q.cust && q.cust.name) || q.no) + ' 님 ' + (p.kind || '') + ' ' + D.won(p.amt)); } }); });
+    var nq = D.list().filter(function (q) { return (q.created || 0) >= t0 && (q.created || 0) < t1; }), ex = D.exps().filter(function (x) { return x.d === ds; }).reduce(function (a, x) { return a + (+x.amt || 0); }, 0);
+    var ck = rd('deco-chk', []).filter(function (c) { return c && !c._del && c.at >= t0 && c.at < t1; }), nochk = O.filter(function (o) { return !ck.some(function (c) { return c.oid === o.id; }); });
+    var as = rd('deco-asreq', []).filter(function (a) { return a && !a._del && a.at >= t0 && a.at < t1; }), ok = rd('deco-okq', []).filter(function (a) { return a && !a._del && a.at >= t0 && a.at < t1; });
+    var t2 = new Date(t1), nx = D.dayItems(D.ymd(t2)).map(function (x) { return (x.time ? x.time + '  ' : '') + x.t; });
+    return D.kfmt({ icon: '🌙', title: '오늘 마감 보고', info: [['📅', '날짜', wd(d)], ['📌', '요약', '시공 ' + O.length + '곳 · 새 견적 ' + nq.length + '건 · 입금 ' + ins.length + '건']],
+      secs: [['🛠 오늘 현장', site.length ? site : ['시공 없음']], ['⚠ 점검표 아직 안 온 현장', nochk.map(function (o) { return o.name || o.addr || '현장'; })], ['💰 오늘 들어온 돈', ins], ['🧾 오늘 지출', ex ? [D.won(ex)] : []], ['📨 손님 답·하자 접수', ok.map(function (a) { return (a.name || '손님') + ' 님 ' + (a.act === 'ok' ? '진행 결정' : '상담 요청'); }).concat(as.map(function (a) { return '🛠 ' + (a.name || '고객') + ' 님 하자 접수'; }))], ['🔜 내일 ' + wd(t2), nx.length ? nx : ['일정 없음']]],
+      total: sum ? ['💰 오늘 입금 합계 : ' + D.won(sum)] : [], foot: ['오늘도 수고 많으셨습니다! 🙏'] }); };
   D.kfmt = function (o) { var s = D.settings(), L = [D.KL, (o.icon || '📋') + ' ' + s.company + ' ' + o.title, D.KL];
     (o.info || []).forEach(function (r) { if (r && r[2] !== '' && r[2] != null) L.push(r[0] + ' ' + r[1] + ' : ' + r[2]); });
     (o.secs || []).forEach(function (x) { var ls = (x[1] || []).filter(function (t) { return t != null && String(t).trim() !== ''; }); if (!ls.length) return;

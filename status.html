@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>시공 진행 현황 · 데코브라이트</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="icon" href="icons/icon.svg">
+<style>
+:root{--ink:#221C18;--muted:#7A6E66;--line:#E6D9C6;--bd:#CDBBA3;--pri:#3B2F2A;--paper:#FBF6EE;--warm:#E0952B;--warm-s:#FCEBD2;--ok:#2E6A4E;--no:#B42318}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Noto Sans KR',sans-serif;font-size:17px;line-height:1.55}
+.w{max-width:560px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.hd{background:#1d1714;color:#fbf2e4;border-radius:14px;padding:16px;margin-bottom:12px}
+.hd h1{margin:0 0 6px;font-size:23px}
+.hd p{margin:2px 0;font-size:16px;color:#e9dccb}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+label.f{display:block;font-weight:700;margin-bottom:10px}
+label.f input{display:block;width:100%;margin-top:4px;font:inherit;font-size:18px;height:52px;border:1px solid var(--bd);border-radius:10px;padding:0 12px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}
+.seg button{flex:1 1 30%;font:inherit;font-size:17px;font-weight:700;height:50px;border-radius:10px;border:1px solid var(--bd);background:#fff;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--pri);color:#fff;border-color:var(--pri)}
+.big{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:64px;font:inherit;font-size:21px;font-weight:800;border-radius:14px;border:0;cursor:pointer;margin-bottom:10px}
+.big.a{background:var(--warm);color:#1d1714}
+.big.b{background:#fff;border:2px solid var(--pri);color:var(--pri)}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.msg{min-height:26px;font-weight:700;margin:4px 0}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--no)}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block}
+.ckI{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid var(--line);font-size:18px;cursor:pointer}
+.steps{display:flex;gap:4px;margin:6px 0 4px}
+.steps div{flex:1;text-align:center;font-size:14px;font-weight:700;color:#9a8f86;padding-top:30px;position:relative}
+.steps div::before{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:#e6d9c6}
+.steps div.on{color:var(--pri)}.steps div.on::before{background:var(--ok)}
+.steps div.now::before{background:var(--warm);box-shadow:0 0 0 4px var(--warm-s)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:18px}
+.kv b{color:var(--muted);font-weight:500}
+.now2{font-size:21px;font-weight:800;margin:4px 0 0}
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="hd"><h1>📋 우리 집 시공 진행 현황</h1><p id="hInfo">불러오는 중…</p></div>
+  <div id="main" hidden>
+    <div class="card"><div class="steps" id="steps"></div><p class="now2" id="now"></p></div>
+    <div class="card"><div class="kv" id="kv"></div></div>
+    <div class="card" id="money" hidden></div>
+    <div class="card" id="acts"></div>
+    <p style="font-size:14px;color:var(--muted)">이 화면은 받으신 주소로만 볼 수 있습니다. 내용이 바뀌면 다시 열어 보시면 최신으로 보입니다.</p>
+  </div>
+  <div class="err" id="bad" hidden></div>
+</div>
+<script src="common.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, P = new URLSearchParams(location.search), oid = P.get('o') || '', key = P.get('k') || '';
+  function bad(t) { $('main').hidden = true; $('bad').hidden = false; $('bad').textContent = t; $('hInfo').textContent = '데코브라이트'; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function won(n) { return (Math.round(+n || 0)).toLocaleString('ko-KR') + '원'; }
+  if (!window.supabase || !oid || !key) return bad(!window.supabase ? '인터넷 연결을 확인하고 다시 열어 주세요.' : '주소가 잘못되었습니다. 받으신 카톡의 주소를 다시 눌러 주세요.');
+  var C = window.supabase.createClient('https://dypvqgaayumrhaiphatu.supabase.co', 'sb_publishable_5-LUZwZQ3VwBxDKDA_nJpw_ddF6QKdE', { auth: { persistSession: false } });
+  C.from('records').select('data').eq('coll', 'orders').eq('id', oid).maybeSingle().then(function (r) { var o = r.data && r.data.data;
+    if (r.error) return bad('서버에 연결하지 못했습니다. 잠시 뒤 다시 열어 주세요.');
+    if (!o || o._del || !o.upk || o.upk !== key) return bad('주소가 맞지 않습니다. 담당자에게 문의해 주세요.');
+    return Promise.all([o.quoteId ? C.from('records').select('data').eq('coll', 'quotes').eq('id', o.quoteId).maybeSingle() : Promise.resolve({}), C.from('records').select('data').eq('coll', 'settings').eq('id', 'main').maybeSingle()]).then(function (x) { var S = window.DECO ? DECO.settings() : {}, SV = (x[1].data && x[1].data.data) || {}; Object.keys(SV).forEach(function (k) { if (SV[k] !== '' && SV[k] != null) S[k] = SV[k]; }); draw(o, (x[0].data && x[0].data.data) || null, S); });
+  }, function () { bad('서버에 연결하지 못했습니다. 인터넷을 확인해 주세요.'); });
+  function draw(o, q, S) { var co = S.company || '데코브라이트', td = new Date(), ts = td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0') + '-' + String(td.getDate()).padStart(2, '0'), pg = o.prog || {};
+    var done = o.status === '완료' || !!pg.done, k = done ? 4 : pg['in'] || pg.go || o.workDate === ts ? 3 : o.workDate ? 2 : 1;
+    document.title = '시공 진행 현황 · ' + co; $('hInfo').textContent = (o.name ? o.name + ' 님 · ' : '') + co;
+    $('steps').innerHTML = ['상담·견적', '계약', '시공 날짜 확정', '시공 중', '완료'].map(function (t, i) { return '<div class="' + (i < k ? 'on' : i === k ? 'on now' : '') + '">' + t + '</div>'; }).join('');
+    var d = o.workDate ? new Date(o.workDate + 'T00:00') : null, wd = d ? (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + '일월화수목금토'[d.getDay()] + ')' + (o.workTime ? ' ' + o.workTime : '') : '';
+    $('now').textContent = done ? '✅ 시공을 모두 마쳤습니다. 감사합니다!' : pg['in'] ? '🔨 지금 작업 중입니다' : pg.go ? '🚚 작업자가 현장으로 가는 중입니다' : d ? '📅 ' + wd + ' 에 시공합니다' : '📞 시공 날짜를 정해 연락드리겠습니다';
+    var tr = Object.keys(o.trades || {}).filter(function (t) { return o.trades[t] && o.trades[t].on; });
+    $('kv').innerHTML = [['현장', o.addr], ['시공일', wd || '정하는 중'], ['작업', tr.join(' · ')], ['담당', o.lead], ['문의', S.phone]].filter(function (x) { return x[1]; }).map(function (x) { return '<b>' + x[0] + '</b><span>' + esc(x[1]) + '</span>'; }).join('');
+    if (q && q.totals) { var tot = q.totals.total || 0, paid = (q.pays || []).reduce(function (s, p) { return s + (+p.amt || 0); }, 0), rem = Math.max(0, tot - paid);
+      $('money').hidden = false; $('money').innerHTML = '<div class="kv"><b>계약 금액</b><span>' + won(tot) + ' (부가세 포함)</span><b>받은 금액</b><span>' + won(paid) + '</span><b>남은 금액</b><span style="font-weight:800;color:' + (rem ? 'var(--no)' : 'var(--ok)') + '">' + (rem ? won(rem) : '모두 받았습니다 ✔') + '</span>' + (rem && S.bank ? '<b>입금 계좌</b><span>' + esc(S.bank) + '</span>' : '') + '</div>'; }
+    var base = location.href.replace(/status\.html.*$/, ''), qs = '?o=' + encodeURIComponent(oid) + '&k=' + encodeURIComponent(key), tel = String(S.phone || '').replace(/[^\d+]/g, '');
+    $('acts').innerHTML = (tel ? '<a class="big b" href="tel:' + tel + '">📞 전화로 묻기</a>' : '') + (done ? '<a class="big a" href="' + base + 'rv.html' + qs + '">⭐ 후기 남기기</a><a class="big b" href="' + base + 'as.html' + qs + '">🛠 하자·고장 접수</a>' : '');
+    $('acts').hidden = !$('acts').innerHTML; $('main').hidden = false; }
+})();
+</script>
+</body>
+</html>

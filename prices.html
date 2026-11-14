@@ -27,6 +27,13 @@ h2{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding-b
   <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
   <h1 class="t">가격표 관리</h1>
   <p class="sub">① 금액·설명을 고치고 ② 맨 아래 「저장」을 누르면 ③ 새로 여는 견적부터 바뀐 값이 들어갑니다. 공급가액(부가세 빼고) 기준입니다. 이미 저장한 견적 금액은 바뀌지 않습니다.</p>
+  <div style="background:#FFF8EC;border:2px solid #E0952B;border-radius:12px;padding:12px;margin:10px 0">
+    <b>📈 가격 한꺼번에 바꾸기</b> <small style="color:var(--muted)">(화면에만 바꿔 보여 줍니다. 확인 후 「저장」을 눌러야 적용)</small>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px"><input id="bpct" type="number" step="1" placeholder="예: 5" style="width:90px;font:inherit;font-size:18px;padding:8px;border:1px solid var(--bd);border-radius:10px"> %
+      <select id="bwho" style="font:inherit;font-size:16px;padding:8px"><option value="all">전체</option><option value="p">패키지만</option><option value="i">추가 항목만</option></select>
+      <select id="bround" style="font:inherit;font-size:16px;padding:8px"><option value="1000">천 원 단위로</option><option value="10000">만 원 단위로</option><option value="100">백 원 단위로</option></select>
+      <button type="button" class="btn2" id="bup">올리기</button><button type="button" class="btn2" id="bdn">내리기</button></div>
+  </div>
   <h2>패키지</h2>
   <div id="pk"></div>
   <h2>추가 항목</h2>
@@ -75,6 +82,11 @@ h2{font-size:20px;margin:22px 0 8px;border-bottom:2px solid var(--ink);padding-b
     return o;
   }
   document.addEventListener('change', function (e) { if (e.target.classList.contains('hd')) e.target.closest('.pr').classList.toggle('off', e.target.checked); });
+  function bulk(sign) { var p = +document.getElementById('bpct').value || 0, w = document.getElementById('bwho').value, r = +document.getElementById('bround').value || 1000; if (p <= 0 || p > 50) { msg.className = 'msg bad'; msg.textContent = '1~50 사이 %를 넣어 주세요.'; return; }
+    var n = 0; document.querySelectorAll('.pr').forEach(function (row) { var k = row.dataset.k || (row.closest('#pk') ? 'p' : 'i'); if (w !== 'all' && (w === 'p') !== (row.closest('#pk') != null)) return; var m = row.querySelector('.money'); if (!m || m.disabled || !(+m.value > 0)) return;
+      m.value = Math.max(0, Math.round(+m.value * (1 + sign * p / 100) / r) * r); m.style.background = '#FCEBD2'; n++; });
+    msg.className = 'msg'; msg.textContent = n + '개 금액을 ' + p + '% ' + (sign > 0 ? '올렸습니다' : '내렸습니다') + '. 확인 후 「저장」을 누르세요. (안 하려면 화면을 새로 고치세요)'; }
+  document.getElementById('bup').onclick = function () { bulk(1); }; document.getElementById('bdn').onclick = function () { bulk(-1); };
   document.getElementById('addX').addEventListener('click', function () {
     ed = collect(); ed.extra.push({ id: 'x' + Date.now().toString(36), name: '', price: 0, unit: '개' }); draw();
     var all = document.querySelectorAll('#it .nm'); all[all.length - 1].focus();

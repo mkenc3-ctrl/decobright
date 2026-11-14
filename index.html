@@ -142,6 +142,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     window.addEventListener('load', function () { bal(); asb(); setTimeout(asb, 8000); setInterval(asb, 60000); chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
   </script>
   <section class="todo" id="todo" hidden aria-label="오늘 할 일"><h2>✅ 오늘 할 일</h2><ul id="todoL"></ul></section>
+  <button type="button" class="syncbox brief" id="kEvening" style="background:#2B2440;border-color:#2B2440;color:#fff">🌙 오늘 마감 보고 카톡 <small style="color:#ddd">(저녁에 하루 정리)</small></button>
   <button type="button" class="syncbox brief" id="kMorning" style="background:#FEE500;border-color:#FEE500;color:#191919">☀ 오늘 할 일 카톡 <small style="color:#3a3a3a">단톡방에 보내기 · 현장·작업자·자재·내일</small></button>
   <button type="button" class="syncbox brief" id="brief">🔊 오늘 할 일 듣기 <small id="briefT"></small></button>
   <section class="alert" id="alert" hidden aria-live="polite">
@@ -215,6 +216,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
         call ? '다시 연락할 견적 고객이 ' + call + '명 있습니다.' : '', due ? '아직 받을 돈은 ' + won(due) + '입니다.' : ''];
       var text = parts.filter(Boolean).join(' ');
       document.getElementById('briefT').textContent = '오늘 시공 ' + O.length + '건 · 일정 ' + V.length + '건' + (call ? ' · 연락 ' + call + '명' : '');
+      document.getElementById('kEvening').onclick = function () { DECO.kakao(DECO.dayEnd(), '오늘 마감 보고 카톡'); };
       document.getElementById('kMorning').onclick = function () { (DECO.wxLoad ? DECO.wxLoad() : Promise.resolve()).then(function () { DECO.kakao(DECO.dayBrief(), '오늘 할 일 카톡'); }); };
       document.getElementById('brief').onclick = function () { if (!DECO.speak('데코브라이트 오늘 브리핑입니다. ' + text)) alert(text); }; })();
     (function () { var T = [], td = DECO.today(), tm = new Date(); tm.setDate(tm.getDate() + 1); tm = DECO.ymd(tm), E2 = DECO.esc;
