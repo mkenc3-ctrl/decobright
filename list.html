@@ -48,7 +48,7 @@
   try { localStorage.setItem('deco-okseen', String(Date.now())); } catch (e) {}
   function okTag(id) { var a = OK[id]; if (!a) return ''; var d = new Date(a.at || 0);
     return '<div style="margin-top:6px;padding:8px 10px;border-radius:10px;font-weight:700;font-size:15px;background:' + (a.act === 'ok' ? '#E8F3EC;color:#2E6A4E' : '#FCEBD2;color:#8a4a12') + '">' + (a.act === 'ok' ? '✅ 손님이 「이 견적으로 진행」' : '🤔 손님이 「상담이 더 필요」') + ' · ' + (d.getMonth() + 1) + '/' + d.getDate() +
-      (a.tm ? '<br><span style="font-weight:500">편한 시간: ' + E(a.tm) + '</span>' : '') + (a.say ? '<br><span style="font-weight:500">남긴 말: ' + E(a.say) + '</span>' : '') + '</div>'; }
+      (a.md ? '<br><span style="font-weight:800">📅 실측 희망: ' + E(a.md) + '</span>' : '') + (a.drop ? '<br><span style="font-weight:500">✂ 빼고 싶은 항목: ' + E(a.drop.join(', ')) + (a.want ? ' → 예상 ' + DECO.won(a.want) : '') + '</span>' : '') + (a.tm ? '<br><span style="font-weight:500">편한 시간: ' + E(a.tm) + '</span>' : '') + (a.say ? '<br><span style="font-weight:500">남긴 말: ' + E(a.say) + '</span>' : '') + '</div>'; }
   var SEEN = DECO.seen ? DECO.seen() : {};
   function seenTag(q) { var s = SEEN[q.id]; if (!s) return q.vk && /^(상담|실측)$/.test(q.status || '상담') ? '<div class="meta" style="color:#7A6E66">👀 손님이 아직 온라인 견적서를 안 열어 봤습니다</div>' : '';
     var d = new Date(s.last || 0); return '<div class="meta" style="color:#2E6A4E;font-weight:700">👀 손님이 견적서를 ' + (s.n || 1) + '번 열어 봤습니다 · 마지막 ' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + '</div>'; }

@@ -117,7 +117,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   (function () { function chk() { if (!window.DECO || !DECO.photoAll) return; var seen = 0; try { seen = +localStorage.getItem('deco-upseen') || 0; } catch (e) {}
       DECO.photoAll().then(function (a) { var N = a.filter(function (p) { return p.by && (p.added || 0) > seen; }), b = document.getElementById('upBox'); if (!b) return;
         if (!N.length) { b.hidden = true; return; } var who = {}; N.forEach(function (p) { who[p.by] = 1; });
-        b.hidden = false; b.textContent = '📸 작업자가 올린 새 사진 ' + N.length + '장 (' + Object.keys(who).join(', ') + ') · 눌러서 보기 ›'; }).catch(function () {}); }
+        b.hidden = false; b.textContent = '📸 새로 올라온 사진 ' + N.length + '장 (' + Object.keys(who).join(', ') + ') · 눌러서 보기 ›'; }).catch(function () {}); }
     // 손님이 온라인 견적서에서 답한 것 (견적 목록을 열면 사라짐)
     function ok() { if (!window.DECO || !DECO.okq) return; var seen = 0; try { seen = +localStorage.getItem('deco-okseen') || 0; } catch (e) {}
       var N = DECO.okq().filter(function (a) { return (a.at || 0) > seen; }), b = document.getElementById('okBox'); if (!b) return; if (!N.length) { b.hidden = true; return; }

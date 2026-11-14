@@ -61,6 +61,7 @@
     <input id="vmemo" placeholder="메모 (예: 거실 우물 마감)" aria-label="메모">
     <button class="btn2 pri" type="button" id="vsave">메모 저장</button>
     <button class="btn2 pri" type="button" id="vshare" hidden>카톡·문자로 보내기</button>
+    <a class="btn2" id="vquote" href="#" style="background:#2E6A4E;border-color:#2E6A4E;color:#fff;font-weight:800">📐 이 사진으로 견적 만들기</a>
     <button class="btn2" type="button" id="vexpo">🏠 e모델하우스 전시실로 보내기</button>
     <button class="btn2" type="button" id="vdown">내려받기</button>
     <button class="btn2 pri" type="button" id="vkeep" hidden>보관함에 저장</button>
@@ -156,6 +157,7 @@
   function exClient() { if (EXC) return Promise.resolve(EXC); return new Promise(function (ok, no) { function mk() { EXC = window.supabase.createClient('https://dypvqgaayumrhaiphatu.supabase.co', 'sb_publishable_5-LUZwZQ3VwBxDKDA_nJpw_ddF6QKdE', { auth: { persistSession: false } }); ok(EXC); }
     if (window.supabase && window.supabase.createClient) return mk(); var sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js'; sc.onload = mk; sc.onerror = no; document.head.appendChild(sc); }); }
   var exSent = {};
+  $('vquote').addEventListener('click', function (e) { if (!cur) { e.preventDefault(); return; } this.href = 'quote.html?photo=' + encodeURIComponent(cur.id); });
   $('vexpo').addEventListener('click', function () { var b = baBlob || (cur && cur.blob); if (!b) return; var key = cur ? cur.id : 'ba';
     if (exSent[key]) { say('이미 전시실로 보낸 사진입니다.'); return; }
     var t = ($('vmemo').hidden ? '' : $('vmemo').value.trim()) || (cur ? (cur.memo || '시공 사진') : '시공 전·후 비교'), btn = this; btn.disabled = true; btn.textContent = '보내는 중…';

@@ -37,6 +37,7 @@
     <select id="fs" aria-label="진행 상태로 거르기"></select>
     <a class="btn2 pri" href="customer.html">+ 고객 등록</a>
   </div>
+  <details id="refD" hidden style="background:#FFF8EC;border:2px solid #E0952B;border-radius:14px;padding:12px 14px;margin:0 0 14px"><summary style="font-size:18px;font-weight:800;cursor:pointer" id="refS"></summary><div id="refB"></div></details>
   <div id="box"></div>
 </div>
 <script src="common.js"></script>
@@ -68,6 +69,26 @@
         '<div class="r">' + (x.won ? '<b>' + DECO.won(x.won) + '</b><span class="m">계약 금액</span>' : '') + '</div></a>';
     }).join('');
   }
+  // 🎁 소개해 주신 분: 소개 인원·계약 인원·감사 카톡·혜택 기록
+  function refDraw() { var G = {}; C.forEach(function (x) { var r = (x.c.ref || '').trim(); if (!r) return; (G[r] = G[r] || []).push(x); });
+    var ks = Object.keys(G).sort(function (a, b) { return G[b].length - G[a].length; }), D0 = document.getElementById('refD'); if (!ks.length) { D0.hidden = true; return; }
+    D0.hidden = false; document.getElementById('refS').textContent = '🎁 소개해 주신 분 ' + ks.length + '명 · 소개로 오신 고객 ' + ks.reduce(function (s, k) { return s + G[k].length; }, 0) + '명';
+    document.getElementById('refB').innerHTML = ks.map(function (k, i) { var L = G[k], ok = L.filter(function (x) { return ['계약', '시공', '완료'].indexOf(x.st) >= 0; }).length, rc = DECO.customers().filter(function (c) { return (c.name || '').trim() === k; })[0], P = (rc && rc.perks) || [];
+      return '<div style="border-top:1px solid #ecdcc4;padding:10px 0;margin-top:6px"><b style="font-size:18px">' + (i < 3 ? ['🥇', '🥈', '🥉'][i] + ' ' : '') + (rc ? '<a href="customer.html?id=' + encodeURIComponent(rc.id) + '">' + E(k) + ' 님</a>' : E(k) + ' 님') + '</b>' +
+        '<div class="m" style="font-size:16px">소개 ' + L.length + '명 (' + L.map(function (x) { return E(x.c.name || '이름 없음') + ' · ' + E(x.st); }).join(', ') + ') · 계약 <b>' + ok + '명</b></div>' +
+        (P.length ? '<div class="m" style="color:#2E6A4E;font-weight:700">🎁 드린 혜택: ' + P.map(function (p) { return E(p.d) + ' ' + E(p.what); }).join(' / ') + '</div>' : '<div class="m" style="color:#B5541C">아직 감사 혜택 기록이 없습니다</div>') +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><button type="button" class="btn2" data-rk="' + E(k) + '" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 감사 카톡</button>' +
+        (rc ? '<input data-pv="' + E(rc.id) + '" placeholder="예: 상품권 3만 원" style="flex:1;min-width:140px;font:inherit;font-size:16px;padding:8px;border:1px solid #d8cfc6;border-radius:8px"><button type="button" class="btn2" data-pk="' + E(rc.id) + '">🎁 혜택 기록</button>' : '<small class="m">고객으로 등록하면 혜택을 기록할 수 있습니다</small>') + '</div></div>'; }).join('');
+    REFG = G; }
+  var REFG = {};
+  document.getElementById('refB').addEventListener('click', function (e) { var b = e.target.closest('[data-rk],[data-pk]'); if (!b) return;
+    if (b.dataset.pk) { var c = DECO.getCustomer(b.dataset.pk), inp = document.querySelector('[data-pv="' + b.dataset.pk + '"]'), w = inp && inp.value.trim(); if (!c || !w) { if (inp) inp.focus(); return; }
+      c.perks = (c.perks || []).concat([{ d: DECO.date(Date.now()), what: w }]); DECO.saveCustomer(c); refDraw(); return; }
+    var k = b.dataset.rk, L = REFG[k] || [], s = DECO.settings();
+    DECO.kakao(DECO.kfmt({ icon: '🙏', title: '소개 감사 인사', info: [['👤', '받는 분', k + ' 님'], ['🤝', '소개 인원', L.length + '명']],
+      secs: [['소개해 주신 고객', L.map(function (x) { return (x.c.name || '고객') + ' 님'; })]],
+      foot: [k + ' 님, 좋은 분을 소개해 주셔서 진심으로 감사드립니다. 덕분에 좋은 인연이 되었습니다.', '작은 감사의 마음을 준비했습니다. 시공하신 조명·실링팬에 불편한 점이 있으면 언제든 연락 주세요. 🙏'] }), '소개 감사 카톡'); });
+  refDraw();
   qs.addEventListener('input', draw); fs.addEventListener('change', draw); draw();
 })();
 </script>

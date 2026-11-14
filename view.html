@@ -42,6 +42,15 @@ h2{font-size:17px;background:var(--pri);color:#fff;padding:8px 12px;border-radiu
 .y{background:var(--warm);color:#1d1714}.g{background:#fff;border:2px solid var(--pri)!important;color:var(--pri)}
 .msg{min-height:24px;font-weight:700;margin:10px 0 0}.msg.ok{color:var(--ok)}.msg.bad{color:var(--no)}
 .done{background:#E8F3EC;border:2px solid var(--ok);border-radius:14px;padding:16px;font-size:18px;font-weight:700}
+.row.off span,.row.off b{text-decoration:line-through;color:#9a8f86}
+.ck{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:15px;font-weight:700;color:var(--acc);cursor:pointer}
+.ck input{width:24px;height:24px}
+.want{background:#FCEBD2;border-radius:10px;padding:12px;margin-top:8px;font-size:17px;font-weight:700}
+.sel2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sel2 select{font:inherit;font-size:18px;padding:12px;border:2px solid #d8cfc6;border-radius:10px;background:#fff;width:100%}
+.exs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:8px}
+.exs a{display:block;text-decoration:none;color:inherit;font-size:14px;font-weight:600}
+.exs img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block;margin-bottom:4px}
 .err{background:#fff;border:2px solid var(--no);border-radius:14px;padding:16px;font-size:18px}
 </style>
 </head>
@@ -54,12 +63,16 @@ h2{font-size:17px;background:var(--pri);color:#fff;padding:8px 12px;border-radiu
       <div class="kv" id="kv"></div>
       <div id="secs"></div>
       <div class="tot" id="tot"></div>
+      <div class="want" id="want" hidden></div>
       <div class="pic" id="pic" hidden><h2>조명 배치 예상 모습</h2><img id="picI" alt="조명 배치 예상 모습"></div>
       <p class="note" id="note"></p>
+      <div id="exB" hidden><h2>비슷하게 시공한 집</h2><div class="exs" id="exs"></div><p style="margin:8px 0 0;font-size:15px"><a href="house.html" id="exAll" style="color:var(--acc);font-weight:700">🏠 e모델하우스에서 시공 사진 더 보기 ›</a></p></div>
     </div>
     <div class="ask" id="ask">
       <h3>이 견적, 어떠세요?</h3>
       <p style="margin:0;color:var(--muted);font-size:15px">아래 단추를 누르면 담당자에게 바로 전해집니다. 실측 날짜를 잡아 연락드립니다.</p>
+      <b style="display:block;margin-top:12px;font-size:17px">📅 실측 오면 좋은 날 <small style="font-weight:400">(선택)</small></b>
+      <div class="sel2"><select id="mdD" aria-label="실측 희망 날짜"></select><select id="mdT" aria-label="실측 희망 시간"><option value="">시간</option><option>오전</option><option>오후</option><option>저녁</option><option>아무 때나</option></select></div>
       <label>전화 받기 편한 시간 <small style="font-weight:400">(선택)</small><input id="tm" maxlength="40" placeholder="예: 평일 저녁 6시 이후"></label>
       <label>남길 말씀 <small style="font-weight:400">(선택)</small><input id="say" maxlength="100" placeholder="예: 다운라이트 2개 빼고 싶어요"></label>
       <button type="button" class="big2 y" data-a="ok">✅ 이 견적으로 진행할게요</button>
@@ -96,8 +109,12 @@ h2{font-size:17px;background:var(--pri);color:#fff;padding:8px 12px;border-radiu
     $('kv').innerHTML = [['현장', c.addr], ['담당', c.staff], ['조명 색', color], ['유효기간', '견적일로부터 ' + vd + '일']].filter(function (x) { return x[1]; }).map(function (x) { return '<b>' + x[0] + '</b><span>' + esc(x[1]) + '</span>'; }).join('');
     var H = '';
     function sec(title, rows) { rows = rows.filter(Boolean); if (!rows.length) return; H += '<h2>' + title + '</h2>' + rows.map(function (x) { return '<div class="row"><span>' + esc(x[0]) + (x[2] ? '<small>' + esc(x[2]) + '</small>' : '') + '</span><b>' + esc(x[1]) + '</b></div>'; }).join(''); }
-    sec('패키지', [Q.pkg && Q.pkg !== 'none' ? [Q.pkgName, won(Q.pkgPrice), Q.pkgDesc] : null]);
-    sec('추가 항목', (Q.items || []).map(function (i) { return [i.name + (i.opt ? ' (' + i.opt + ')' : ''), won(i.qty * i.price), won(i.price) + ' × ' + i.qty]; }));
+    LN = []; var ci = 0;
+    function sec(title, rows, can) { rows = rows.filter(Boolean); if (!rows.length) return; H += '<h2>' + title + '</h2>' + rows.map(function (x) { var k = can ? LN.push({ n: x[0], a: x[3] }) - 1 : -1;
+      return '<div class="row" data-r="' + k + '"><span>' + esc(x[0]) + (x[2] ? '<small>' + esc(x[2]) + '</small>' : '') + (k >= 0 ? '<label class="ck"><input type="checkbox" data-k="' + k + '" checked> 넣기</label>' : '') + '</span><b>' + esc(x[1]) + '</b></div>'; }).join(''); }
+    if (!Q.items || Q.items.length + (Q.pkg && Q.pkg !== 'none' ? 1 : 0) > 1) H += '<p style="margin:10px 0 0;font-size:15px;color:var(--muted)">💡 빼고 싶은 항목은 「넣기」를 눌러 끄세요. 바뀐 예상 금액이 아래에 나옵니다.</p>';
+    sec('패키지', [Q.pkg && Q.pkg !== 'none' ? [Q.pkgName, won(Q.pkgPrice), Q.pkgDesc, +Q.pkgPrice || 0] : null], true);
+    sec('추가 항목', (Q.items || []).map(function (i) { return [i.name + (i.opt ? ' (' + i.opt + ')' : ''), won(i.qty * i.price), won(i.price) + ' × ' + i.qty, (i.qty * i.price) || 0]; }), true);
     sec('기타', (Q.etc || []).map(function (r) { return [r.label || '기타', won(r.amount)]; }));
     if (Q.memo) sec('비고', [[Q.memo, '']]);
     $('secs').innerHTML = H;
@@ -106,11 +123,29 @@ h2{font-size:17px;background:var(--pri);color:#fff;padding:8px 12px;border-radiu
     var img = (Q.layout && Q.layout.img) || Q.img; if (img) { $('pic').hidden = false; $('picI').src = img; }
     $('note').innerHTML = '※ 실측 후 최종 금액이 확정됩니다.' + (S.bank ? '<br>입금 계좌 : ' + esc(S.bank) : '') + '<br>' + esc(co) + (S.phone ? ' · 📞 ' + esc(S.phone) : '');
     var tel = String(S.phone || '').replace(/[^\d+]/g, ''); if (tel) $('tel').href = 'tel:' + tel; else $('tel').style.display = 'none';
-    $('doc').hidden = false; }
+    exDraw(); mdFill(); $('doc').hidden = false; }
+  // 빼고 싶은 항목 → 예상 합계 (참고용, 실측 후 확정)
+  var LN = [];
+  function drops() { return [].filter.call(document.querySelectorAll('[data-k]'), function (i) { return !i.checked; }).map(function (i) { return LN[+i.dataset.k]; }); }
+  function want() { var t = Q.totals || {}, R = drops(), w = $('want'); [].forEach.call(document.querySelectorAll('[data-r]'), function (r) { var i = r.querySelector('[data-k]'); r.classList.toggle('off', !!(i && !i.checked)); });
+    if (!R.length) { w.hidden = true; return null; } var base = (t.supply || 0) + (t.dc || 0), cut = R.reduce(function (s, x) { return s + x.a; }, 0), nb = Math.max(0, base - cut), dc = base ? Math.round((t.dc || 0) * nb / base) : 0, sup = nb - dc, tot = sup + Math.round(sup * 0.1);
+    w.hidden = false; w.innerHTML = '빼신 항목: ' + R.map(function (x) { return esc(x.n); }).join(', ') + '<br>바뀐 예상 합계 (부가세 포함) <b style="color:var(--acc);font-size:22px">' + won(tot) + '</b><br><small style="font-weight:400">※ 대략 계산한 금액입니다. 아래 단추로 보내 주시면 맞춰서 다시 견적 드립니다.</small>'; return tot; }
+  document.addEventListener('change', function (e) { if (e.target.matches && e.target.matches('[data-k]')) want(); });
+  // 실측 희망일: 내일부터 2주
+  function mdFill() { var o = '<option value="">날짜</option>', d = new Date(); for (var i = 1; i <= 14; i++) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate() + i), t = (x.getMonth() + 1) + '/' + x.getDate() + ' (' + '일월화수목금토'[x.getDay()] + ')'; o += '<option>' + t + '</option>'; } $('mdD').innerHTML = o; }
+  // 비슷한 시공 사례 (견적 항목 이름으로 고르기)
+  var EXS = [['m5', '거실 · 자유곡선 우물과 커튼박스', 'cove curtain fan down', 0], ['m2', '거실 · TV 벽과 커튼박스', 'cove fan down curtain', 1], ['m3', '거실 · 넓은 사각 우물', 'cove fan down', 2], ['m8', '거실·주방 · 전구색 우물', 'cove fan', 3], ['m6', '주방 쪽 · 우물과 실링팬', 'cove fan down', 4], ['m7', '안방 · 라운드 우물', 'cove fan down', 5], ['m9', '방 · 커튼박스와 큰 실링팬', 'curtain fan', 6], ['m12', '작은방 · 커튼박스 간접등', 'curtain fan down', 7], ['m10', '둥근 모서리 우물', 'cove fan down', 8], ['m1', '무몰딩 라운드', 'cove mold', 9], ['m4', '복도 · 마그네틱 라인조명', 'mag', 10], ['m11', '욕실 · 거울장 아래 간접등', 'bath down', 11]];
+  function exDraw() { var s = [Q.pkgName, Q.pkgDesc].concat((Q.items || []).map(function (i) { return i.name; })).join(' '), K = [];
+    [[/실링|팬/, 'fan'], [/커튼/, 'curtain'], [/우물|간접|코브/, 'cove'], [/다운/, 'down'], [/마그네틱|라인/, 'mag'], [/욕실|거울/, 'bath'], [/몰딩/, 'mold']].forEach(function (x) { if (x[0].test(s)) K.push(x[1]); }); if (!K.length) K = ['cove', 'fan'];
+    var L = EXS.map(function (e) { return [K.filter(function (k) { return e[2].indexOf(k) >= 0; }).length, e]; }).filter(function (x) { return x[0]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, 4);
+    if (!L.length) return; $('exB').hidden = false;
+    $('exs').innerHTML = L.map(function (x) { var e = x[1]; return '<a href="house.html?e=' + (e[3] + 1) + '"><img src="img/m/' + e[0] + '.jpg" alt="' + esc(e[1]) + '" loading="lazy">' + esc(e[1]) + '</a>'; }).join(''); }
   function doneMsg(A) { $('ask').hidden = true; $('done').hidden = false; var d = new Date(A.at || Date.now());
-    $('done').textContent = (A.act === 'ok' ? '✅ 「이 견적으로 진행」을 전하셨습니다' : '🤔 「상담이 더 필요해요」를 전하셨습니다') + ' (' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일). 곧 연락드리겠습니다. 감사합니다!'; }
+    $('done').textContent = (A.act === 'ok' ? '✅ 「이 견적으로 진행」을 전하셨습니다' : '🤔 「상담이 더 필요해요」를 전하셨습니다') + ' (' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일).' + (A.md ? ' 실측 희망: ' + A.md + '.' : '') + (A.drop ? ' 뺄 항목: ' + A.drop.join(', ') + '.' : '') + ' 곧 연락드리겠습니다. 감사합니다!'; }
   $('ask').addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (!b || b.disabled) return; var m = $('msg'); b.disabled = true; m.className = 'msg'; m.textContent = '보내는 중…';
     var A = { id: qid, qid: qid, act: b.dataset.a, at: Date.now(), name: (Q.cust && Q.cust.name) || '', no: Q.no || '', tm: $('tm').value.trim(), say: $('say').value.trim(), k: key };
+    var R = drops(); if (R.length) { A.drop = R.map(function (x) { return x.n; }); A.want = want(); }
+    var md = [$('mdD').value, $('mdT').value].filter(Boolean).join(' '); if (md) A.md = md;
     C.from('records').upsert({ coll: 'okq', id: qid, data: A }, { onConflict: 'coll,id' }).then(function (r) { if (r.error) throw r.error; doneMsg(A); },
       function () { b.disabled = false; m.className = 'msg bad'; m.textContent = '보내지 못했습니다. 인터넷을 확인하거나 전화로 연락 주세요.'; }); });
 })();

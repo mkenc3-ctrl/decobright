@@ -683,6 +683,12 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   $("split").addEventListener("input",render); $("persp").addEventListener("input",render);
   const segPick=(id,attr,fn)=>$(id).querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ $(id).querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); fn(b.dataset[attr]); render(); }));
   segPick("segK","k",v=>kelvin=Number(v)); segPick("segShape","v",v=>shape=v); segPick("segFan","v",v=>fanColor=v);
+  (()=>{ const pid=new URLSearchParams(location.search).get("photo"); if(!pid||!DECO.photoAll) return;
+    DECO.photoAll().then(a=>{ const p=a.find(x=>x.id===pid); if(!p||!p.blob) return; photoFile=new File([p.blob],"ceiling.jpg",{type:"image/jpeg"});
+      const c=p.cust||{}; [["custName",c.name],["custPhone",c.phone],["custAddr",c.addr]].forEach(([k,v])=>{ if(v&&!$(k).value){ $(k).value=v; $(k).dispatchEvent(new Event("input",{bubbles:true})); } });
+      const img=new Image(); img.onload=()=>{ $("aiNote").hidden=true; useBg("photo",img,null); setTool("fan");
+        $("toolHint").textContent="손님이 보낸 천장 사진입니다. 위에서 실링팬·다운라이트·간접 조명을 골라 사진 위에 붙이고, 아래 수량을 맞추면 견적 초안이 됩니다."; toast("손님 사진을 불러왔습니다"); };
+      img.src=URL.createObjectURL(p.blob); }).catch(()=>{}); })();
   $("photo").addEventListener("change",e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; photoFile=f;
     const img=new Image(); img.onload=()=>{ $("aiNote").hidden=true; useBg("photo",img,null); setTool("fan");
       $("toolHint").textContent="사진을 올렸습니다. 위에서 실링팬, 다운라이트, 커튼박스 조명, 우물 조명을 하나씩 골라 사진 위에 붙이세요."; };
