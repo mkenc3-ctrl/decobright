@@ -263,6 +263,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
         <div><span>공급가액 합계</span><span id="sumSupply">0원</span></div>
         <div><span>부가세(10%)</span><span id="sumVat">0원</span></div>
         <div class="tot"><span>합계금액</span><span id="sumTotal">0원</span></div>
+        <div id="simQ" style="font-size:14px;color:var(--muted);text-align:right" hidden></div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="btn btn-ghost" id="resetQ" type="button">견적 초기화</button>
@@ -686,6 +687,8 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     renderItems(); totals(); toast("패키지에 포함된 수를 빼고 추가 수량을 넣었습니다."); });
   function totals(){ const p=P(), pa=p.price, ia=QI.reduce((s,i)=>s+i.qty*i.price,0), ea=etcRows.reduce((s,r)=>s+(r.amount||0),0), dc=Math.max(0,parseInt($("discount").value)||0), supply=Math.max(0,pa+ia+ea-dc), vat=Math.round(supply*.1);
     $("sumPkg").textContent=won(pa); $("sumItems").textContent=won(ia); $("sumEtc").textContent=won(ea); $("sumSupply").textContent=won(supply); $("sumVat").textContent=won(vat); $("sumTotal").textContent=won(supply+vat);
+    try{ const L=DECO.list().filter(q=>q.pkg===p.id && q.id!==curId && q.totals && q.totals.total), C=L.filter(q=>["계약","시공","완료"].includes(q.status)), av=a=>Math.round(a.reduce((s,q)=>s+q.totals.total,0)/a.length/10000)*10000, el=$("simQ");
+      if(el){ el.hidden=!L.length; if(L.length) el.textContent="참고: 같은 패키지 지난 견적 "+L.length+"건 평균 "+won(av(L))+(C.length?" · 계약된 "+C.length+"건 평균 "+won(av(C)):""); } }catch(e){}
     return {pa,ia,ea,dc,supply,vat,total:supply+vat}; }
   $("discount").addEventListener("input",totals);
 

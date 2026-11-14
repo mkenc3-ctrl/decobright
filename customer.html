@@ -60,6 +60,8 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     <h2 class="s">상담 기록 <small>통화·방문 내용을 짧게 남기세요</small></h2>
     <div id="logs"></div>
     <div class="addlog"><input type="date" id="ld" aria-label="날짜"><input type="text" id="lt" data-mic placeholder="예: 실측 방문 약속, 실링팬 우드 원함" aria-label="상담 내용"><button class="btn2 pri" type="button" id="la">기록 추가</button></div>
+    <div class="addlog" id="nxBox" style="margin-top:8px"><b style="align-self:center;font-size:15px">📅 다음 연락할 날</b><input type="date" id="nxd" aria-label="다음 연락할 날"><input type="text" id="nxm" placeholder="예: 이사 날짜 정해지면 다시 견적" aria-label="연락 이유"><button class="btn2 pri" type="button" id="nxs">정하기</button><button class="btn2" type="button" id="nxc" hidden>✔ 연락함</button></div>
+    <p class="msg" id="nxT" style="margin:4px 0 0"></p>
     <h2 class="s">견적 <small id="qsum"></small></h2>
     <div id="qs"></div>
     <h2 class="s">작업 지시서·일정</h2>
@@ -129,6 +131,10 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     Array.prototype.forEach.call(f.elements, function (el) { if (el.name) c[el.name] = el.value.trim(); });
     var r = DECO.saveCustomer(c); $('msg').className = 'msg' + (r ? '' : ' bad'); $('msg').textContent = r ? '저장했습니다.' : '저장하지 못했습니다.';
     if (r) { c = r; history.replaceState(null, '', 'customer.html?id=' + encodeURIComponent(c.id)); fill(); } });
+  function nx() { if (!c) return; var x = c.next || {}; $('nxd').value = x.d || ''; $('nxm').value = x.m || ''; $('nxc').hidden = !x.d; $('nxT').textContent = x.d ? '그날 처음 화면 「알림」에 나옵니다.' : ''; }
+  $('nxs').addEventListener('click', function () { if (!c) return; var d = $('nxd').value; if (!d) { $('nxd').focus(); return; } c.next = { d: d, m: $('nxm').value.trim() }; c.touched = Date.now(); DECO.saveCustomer(c); nx(); });
+  $('nxc').addEventListener('click', function () { if (!c || !c.next) return; c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '📞 다시 연락함' + (c.next.m ? ' (' + c.next.m + ')' : '') }); delete c.next; c.touched = Date.now(); DECO.saveCustomer(c); nx(); logs(); });
+  setTimeout(nx, 0);
   $('la').addEventListener('click', function () { var t = $('lt').value.trim(); if (!t) { $('lt').focus(); return; }
     c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: $('ld').value || DECO.today(), text: t }); c.touched = Date.now(); DECO.saveCustomer(c); $('lt').value = ''; logs(); });
   $('logs').addEventListener('click', function (e) { var b = e.target.closest('[data-l]'); if (!b || !confirm('이 상담 기록을 지울까요?')) return;

@@ -151,6 +151,9 @@
     D.list().forEach(function (q) { var st = q.status || '상담'; if (st !== '상담' && st !== '실측') return; var g = -left(D.ymd(new Date(q.created || q.updated)));
       if (g === 3 || g === 7) { var c = q.cust || {}; out.push({ key: q.id + '@f' + g, n: 0, lab: '연락', date: D.today(), time: '', what: '', where: c.phone || '', href: 'quote.html?id=' + encodeURIComponent(q.id),
         txt: (c.name ? c.name + ' 님' : '견적 ' + q.no) + ' 견적 드린 지 ' + g + '일 지났습니다. 다시 연락해 보세요.' }); } });
+    // 고객 다음 연락할 날
+    D.customers().forEach(function (c) { var x = c.next; if (!x || !x.d) return; var n = left(x.d); if (n > 0 || n < -7) return;
+      out.push({ key: c.id + '@nx' + x.d, n: 0, lab: '연락', date: D.today(), time: '', what: '', where: c.phone || '', href: 'customer.html?id=' + encodeURIComponent(c.id), txt: (c.name || c.phone || '고객') + ' 님 다시 연락할 날' + (n < 0 ? '이 ' + (-n) + '일 지났습니다' : '입니다') + (x.m ? ': ' + x.m : '') }); });
     // 시공 1년 뒤 무상 점검 연락 (일주일 전·당일)
     D.orders().forEach(function (o) { if (!o.workDate || o.status === '보류') return; var y = (+o.workDate.slice(0, 4) + 1) + o.workDate.slice(4), n = left(y);
       if (n === 7 || n === 0) out.push({ key: o.id + '@as' + n, n: n, date: y, time: '', what: (o.name ? o.name + ' 님 ' : '') + '시공 1년 무상 점검 연락', where: o.addr || '', href: 'order.html?id=' + encodeURIComponent(o.id) }); });

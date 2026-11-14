@@ -66,6 +66,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card"><p class="sub" style="margin-top:0">작업 지시서 시공일이 이달인 현장입니다. 지시서 「내부 정산」에 적은 인건비·자재비를 뺍니다. 매출은 부가세를 뺀 공급가입니다.</p><table class="tb" id="pf"></table></div>
   <h2 class="grp">아직 안 준 돈 (거래처 인건비·자재비)</h2>
   <div class="card"><table class="tb" id="unpaid"></table></div>
+  <h2 class="grp">앞으로 4주 돈 흐름 <small style="font-size:14px;font-weight:400">(시공일 기준 · 받을 잔금과 거래처에 줄 돈)</small></h2>
+  <div class="card"><table class="tb" id="flow"></table><p class="sub" id="flowS" style="margin-bottom:0"></p></div>
   <h2 class="grp">고객 후기</h2>
   <div class="card"><p class="sub" style="margin-top:0" id="rvSum"></p><div id="rvList"></div></div>
   <h2 class="grp">현장 작업 시간 <small style="font-size:14px;font-weight:400">(지시서 「작업 시작」~「완료」 누른 시간)</small></h2>
@@ -249,6 +251,15 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
       return '<tr><td>' + E(o.name || o.addr || '') + '<br><small>' + E(o.workDate || '') + (c && c.size ? ' · ' + E(c.size) : '') + (q && q.pkgName ? ' · ' + E(q.pkgName) : '') + '</small></td><td class="n">' + (p.go ? hm(p['in'] - p.go) : '-') + '</td><td class="n"><b>' + hm(w) + '</b></td></tr>'; });
     $('wtS').textContent = '최근 ' + L.length + '곳 평균 작업 시간 ' + hm(sum / L.length) + ' · 다음 견적·일정 잡을 때 참고하세요.';
     $('wt').innerHTML = '<tr><th>현장</th><th style="text-align:right">이동</th><th style="text-align:right">작업</th></tr>' + R.join(''); })();
+  (function () { var t = new Date(DECO.today() + 'T00:00'), wd = (t.getDay() + 6) % 7, mon = new Date(t); mon.setDate(t.getDate() - wd);
+    var B = [{ n: '지난 것 (아직 안 받음·안 줌)', i: 0, o: 0 }, { n: '이번 주', i: 0, o: 0 }, { n: '다음 주', i: 0, o: 0 }, { n: '2주 뒤', i: 0, o: 0 }, { n: '3주 뒤', i: 0, o: 0 }], seen = {};
+    function bk(ds) { var d = new Date(ds + 'T00:00'); if (d < t) return 0; var w = Math.floor((d - mon) / (7 * 864e5)); return w >= 0 && w < 4 ? w + 1 : -1; }
+    DECO.orders().forEach(function (o) { if (!o.workDate || o.status === '보류') return; var k = bk(o.workDate); if (k < 0) return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null;
+      if (q && !seen[q.id]) { seen[q.id] = 1; var r = amt(q) - paid(q); if (r > 0) B[k].i += r; }
+      var c = o.cost || {}, pd = o.costPaid || {}; Object.keys(c).forEach(function (x) { if (!pd[x] && +c[x]) B[k].o += +c[x]; }); });
+    var ti = 0, to = 0; $('flow').innerHTML = '<tr><th>언제</th><th style="text-align:right">받을 돈</th><th style="text-align:right">줄 돈</th><th style="text-align:right">차이</th></tr>' + B.map(function (b) { ti += b.i; to += b.o; var df = b.i - b.o;
+      return '<tr><td>' + b.n + '</td><td class="n">' + W(b.i) + '</td><td class="n">' + W(b.o) + '</td><td class="n" style="font-weight:800;color:' + (df < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (df < 0 ? '－' + W(-df) : W(df)) + '</td></tr>'; }).join('');
+    $('flowS').textContent = '합계: 받을 돈 ' + W(ti) + ' · 줄 돈 ' + W(to) + (ti - to < 0 ? ' → 모자랄 수 있습니다. 잔금 받기를 먼저 챙기세요.' : ' → 여유 ' + W(ti - to)); })();
   $('csvT').onclick = function () { var k = Y + '-' + String(M + 1).padStart(2, '0'), PT = DECO.partners(), r = [['구분', '날짜', '상대·항목', '내용', '공급가', '부가세', '합계', '증빙', '발행·영수증', '비고']], n = 0;
     DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, t = (q && q.totals) || {}, x = (q && q.tax) || {};
       r.push(['매출', o.workDate, o.name || (q && q.cust && q.cust.name) || '', (q && q.no ? '견적 ' + q.no + ' · ' : '') + (o.addr || ''), t.supply || 0, t.vat || 0, t.total || 0, x.k || '안 정함', x.done ? '발행함' : (x.k === '세금계산서' || x.k === '현금영수증' ? '아직' : ''), '']); n++;
