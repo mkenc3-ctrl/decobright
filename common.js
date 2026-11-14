@@ -191,7 +191,7 @@
   D.docImg = function (o) { var s = D.settings(), W = 1080, P = 56, F = "'Noto Sans KR', sans-serif";
     function load(u) { return new Promise(function (ok) { if (!u) return ok(null); var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = u; }); }
     var ready = document.fonts && document.fonts.load ? Promise.all([document.fonts.load('800 40px "Noto Sans KR"'), document.fonts.load('500 26px "Noto Sans KR"')]).catch(function () {}) : Promise.resolve();
-    return Promise.all([load(o.pic), ready]).then(function (r) { var pic = r[0];
+    return Promise.all([load(o.pic), ready, load(o.stamp && /^data:image\//.test(s.stamp || '') ? s.stamp : '')]).then(function (r) { var pic = r[0], stp = r[2];
       function wrap(g, t, w) { var out = [], line = ''; String(t).split('').forEach(function (ch) { if (ch === '\n') { out.push(line); line = ''; return; } if (g.measureText(line + ch).width > w && line) { out.push(line); line = ch; } else line += ch; }); out.push(line); return out; }
       // 1차: 높이 계산, 2차: 그리기
       function pass(g, draw) { var y = 0;
@@ -211,6 +211,7 @@
           else { txt(x[0], P + 18, y, '500 27px ' + F, '#4A403A'); txt(x[1], W - P - 18, y, '700 27px ' + F, '#221C18', 'right'); } }); }
         if (pic) { var ph = Math.round((W - P * 2) * pic.height / pic.width); y += 70; txt(o.picCap || '예상 모습', P, y, '800 27px ' + F); y += 14; if (draw) g.drawImage(pic, P, y, W - P * 2, ph); y += ph; }
         (o.notes || []).forEach(function (n, k) { if (!n) return; g.font = '500 24px ' + F; wrap(g, n, W - P * 2).forEach(function (l, j) { y += (k || j) ? 36 : 56; txt(l, P, y, '500 24px ' + F, '#4A403A'); }); });
+        if (stp) { var sw = 150, sh = Math.round(sw * stp.height / stp.width); y += 40; txt(s.company + (s.ceo ? '  대표 ' + s.ceo : ''), W - P - sw - 16, y + sh / 2 + 10, '800 28px ' + F, '#221C18', 'right'); if (draw) g.drawImage(stp, W - P - sw, y, sw, sh); y += sh; }
         y += 50; rect(0, y, W, 120, '#2A211C'); txt(s.company + (s.ceo ? '  대표 ' + s.ceo : ''), P, y + 50, '800 28px ' + F, '#F3C98A'); txt('📞 ' + (s.phone || ''), W - P, y + 50, '800 30px ' + F, '#FFFFFF', 'right');
         txt([s.addr, s.bizno ? '사업자 ' + s.bizno : ''].filter(Boolean).join('  ·  '), P, y + 92, '500 21px ' + F, '#E9DCCB'); return y + 120; }
       var c = document.createElement('canvas'), g = c.getContext('2d'); c.width = W; c.height = 100; var H = pass(g, false); c.height = H; pass(c.getContext('2d'), true);

@@ -62,6 +62,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card"><table class="tb" id="st"></table></div>
   <h2 class="grp">고객을 알게 된 경로 (전체) <button class="btn2" type="button" id="imgSrc" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 경로 그림</button></h2>
   <div class="card"><table class="tb" id="src"></table></div>
+  <h2 class="grp">패키지별 견적·계약 <small style="font-size:14px;font-weight:400">(전체 견적 기준 · 보류 빼고)</small></h2>
+  <div class="card"><table class="tb" id="pkgT"></table></div>
   <h2 class="grp" id="profit">이달 시공 정산 (남는 돈)</h2>
   <div class="card"><p class="sub" style="margin-top:0">작업 지시서 시공일이 이달인 현장입니다. 지시서 「내부 정산」에 적은 인건비·자재비를 뺍니다. 매출은 부가세를 뺀 공급가입니다.</p><table class="tb" id="pf"></table></div>
   <h2 class="grp">아직 안 준 돈 (거래처 인건비·자재비)</h2>
@@ -260,6 +262,10 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     var ti = 0, to = 0; $('flow').innerHTML = '<tr><th>언제</th><th style="text-align:right">받을 돈</th><th style="text-align:right">줄 돈</th><th style="text-align:right">차이</th></tr>' + B.map(function (b) { ti += b.i; to += b.o; var df = b.i - b.o;
       return '<tr><td>' + b.n + '</td><td class="n">' + W(b.i) + '</td><td class="n">' + W(b.o) + '</td><td class="n" style="font-weight:800;color:' + (df < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (df < 0 ? '－' + W(-df) : W(df)) + '</td></tr>'; }).join('');
     $('flowS').textContent = '합계: 받을 돈 ' + W(ti) + ' · 줄 돈 ' + W(to) + (ti - to < 0 ? ' → 모자랄 수 있습니다. 잔금 받기를 먼저 챙기세요.' : ' → 여유 ' + W(ti - to)); })();
+  (function () { var G = {}; Q.forEach(function (q) { if (q.status === '보류') return; var k = q.pkgName || '패키지 없음', g = G[k] = G[k] || { n: 0, c: 0, s: 0 }; g.n++; if (DONE[q.status]) { g.c++; g.s += amt(q); } });
+    var ks = Object.keys(G).sort(function (a, b) { return G[b].n - G[a].n; }); if (!ks.length) { $('pkgT').innerHTML = '<tr><td>아직 견적이 없습니다.</td></tr>'; return; }
+    $('pkgT').innerHTML = '<tr><th>패키지</th><th style="text-align:right">견적</th><th style="text-align:right">계약 (비율)</th><th style="text-align:right">계약 평균</th></tr>' + ks.map(function (k) { var g = G[k];
+      return '<tr><td>' + E(k) + '</td><td class="n">' + g.n + '건</td><td class="n">' + g.c + '건 (' + Math.round(g.c / g.n * 100) + '%)</td><td class="n">' + (g.c ? W(Math.round(g.s / g.c / 10000) * 10000) : '-') + '</td></tr>'; }).join(''); })();
   $('csvT').onclick = function () { var k = Y + '-' + String(M + 1).padStart(2, '0'), PT = DECO.partners(), r = [['구분', '날짜', '상대·항목', '내용', '공급가', '부가세', '합계', '증빙', '발행·영수증', '비고']], n = 0;
     DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, t = (q && q.totals) || {}, x = (q && q.tax) || {};
       r.push(['매출', o.workDate, o.name || (q && q.cust && q.cust.name) || '', (q && q.no ? '견적 ' + q.no + ' · ' : '') + (o.addr || ''), t.supply || 0, t.vat || 0, t.total || 0, x.k || '안 정함', x.done ? '발행함' : (x.k === '세금계산서' || x.k === '현금영수증' ? '아직' : ''), '']); n++;
