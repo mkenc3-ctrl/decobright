@@ -85,6 +85,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
       <label class="btn2" style="cursor:pointer">백업 파일 되살리기<input type="file" id="rs" accept=".json,application/json" hidden></label>
     </div>
     <p class="msg" id="bmsg" role="status"></p>
+    <div id="abk" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"></div>
   </div>
 </div>
 <script src="common.js"></script>
@@ -246,6 +247,12 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   $('csvO').onclick = function () { var O = DECO.orders(), r = [['지시서 번호', '시공일', '고객', '전화', '주소', '공정', '메모']];
     O.forEach(function (o) { r.push([o.no, o.workDate, o.name, o.phone, o.addr, Object.keys(o.trades || {}).filter(function (t) { return o.trades[t] && o.trades[t].on; }).join('·'), o.notes]); });
     save('작업지시서_' + stamp() + '.csv', csv(r), 'text/csv'); msg('지시서 ' + O.length + '건을 엑셀 파일로 받았습니다.'); };
+  // 자동 백업 (이 기기 안, 일주일마다)
+  function abk() { if (!DECO.bkList) return; DECO.bkList().then(function (L) { $('abk').innerHTML = '<b>🗂 자동 백업 (이 기기 안 · 일주일마다 · 최근 4개)</b>' + (L.length ? L.map(function (o) { var d = new Date(o.at); return '<div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><span>' + d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '. ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ' · 자료 ' + (o.n || 0) + '건</span><button class="btn2" type="button" data-abk="' + o.at + '">파일로 받기</button></div>'; }).join('') : '<p class="sub" style="margin:6px 0 0">아직 자동 백업이 없습니다. 처음 화면을 열면 일주일에 한 번 저절로 만들어집니다.</p>') + '<button class="btn2" type="button" id="abkNow" style="margin-top:8px">지금 자동 백업 하나 만들기</button>'; }).catch(function () { $('abk').innerHTML = ''; }); }
+  $('abk').addEventListener('click', function (e) { if (e.target.closest('#abkNow')) { DECO.bkNow().then(function () { msg('이 기기 안에 백업을 하나 만들었습니다.'); abk(); }); return; }
+    var b = e.target.closest('[data-abk]'); if (!b) return; DECO.bkList().then(function (L) { var o = L.filter(function (x) { return String(x.at) === b.dataset.abk; })[0]; if (!o) return; var d = new Date(o.at);
+      save('데코브라이트_자동백업_' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '.json', JSON.stringify(o), 'application/json'); msg('자동 백업을 파일로 받았습니다. 「백업 파일 되살리기」로 다시 넣을 수 있습니다.'); }); });
+  abk();
   $('rs').onchange = function () { var f = this.files[0]; this.value = ''; if (!f) return;
     f.text().then(function (t) { var o = JSON.parse(t); if (!o || o.app !== 'decobright' || !o.data) throw 0;
       var add = 0, up = 0;

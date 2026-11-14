@@ -45,6 +45,13 @@
     </div>
     <p class="msg" id="msg" role="status"></p>
   </form>
+  <div class="card" style="margin-top:14px">
+    <h2 style="margin:0 0 6px;font-size:20px">👷 직원 기기 모드</h2>
+    <p class="sub" style="margin:0 0 10px">직원에게 맡기는 휴대폰·태블릿에서 켜 두세요. 견적·지시서·사진은 그대로 쓰고, <b>가격표·회사 설정·매출·지출 화면</b>은 사장님 번호를 넣어야 열립니다. (이 기기에만 적용, 번호는 이 기기에 암호화해 둡니다)</p>
+    <p id="stS" style="font-weight:800;margin:0 0 8px"></p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="stN" type="password" inputmode="numeric" autocomplete="new-password" placeholder="사장님 번호 (숫자 4자리 이상)" style="font:inherit;font-size:18px;padding:10px;border:1px solid #CDBBA3;border-radius:10px;flex:1;min-width:200px"><button class="btn2 pri" type="button" id="stOn">켜기</button><button class="btn2" type="button" id="stOff">끄기</button></div>
+    <p class="msg" id="stMsg" role="status"></p>
+  </div>
 </div>
 <script src="common.js"></script>
 <script src="sync.js"></script>
@@ -52,6 +59,12 @@
 (function () {
   var f = document.getElementById('f'), s = DECO.settings(), m = document.getElementById('msg');
   Array.prototype.forEach.call(f.elements, function (el) { if (el.name && s[el.name] != null) el.value = s[el.name]; });
+  function stS() { document.getElementById('stS').textContent = DECO.staff() ? '🔒 지금 이 기기는 직원 기기 모드입니다' : '지금은 꺼져 있습니다 (사장님 기기)'; } stS();
+  document.getElementById('stOn').onclick = function () { var v = document.getElementById('stN').value.trim(), M = document.getElementById('stMsg');
+    if (!/^\d{4,}$/.test(v)) { M.className = 'msg bad'; M.textContent = '숫자 4자리 이상으로 넣어 주세요.'; return; }
+    DECO.sha(v).then(function (h) { try { localStorage.setItem('deco-staff', h); sessionStorage.removeItem('deco-unlock'); } catch (e) {} document.getElementById('stN').value = ''; stS(); M.className = 'msg'; M.textContent = '켰습니다. 번호를 잊지 마세요. 이 화면을 다시 열 때부터 번호를 묻습니다.'; }); };
+  document.getElementById('stOff').onclick = function () { var M = document.getElementById('stMsg'); if (!DECO.staff()) { M.className = 'msg'; M.textContent = '이미 꺼져 있습니다.'; return; }
+    DECO.sha(document.getElementById('stN').value.trim()).then(function (h) { if (h !== DECO.staff()) { M.className = 'msg bad'; M.textContent = '끄려면 켤 때 넣은 번호를 넣어 주세요.'; return; } try { localStorage.removeItem('deco-staff'); } catch (e) {} document.getElementById('stN').value = ''; stS(); M.className = 'msg'; M.textContent = '껐습니다.'; }); };
   f.addEventListener('submit', function (e) {
     e.preventDefault(); var o = {};
     Array.prototype.forEach.call(f.elements, function (el) { if (el.name) o[el.name] = el.value.trim(); });

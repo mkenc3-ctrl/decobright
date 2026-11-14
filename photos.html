@@ -44,7 +44,7 @@
     </div>
     <div class="r">
       <label class="btn2 pri" for="cam">③ 사진 찍기</label><input id="cam" type="file" accept="image/*" capture="environment">
-      <label class="btn2" for="files">사진 여러 장 고르기</label><a class="btn2" id="toSns" href="sns.html">이 현장 홍보 글 만들기 (인스타·블로그)</a><input id="files" type="file" accept="image/*" multiple>
+      <label class="btn2" for="files">사진 여러 장 고르기</label><a class="btn2" id="toSns" href="sns.html">이 현장 홍보 글 만들기 (인스타·블로그)</a><button class="btn2" type="button" id="slim">🗜 저장 공간 정리</button><input id="files" type="file" accept="image/*" multiple>
       <button class="btn2" type="button" id="baBtn">시공 전·후 비교 사진 만들기</button>
     </div>
     <p class="msg" id="msg" role="status" style="margin:0"></p>
@@ -167,6 +167,15 @@
       .then(function () { exSent[key] = 1; btn.textContent = '✔ 전시실로 보냈습니다'; say('e모델하우스 전시실 맨 뒤에 「' + t + '」(으)로 올렸습니다. 손님 화면에 바로 나옵니다.'); },
         function (e) { btn.disabled = false; btn.textContent = '🏠 e모델하우스 전시실로 보내기'; say('전시실로 보내지 못했습니다: ' + (e && e.message || e), true); }); });
   $('gal').addEventListener('click', function () { var b = $('vexpo'); b.disabled = false; b.textContent = '🏠 e모델하우스 전시실로 보내기'; }, true);
+  // 저장 공간: 6개월 지난 큰 사진을 줄여서 보관 (서버 원본은 그대로)
+  $('slim').addEventListener('click', function () { var b = this, lim = Date.now() - 180 * 864e5; b.disabled = true;
+    var est = navigator.storage && navigator.storage.estimate ? navigator.storage.estimate() : Promise.resolve(null);
+    est.then(function (e0) { return DECO.photoAll().then(function (a) { var L = a.filter(function (p) { return p.blob && p.blob.size > 350000 && Math.max(p.taken || 0, p.added || 0) < lim; }), saved = 0;
+      if (!L.length) { b.disabled = false; alert('정리할 사진이 없습니다.' + (e0 ? '\n지금 쓰는 공간: 약 ' + Math.round(e0.usage / 1048576) + 'MB / 쓸 수 있는 공간: 약 ' + Math.round(e0.quota / 1048576) + 'MB' : '')); return; }
+      if (!confirm('6개월 지난 큰 사진 ' + L.length + '장을 작게 줄여 이 기기 공간을 아낄까요?\n(서버 보관함의 사진은 그대로 남습니다)')) { b.disabled = false; return; }
+      return L.reduce(function (pr, p) { return pr.then(function () { return DECO.shrink(p.blob, 1000).then(function (r) { if (r.blob.size < p.blob.size) { saved += p.blob.size - r.blob.size; p.blob = r.blob; p.w = r.w; p.h = r.h; return DECO.photoPut(p); } }).catch(function () {}); }); }, Promise.resolve())
+        .then(function () { b.disabled = false; alert('정리했습니다. 약 ' + Math.max(1, Math.round(saved / 1048576)) + 'MB를 아꼈습니다.'); load(); }); }); });
+  });
   // 처음 화면 「새 사진」 알림 끄기
   try { localStorage.setItem('deco-upseen', String(Date.now())); } catch (e) {}
   load();
