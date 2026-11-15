@@ -62,6 +62,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card"><table class="tb" id="st"></table></div>
   <h2 class="grp">지역별 고객·계약 <small style="font-size:14px;font-weight:400">(주소의 시·구 기준 · 전체 기간)</small></h2>
   <div class="card" style="overflow-x:auto"><table class="tb" id="regT"></table></div>
+  <h2 class="grp">🏢 단지별 시공 순위 <small style="font-size:14px;font-weight:400">(전단·이웃 안내문 돌릴 곳 고르기)</small></h2>
+  <div class="card" style="overflow-x:auto"><table class="tb" id="aptT"></table></div>
   <h2 class="grp">고객을 알게 된 경로 (전체) <button class="btn2" type="button" id="imgSrc" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 경로 그림</button></h2>
   <div class="card"><table class="tb" id="src"></table></div>
   <h2 class="grp">이번 분기 부가세 미리 보기 <small style="font-size:14px;font-weight:400">(참고용 · 신고는 세무사와 확인)</small></h2>
@@ -312,6 +314,10 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
       rows += '<tr' + (m === now.getMonth() ? ' style="font-weight:800"' : '') + '><td>' + (m + 1) + '월</td><td class="n">' + (a ? W(a) : '-') + '</td><td class="n">' + (fut ? '' : b ? W(b) : '-') + '</td><td class="n" style="color:' + (b - a < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (fut || (!a && !b) ? '' : (b - a < 0 ? '－' + W(a - b) : '＋' + W(b - a))) + '</td></tr>'; }
     rows += '<tr style="font-weight:800;border-top:2px solid var(--line)"><td>1~' + (now.getMonth() + 1) + '월 합계</td><td class="n">' + W(cA) + '</td><td class="n">' + W(cB) + '</td><td class="n" style="color:' + (cB - cA < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (cA ? Math.round((cB - cA) / cA * 100) + '%' : '') + '</td></tr>';
     $('yoy').innerHTML = rows; })();
+  (function () { var G = {};
+    DECO.orders().forEach(function (o) { if (o.status === '보류') return; var k = DECO.apt(o.addr); if (!k) return; var r = DECO.region(o.addr), key = (r.si ? r.si + ' ' : '') + k, g = G[key] = G[key] || { n: 0, last: '' }; g.n++; if ((o.workDate || '') > g.last) g.last = o.workDate || ''; });
+    var ks = Object.keys(G).sort(function (a, b) { return G[b].n - G[a].n || (G[b].last > G[a].last ? 1 : -1); }).slice(0, 15);
+    $('aptT').innerHTML = ks.length ? '<tr><th>단지</th><th style="text-align:right">시공</th><th>마지막 시공</th></tr>' + ks.map(function (k) { return '<tr><td>' + E(k) + '</td><td class="n">' + G[k].n + '세대</td><td>' + E(G[k].last) + '</td></tr>'; }).join('') : '<tr><td>주소에 단지 이름(예: 상남동 45 대동아파트 203동)이 있는 시공이 아직 없습니다.</td></tr>'; })();
   (function () { var G = {}, CS = DECO.customers(); if (!CS.length) { $('regT').innerHTML = '<tr><td>아직 고객이 없습니다.</td></tr>'; return; }
     CS.forEach(function (c) { var r = DECO.region(c.addr), k = r.si ? r.si + (r.gu ? ' ' + r.gu : '') : '주소 없음', g = G[k] = G[k] || { n: 0, c: 0, s: 0 }, Qc = DECO.custQuotes(c).filter(function (q) { return DONE[q.status]; }); g.n++; if (Qc.length) g.c++; g.s += Qc.reduce(function (t, q) { return t + amt(q); }, 0); });
     var ks = Object.keys(G).sort(function (a, b) { return G[b].s - G[a].s || G[b].n - G[a].n; }), mx = Math.max.apply(null, ks.map(function (k) { return G[k].s; })) || 1;

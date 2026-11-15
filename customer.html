@@ -62,6 +62,7 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
   </form>
   <div id="more" hidden>
     <div id="flow" style="margin:6px 0 14px"></div>
+    <div id="aptB" style="margin:0 0 14px" hidden></div>
     <h2 class="s">상담 기록 <small>통화·방문 내용을 짧게 남기세요</small></h2>
     <div id="logs"></div>
     <div class="addlog"><input type="date" id="ld" aria-label="날짜"><input type="text" id="lt" data-mic placeholder="예: 실측 방문 약속, 실링팬 우드 원함" aria-label="상담 내용"><button class="btn2 pri" type="button" id="la">기록 추가</button></div>
@@ -141,6 +142,17 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
         return '<span style="flex:1 1 74px;min-width:74px;text-align:center;border:1px solid;border-radius:10px;padding:6px 4px;' + st + '"><b style="display:block;font-size:16px">' + (x[1] ? '✔ ' : i === cur ? '▶ ' : '') + x[0] + '</b><small style="font-size:13px">' + E(x[2] || '') + '</small></span>'; }).join('') + '</div>' +
       (nx ? '<p style="margin:0;font-size:16px">👉 <b>다음 할 일 :</b> ' + nx + '</p>' : '') + '</div>'; }
   if (c) setTimeout(flowD, 0);
+  // 같은 단지 시공 사례 (상담할 때 「이 단지 해 봤습니다」 + 사진)
+  function aptD() { var b = $('aptB'); if (!c || !b) return; var A = DECO.aptJobs(c.addr, c.id), W = DECO.won; if (!A.k) { b.hidden = true; return; }
+    b.hidden = false; b.innerHTML = '<div style="background:#fff;border:1px solid var(--line);border-left:6px solid #2F6DB5;border-radius:12px;padding:10px 12px"><b style="font-size:18px">🏢 같은 단지 「' + E(A.k) + '」 시공 ' + A.J.length + '건</b>' +
+      (A.J.length ? A.J.slice(0, 5).map(function (j) { return '<div style="margin-top:6px;font-size:16px">' + E(j.d) + ' · ' + E(j.pkg || '시공') + (j.amt ? ' · ' + W(j.amt) : '') + (j.done ? '' : ' <small>(진행 중)</small>') + (j.qid ? ' · <a href="photos.html?job=' + encodeURIComponent(j.qid) + '">사진 ›</a>' : '') + '</div>'; }).join('') +
+        '<button class="btn2" type="button" id="kApt" style="margin-top:8px;background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 같은 단지 사례 카톡</button>'
+        : '<p style="margin:6px 0 0;font-size:16px;color:var(--muted)">이 단지는 아직 시공한 적이 없습니다. 첫 시공이면 이웃 공사 안내문으로 홍보해 보세요.</p>') + '</div>';
+    var kb = $('kApt'); if (kb) kb.onclick = function () { var P = {}; A.J.forEach(function (j) { if (j.pkg) P[j.pkg] = (P[j.pkg] || 0) + 1; });
+      DECO.kakao(DECO.kfmt({ icon: '🏢', title: '같은 단지 시공 사례', info: [['👤', '고객', c.name ? c.name + ' 님' : ''], ['🏢', '단지', A.k], ['🔨', '시공', A.J.length + '세대']],
+        secs: [['이 단지에서 많이 하신 구성', Object.keys(P).sort(function (a, b) { return P[b] - P[a]; }).slice(0, 4).map(function (k) { return k + ' (' + P[k] + '세대)'; })]],
+        foot: [(c.name ? c.name + ' 님, ' : '') + '같은 ' + A.k + '에서 ' + A.J.length + '세대를 시공했습니다. 천장 구조를 잘 알고 있어 더 빠르고 깔끔하게 해 드립니다. 시공 사진이 필요하시면 말씀해 주세요. 🙏'] }), '같은 단지 사례 카톡'); }; }
+  if (c) setTimeout(aptD, 0);
   $('kCust').addEventListener('click', function () { if (!c) return; var W = DECO.won;
     var Q = DECO.list().filter(function (q) { return q.custId === c.id || (c.phone && q.cust && q.cust.phone && q.cust.phone.replace(/\D/g, '') === String(c.phone).replace(/\D/g, '')); });
     var O = DECO.orders().filter(function (o) { return Q.some(function (q) { return q.id === o.quoteId; }); });

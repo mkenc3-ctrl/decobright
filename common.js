@@ -144,6 +144,19 @@
     if (old && JSON.stringify(old.busy) === JSON.stringify(B) && old.from === t0) return;
     wr('deco-pub', [{ id: 'free', from: t0, busy: B, at: Date.now() }]); };
   // ---------- 주소 → 시·군 / 구 (구가 없으면 읍·면·동) ----------
+  // ---------- 주소 → 아파트 단지 이름 (지번 다음 ~ 「○동/○호」 앞) ----------
+  D.apt = function (a) { var t = String(a || '').replace(/\([^)]*\)/g, ' ').replace(/,/g, ' ').trim().split(/\s+/), i, s = -1, e = t.length;
+    for (i = 0; i < t.length; i++) { if (/^\d+(-\d+)?(번지)?$/.test(t[i])) s = i; if (/^\d+동$|^\d+호$|^[A-Z]?\d+-\d+$/.test(t[i])) { e = i; break; } }
+    var n = s >= 0 ? t.slice(s + 1, e) : t.slice(0, e).filter(function (x) { return /아파트|APT|타운|맨션|빌|캐슬|파크|자이|푸르지오|힐스테이트|래미안|더샵|e편한세상|아이파크|유보라|위브|휴먼시아|시티|하이츠|단지/i.test(x); });
+    n = n.join('').replace(/아파트$|APT$/i, ''); return n.length >= 2 && e < t.length ? n : ''; };
+  // 같은 단지에서 계약·시공한 현장 (자기 자신 빼고)
+  D.aptJobs = function (addr, cid) { var k = D.apt(addr), r = D.region(addr), J = [], seen = {}; if (!k) return { k: '', J: J };
+    var same = function (a) { var b = D.region(a); return D.apt(a) === k && (!r.si || !b.si || b.si === r.si); };
+    D.orders().forEach(function (o) { if (o.status === '보류' || (cid && o.custId === cid) || !same(o.addr)) return; var q = o.quoteId ? D.getQuote(o.quoteId) : null; if (q) seen[q.id] = 1;
+      J.push({ d: o.workDate || '', pkg: (q && q.pkgName) || '', amt: q && q.totals ? q.totals.total || 0 : 0, qid: q ? q.id : '', done: o.status === '완료' }); });
+    D.list().forEach(function (q) { if (seen[q.id] || (cid && q.custId === cid) || !/계약|시공|완료/.test(q.status || '') || !same(q.cust && q.cust.addr)) return;
+      J.push({ d: q.wish || D.date(q.updated), pkg: q.pkgName || '', amt: q.totals ? q.totals.total || 0 : 0, qid: q.id, done: q.status === '완료' }); });
+    J.sort(function (a, b) { return a.d < b.d ? 1 : -1; }); return { k: k, J: J }; };
   D.region = (function () {
     return function (a) { var T = String(a || '').replace(/[(),]/g, ' ').split(/\s+/).filter(Boolean), si = '', gu = '', i = 0;
     for (; i < T.length; i++) { var t = T[i];
