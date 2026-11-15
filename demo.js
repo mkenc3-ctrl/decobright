@@ -105,6 +105,10 @@
     if (om) { var a = rd('deco-asreq'); a.push({ id: rid('a'), oid: om.id, custId: om.custId, name: om.name, addr: om.addr, phone: om.phone, kinds: ['간접등 깜빡임'], say: '(가상) 거실 커튼박스 간접등 한쪽이 가끔 깜빡여요.', md: '평일 오후', ph: [], at: now - 864e5, demo: 1 }); put('deco-asreq', a); }
     if (qj) { var k = rd('deco-okq'); k.push({ id: qj.id, qid: qj.id, act: 'ok', at: now - 3 * 3600e3, name: qj.cust.name, no: qj.no, tm: '평일 저녁 7시 이후', say: '(가상) 이 견적으로 진행하고 싶어요. 실측 날짜 알려 주세요.', k: '', demo: 1 }); put('deco-okq', k); }
     if (ol) { var h = rd('deco-chk'); h.push({ id: rid('h'), oid: ol.id, tr: '목수', by: '(가상) 박목수', at: now - 2 * 3600e3, ok: ['몰딩 마감', '커튼박스 보강', '먼지 청소'], no: [], memo: '(가상) 목공 끝, 전기팀 오후 투입', demo: 1 }); put('deco-chk', h); }
+    // 챙길 고객 시험용: 1년 전 시공(점검 안내)·5일 전 시공(후기 부탁)·유효기간 끝나가는 견적
+    D.saveOrder({ name: '(가상) 장민호', addr: '경남 창원시 마산합포구 월영동 (가상)', phone: '010-0000-0013', workDate: day(-360), workTime: '09:00', status: '완료', trades: { '목수': { on: false, partner: '', tasks: '', time: '' }, '전기': { on: true, partner: '', tasks: '간접등·다운라이트 설치', time: '' }, '도배': { on: false, partner: '', tasks: '', time: '' } }, cost: 0, demo: 1 });
+    D.saveOrder({ name: '(가상) 서은지', addr: '경남 김해시 내외동 (가상)', phone: '010-0000-0014', workDate: day(-5), workTime: '09:00', status: '완료', trades: { '목수': { on: false, partner: '', tasks: '', time: '' }, '전기': { on: true, partner: '', tasks: '간접등·다운라이트 설치', time: '' }, '도배': { on: false, partner: '', tasks: '', time: '' } }, cost: 0, demo: 1 });
+    var qk = Q['강수진']; if (qk) { var all = JSON.parse(localStorage.getItem('deco-quotes') || '[]'); all.forEach(function (q) { if (q.id === qk.id) q.created = Date.now() - ((+D.settings().validDays || 30) - 2) * 864e5; }); put('deco-quotes', all); }
     // 소개 감사 혜택 기록
     if (C['김민수']) { var cm = D.getCustomer(C['김민수'].id); cm.perks = [{ d: D.date(Date.now() - 20 * 864e5), what: '(가상) 상품권 3만 원' }]; D.saveCustomer(cm); }
     // 현장 사진 (그림으로 만든 가상 사진)
