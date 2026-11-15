@@ -178,7 +178,9 @@
     linkEv('Lw' + q.id, hasO || q.status === '보류' ? '' : w, '시공 예정', '', q.custId, '견적 ' + (q.no || '') + (who ? ' · ' + who : '') + (q.pkgName ? ' · ' + q.pkgName : '')); };
   D.linkCustomer = function (c) { if (!c || !c.id) return; var x = c.next || {}; linkEv('Ln' + c.id, x.d || '', '상담', '', c.id, '📞 다시 연락' + (x.m ? ' · ' + x.m : '')); };
   (function () { var sq = D.saveQuote, so = D.saveOrder, sc = D.saveCustomer;
-    D.saveQuote = function (q) { var r = sq.apply(this, arguments); try { if (r) D.linkQuote(r); } catch (e) {} return r; };
+    D.saveQuote = function (q) { try { var o0 = q && q.id ? D.getQuote(q.id) : null, t0 = o0 && o0.totals ? o0.totals.total || 0 : 0, t1 = q.totals ? q.totals.total || 0 : 0; q.hist = (o0 && o0.hist) || q.hist || [];
+      if (o0 && t0 && t1 && (t0 !== t1 || (o0.pkgName || '') !== (q.pkgName || ''))) { q.hist = q.hist.concat([{ at: Date.now(), from: t0, to: t1, pkg0: o0.pkgName || '', pkg: q.pkgName || '' }]).slice(-10); } } catch (e) {}
+      var r = sq.apply(this, arguments); try { if (r) D.linkQuote(r); } catch (e) {} return r; };
     D.saveOrder = function (o) { var r = so.apply(this, arguments); try { if (o && o.quoteId) { var q = D.getQuote(o.quoteId); if (q) D.linkQuote(q); } } catch (e) {} return r; };
     D.saveCustomer = function (c) { var r = sc.apply(this, arguments); try { if (r) D.linkCustomer(r); } catch (e) {} return r; }; })();
   // 하루 일정 (시공 지시서 + 일정)
