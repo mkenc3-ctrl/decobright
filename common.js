@@ -131,7 +131,7 @@
 
   // ---------- 일정 (실측·상담 방문 등, 시공은 작업 지시서에서) ----------
   var KE = 'deco-events';
-  D.KINDS = ['실측 방문', '상담', '자재 입고', '하자 보수 방문', '기타', '시공 예정'];
+  D.KINDS = ['실측 방문', '상담', '자재 입고', '하자 보수 방문', '기타', '시공 예정', '휴무'];
   D.events = function () { return rd(KE, []); };
   D.saveEvent = function (e) { var all = rd(KE, []); if (!e.id) e.id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); e.updated = Date.now();
     var next = all.filter(function (x) { return x.id !== e.id; }); next.push(e); return wr(KE, next) ? e : null; };
@@ -139,7 +139,7 @@
   // ---------- 공개용 「바쁜 날」 (e모델하우스 실측 희망일 고르기에 씀, 개인 정보 없음) ----------
   D.pubFree = function () { var t0 = D.today(), e = new Date(); e.setDate(e.getDate() + 35); var t1 = e.getFullYear() + '-' + pad(e.getMonth() + 1) + '-' + pad(e.getDate()), B = {};
     D.orders().forEach(function (o) { if (o.workDate && o.workDate >= t0 && o.workDate <= t1 && o.status !== '보류' && o.status !== '완료') B[o.workDate] = (B[o.workDate] || 0) + 2; });
-    D.events().forEach(function (x) { if (x.date && x.date >= t0 && x.date <= t1 && !x.done && /실측|시공|하자/.test(x.kind || '')) B[x.date] = (B[x.date] || 0) + (x.kind === '시공 예정' ? 2 : 1); });
+    D.events().forEach(function (x) { if (x.date && x.date >= t0 && x.date <= t1 && !x.done && /실측|시공|하자|휴무/.test(x.kind || '')) B[x.date] = (B[x.date] || 0) + (x.kind === '휴무' ? 9 : x.kind === '시공 예정' ? 2 : 1); });
     var old = rd('deco-pub', []).filter(function (x) { return x && x.id === 'free'; })[0];
     if (old && JSON.stringify(old.busy) === JSON.stringify(B) && old.from === t0) return;
     wr('deco-pub', [{ id: 'free', from: t0, busy: B, at: Date.now() }]); };

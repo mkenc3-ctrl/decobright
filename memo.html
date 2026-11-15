@@ -22,6 +22,7 @@
 .m{background:#fff;border:1px solid var(--line);border-top:4px solid var(--line);padding:12px;text-align:left;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:4px;min-height:120px}
 .m:hover{border-color:var(--pri)}
 .m.pin{border-top-color:var(--warm)}
+.m.dn b{text-decoration:line-through;opacity:.55}
 .m b{font-size:17px}
 .m p{margin:0;color:var(--ink2);font-size:15px;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .m small{color:var(--muted);font-size:13px;margin-top:auto}
@@ -38,10 +39,12 @@
     <div class="r">
       <div class="cats" id="cats" role="group" aria-label="분류"></div>
       <label style="display:flex;gap:6px;align-items:center;font-size:15px"><input type="checkbox" id="pin" style="width:20px;height:20px"> 맨 위에 고정</label>
+      <label style="display:flex;gap:6px;align-items:center;font-size:15px"><input type="checkbox" id="dn" style="width:20px;height:20px"> ✔ 다 했음</label>
     </div>
     <div class="r">
       <button class="btn2 pri" type="button" id="nw">+ 새 메모</button>
       <button class="btn2" type="button" id="cp" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 카톡으로 보내기</button>
+      <button class="btn2" type="button" id="toCal">📅 달력에 넣기</button>
       <button class="btn2 no" type="button" id="dl" hidden>이 메모 지우기</button>
       <span class="msg" id="msg" role="status" style="margin:0"></span>
     </div>
@@ -56,13 +59,15 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, CATS = ['할 일', '자재', '상담', '현장', '기타'], cur = null, cat = '할 일', fc = '', timer = null;
   function chips(el, val, all) { el.innerHTML = (all ? ['전체'] : []).concat(CATS).map(function (c) { var v = c === '전체' ? '' : c; return '<button type="button" data-c="' + v + '" aria-pressed="' + (v === val) + '">' + c + '</button>'; }).join(''); }
-  function open(m) { cur = m; $('tt').value = m ? m.title : ''; $('bd').value = m ? m.body : ''; $('pin').checked = !!(m && m.pin); cat = (m && m.cat) || '할 일'; chips($('cats'), cat); $('dl').hidden = !m; $('msg').textContent = m ? DECO.date(m.updated) + ' 저장됨' : ''; }
+  $('toCal').onclick = function () { var t = $('tt').value.trim() || $('bd').value.trim().split('\n')[0]; if (!t) { $('tt').focus(); return; } location.href = 'calendar.html?title=' + encodeURIComponent(t.slice(0, 60)) + '&kind=etc'; };
+  $('dn').onchange = function () { if (!cur) return; cur.done = this.checked; DECO.saveMemo(cur); draw(); };
+  function open(m) { cur = m; $('dn').checked = !!(m && m.done); $('tt').value = m ? m.title : ''; $('bd').value = m ? m.body : ''; $('pin').checked = !!(m && m.pin); cat = (m && m.cat) || '할 일'; chips($('cats'), cat); $('dl').hidden = !m; $('msg').textContent = m ? DECO.date(m.updated) + ' 저장됨' : ''; }
   function save() { var t = $('tt').value.trim(), b = $('bd').value.trim(); if (!t && !b) return;
     var m = cur || {}; m.title = t; m.body = b; m.cat = cat; m.pin = $('pin').checked; var r = DECO.saveMemo(m);
     if (r) { cur = r; $('dl').hidden = false; $('msg').className = 'msg'; $('msg').textContent = '저장됨'; draw(); } else { $('msg').className = 'msg bad'; $('msg').textContent = '저장하지 못했습니다.'; } }
   function later() { clearTimeout(timer); timer = setTimeout(save, 600); }
   function draw() { var k = $('qs').value.trim(), L = DECO.memos().filter(function (m) { return (!fc || m.cat === fc) && (!k || (m.title + ' ' + m.body).indexOf(k) >= 0); });
-    $('list').innerHTML = L.length ? L.map(function (m) { return '<button type="button" class="m' + (m.pin ? ' pin' : '') + '" data-id="' + m.id + '"><b>' + (m.pin ? '📌 ' : '') + E(m.title || '(제목 없음)') + '</b><p>' + E(m.body) + '</p><small>' + E(m.cat) + ' · ' + DECO.date(m.updated) + '</small></button>'; }).join('')
+    $('list').innerHTML = L.length ? L.map(function (m) { return '<button type="button" class="m' + (m.pin ? ' pin' : '') + (m.done ? ' dn' : '') + '" data-id="' + m.id + '"><b>' + (m.pin ? '📌 ' : '') + E(m.title || '(제목 없음)') + '</b><p>' + E(m.body) + '</p><small>' + E(m.cat) + ' · ' + DECO.date(m.updated) + '</small></button>'; }).join('')
       : '<div class="empty" style="grid-column:1/-1">' + (k || fc ? '찾는 메모가 없습니다.' : '아직 메모가 없습니다. 위에 적으면 저절로 저장됩니다.') + '</div>'; }
   $('tt').addEventListener('input', later); $('bd').addEventListener('input', later); $('pin').addEventListener('change', save);
   $('cats').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; cat = b.dataset.c; chips($('cats'), cat); save(); });

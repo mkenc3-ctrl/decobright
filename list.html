@@ -35,8 +35,10 @@
   <div class="bar">
     <input id="qs" type="search" placeholder="고객명·주소·견적번호로 찾기" aria-label="견적 찾기">
     <select id="fst" class="st2" aria-label="상태로 거르기"></select>
+    <select id="srt" class="st2" aria-label="정렬"><option value="">최근 고친 순</option><option value="amt">금액 큰 순</option><option value="name">이름 가나다순</option><option value="old">오래된 순</option></select>
     <a class="btn2 pri" href="quote.html">+ 새 견적</a>
   </div>
+  <div id="tot" style="display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 10px;font-size:15px"></div>
   <div id="old" style="margin:-4px 0 10px" hidden></div>
   <div id="box"></div>
 </div>
@@ -64,10 +66,15 @@
   function oldBox() { var L = old90(), b = document.getElementById('old'); b.hidden = !L.length; if (L.length) b.innerHTML = '<button class="btn2" type="button" id="oldGo">🗂 90일 넘게 그대로인 상담 견적 ' + L.length + '건 「보류」로 정리</button>'; }
   document.addEventListener('click', function (e) { if (e.target.id !== 'oldGo') return; var L = old90(); if (!confirm(L.length + '건을 「보류」로 바꿀까요?\n(지우는 것이 아니며, 언제든 상태를 다시 바꿀 수 있습니다)')) return; L.forEach(function (q) { DECO.setQuoteStatus(q.id, '보류'); }); oldBox(); draw(); });
   setTimeout(oldBox, 0);
+  document.getElementById('srt').addEventListener('change', function () { draw(); });
   function draw() {
     var k = qs.value.trim(), L = DECO.list().filter(function (q) {
       if (fs.value && (q.status || '상담') !== fs.value) return false;
       if (!k) return true; var c = q.cust || {}; return [c.name, c.addr, c.phone, q.no].join(' ').indexOf(k) >= 0; });
+    var sv = document.getElementById('srt').value, am = function (q) { return q.totals ? q.totals.total || 0 : 0; };
+    if (sv === 'amt') L.sort(function (a, b) { return am(b) - am(a); }); else if (sv === 'name') L.sort(function (a, b) { return ((a.cust || {}).name || '').localeCompare((b.cust || {}).name || '', 'ko'); }); else if (sv === 'old') L.sort(function (a, b) { return a.updated - b.updated; });
+    (function () { var G = {}; DECO.list().forEach(function (q) { var s = q.status || '상담', g = G[s] = G[s] || [0, 0]; g[0]++; g[1] += am(q); });
+      document.getElementById('tot').innerHTML = ['상담', '실측', '계약', '시공', '완료', '보류'].filter(function (s) { return G[s]; }).map(function (s) { return '<span style="background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 10px">' + s + ' ' + G[s][0] + '건 · <b>' + DECO.won(G[s][1]) + '</b></span>'; }).join(''); })();
     if (!L.length) { box.innerHTML = '<div class="empty">' + (k || fs.value ? '찾는 견적이 없습니다.' : '아직 저장한 견적이 없습니다.<br>「+ 새 견적」을 눌러 시작하세요.') + '</div>'; return; }
     box.innerHTML = L.map(function (q) {
       var c = q.cust || {}, id = encodeURIComponent(q.id);

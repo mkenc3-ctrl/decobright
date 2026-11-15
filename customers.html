@@ -43,6 +43,7 @@
     <input id="qs" type="search" placeholder="이름·전화번호·주소로 찾기" aria-label="고객 찾기">
     <select id="fs" aria-label="진행 상태로 거르기" hidden></select>
     <a class="btn2 pri" href="customer.html">+ 고객 등록</a>
+    <button class="btn2" type="button" id="xls">📥 고객 엑셀</button>
     <button class="btn2" type="button" id="kSea" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🌤 계절 안내 카톡</button>
   </div>
   <div id="flt" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px;background:#FFF8EC;border:1px solid #E8C98A;border-radius:12px;padding:8px 10px">
@@ -119,6 +120,11 @@
   document.getElementById('sum').innerHTML = CAT.map(function (c) { return '<button type="button" data-st="' + E(c[0]) + '" style="--cc:' + c[3] + '"' + (c[2] ? '' : ' class="zero"') + '><span>' + E(c[1]) + '</span><b>' + c[2] + '명</b></button>'; }).join('');
   function catMark() { [].forEach.call(document.querySelectorAll('#sum [data-st]'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.st === fs.value)); }); }
   document.getElementById('sum').addEventListener('click', function (e) { var b = e.target.closest('[data-st]'); if (!b) return; fs.value = b.dataset.st; fs.dispatchEvent(new Event('change')); });
+  document.getElementById('xls').onclick = function () { var C = DECO.customers(), q = function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var R = [['이름', '전화', '주소', '시·군', '구·동', '단지', '진행 상태', '견적 금액(최근)', '알게 된 경로', '등록일', '메모']].concat(C.map(function (c) { var r = DECO.region(c.addr), Q = DECO.custQuotes(c), q0 = Q[0];
+      return [c.name, c.phone, c.addr, r.si, r.gu, DECO.apt(c.addr), q0 ? q0.status || '상담' : '견적 전', q0 && q0.totals ? q0.totals.total || 0 : '', c.source || '', c.created ? DECO.date(c.created) : '', c.memo || '']; }));
+    var b = new Blob(['\ufeff' + R.map(function (r) { return r.map(q).join(','); }).join('\r\n')], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = '고객목록_' + DECO.today() + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000); };
   function draw() {
     var k = qs.value.trim(), kd = k.replace(/\D/g, '');
     var L = C.filter(function (x) { var c = x.c; if (fs.value === '_call') { if (!((x.st === '상담' || x.st === '실측' || x.st === '견적 전') && x.ago >= 3)) return false; } else if (fs.value === '_due') { if (!x.due) return false; } else if (fs.value && x.st !== fs.value) return false; if (!k) return true;

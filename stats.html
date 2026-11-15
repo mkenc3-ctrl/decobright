@@ -62,6 +62,10 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card"><table class="tb" id="st"></table></div>
   <h2 class="grp">지역별 고객·계약 <small style="font-size:14px;font-weight:400">(주소의 시·구 기준 · 전체 기간)</small></h2>
   <div class="card" style="overflow-x:auto"><table class="tb" id="regT"></table></div>
+  <h2 class="grp">⏱ 계약까지 걸린 날 <small style="font-size:14px;font-weight:400">(견적 만든 날 → 계약·첫 입금, 전체 기간)</small></h2>
+  <div class="card" id="ldT"></div>
+  <h2 class="grp">📞 문의가 많은 요일 <small style="font-size:14px;font-weight:400">(고객 등록일 기준)</small></h2>
+  <div class="card" id="wdT"></div>
   <h2 class="grp">🏢 단지별 시공 순위 <small style="font-size:14px;font-weight:400">(전단·이웃 안내문 돌릴 곳 고르기)</small></h2>
   <div class="card" style="overflow-x:auto"><table class="tb" id="aptT"></table></div>
   <h2 class="grp">고객을 알게 된 경로 (전체) <button class="btn2" type="button" id="imgSrc" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">🖼 경로 그림</button></h2>
@@ -314,6 +318,12 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
       rows += '<tr' + (m === now.getMonth() ? ' style="font-weight:800"' : '') + '><td>' + (m + 1) + '월</td><td class="n">' + (a ? W(a) : '-') + '</td><td class="n">' + (fut ? '' : b ? W(b) : '-') + '</td><td class="n" style="color:' + (b - a < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (fut || (!a && !b) ? '' : (b - a < 0 ? '－' + W(a - b) : '＋' + W(b - a))) + '</td></tr>'; }
     rows += '<tr style="font-weight:800;border-top:2px solid var(--line)"><td>1~' + (now.getMonth() + 1) + '월 합계</td><td class="n">' + W(cA) + '</td><td class="n">' + W(cB) + '</td><td class="n" style="color:' + (cB - cA < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (cA ? Math.round((cB - cA) / cA * 100) + '%' : '') + '</td></tr>';
     $('yoy').innerHTML = rows; })();
+  (function () { var Q = DECO.list(), D2 = [], n = Q.length, c = 0;
+    Q.forEach(function (q) { if (!/계약|시공|완료/.test(q.status || '')) return; c++; var t = q.sign && q.sign.at ? q.sign.at : q.pays && q.pays[0] && q.pays[0].d ? new Date(q.pays[0].d + 'T12:00').getTime() : 0; if (t && q.created && t >= q.created) D2.push((t - q.created) / 864e5); });
+    var av = D2.length ? Math.round(D2.reduce(function (s, x) { return s + x; }, 0) / D2.length) : null, f = D2.filter(function (x) { return x <= 7; }).length;
+    $('ldT').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:18px;font-size:17px"><div>견적 <b style="font-size:24px">' + n + '</b>건 중 계약 <b style="font-size:24px">' + c + '</b>건 (' + (n ? Math.round(c / n * 100) : 0) + '%)</div><div>평균 <b style="font-size:24px;color:#C4572A">' + (av == null ? '-' : av + '일') + '</b> 걸림</div>' + (D2.length ? '<div>일주일 안에 계약 ' + f + '건</div>' : '') + '</div><p class="sub" style="margin:6px 0 0">평균보다 오래된 상담 견적은 「견적 목록」에서 다시 연락해 보세요.</p>'; })();
+  (function () { var N = [0, 0, 0, 0, 0, 0, 0], L = '일월화수목금토'; DECO.customers().forEach(function (c) { if (c.created) N[new Date(c.created).getDay()]++; }); var mx = Math.max.apply(null, N) || 1, top = N.indexOf(mx);
+    $('wdT').innerHTML = N.map(function (v, i) { return '<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:16px"><b style="width:22px">' + L[i] + '</b><div style="flex:1;background:#F4EEE6;border-radius:6px"><div style="height:16px;border-radius:6px;background:' + (i === top ? '#C4572A' : '#D9B48A') + ';width:' + Math.round(v / mx * 100) + '%"></div></div><span style="width:40px;text-align:right">' + v + '명</span></div>'; }).join('') + '<p class="sub" style="margin:6px 0 0">' + (N[top] ? L[top] + '요일에 문의가 가장 많습니다. 그 전날 블로그·카톡 홍보를 올려 보세요.' : '') + '</p>'; })();
   (function () { var G = {};
     DECO.orders().forEach(function (o) { if (o.status === '보류') return; var k = DECO.apt(o.addr); if (!k) return; var r = DECO.region(o.addr), key = (r.si ? r.si + ' ' : '') + k, g = G[key] = G[key] || { n: 0, last: '' }; g.n++; if ((o.workDate || '') > g.last) g.last = o.workDate || ''; });
     var ks = Object.keys(G).sort(function (a, b) { return G[b].n - G[a].n || (G[b].last > G[a].last ? 1 : -1); }).slice(0, 15);
