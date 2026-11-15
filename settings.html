@@ -53,6 +53,7 @@
     <p class="sub" style="margin:0 0 10px">창원·김해·부산·양산 가상 고객 12명과 견적·지시서·입금·일정·거래처 2곳을 넣습니다. 이름 앞에 <b>(가상)</b>, 전화는 010-0000-으로 시작합니다. 다 써 본 뒤 「모두 지우기」를 누르면 다른 기기에서도 사라집니다.</p>
     <p id="dmS" style="font-weight:800;margin:0 0 8px"></p>
     <p id="spc" style="margin:0 0 8px;font-size:15px"></p>
+    <p style="margin:0 0 8px;font-size:15px;display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span id="ver">📱 앱 버전 확인 중…</span><button class="btn2" type="button" id="verUp">🔄 최신으로 고치기</button></p>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn2 pri" type="button" id="dmAdd">🧪 가상 고객 넣기</button><button class="btn2 no" type="button" id="dmDel">🧹 가상 고객 모두 지우기</button></div>
     <p class="msg" id="dmMsg" role="status"></p>
   </div>
@@ -61,6 +62,9 @@
     function spc() { var el = $("spc"); if (!el || !navigator.storage || !navigator.storage.estimate) return; navigator.storage.estimate().then(function (e) { var mb = function (x) { return (x / 1048576).toFixed(1) + 'MB'; }, p = e.quota ? Math.round(e.usage / e.quota * 1000) / 10 : 0;
       (DECO.photoAll ? DECO.photoAll() : Promise.resolve([])).then(function (A) { el.innerHTML = '💾 이 기기 저장 공간: <b>' + mb(e.usage || 0) + '</b> 사용 (쓸 수 있는 양의 ' + p + '%) · 사진 ' + A.length + '장' + (p > 70 ? ' — <b style="color:#B42318">공간이 부족해집니다. 매출 화면에서 백업 후 오래된 사진을 줄이세요.</b>' : ''); }); }).catch(function () {}); }
     window.addEventListener('load', spc);
+    window.addEventListener('load', function () { if (!window.caches) { $("ver").textContent = '📱 앱 버전: 알 수 없음'; return; } caches.keys().then(function (K) { var v = K.filter(function (k) { return /^deco-v\d+$/.test(k); }).map(function (k) { return +k.slice(6); }).sort(function (a, b) { return b - a; })[0]; $("ver").textContent = '📱 앱 버전: ' + (v ? v + '판' : '알 수 없음'); }); });
+    $("verUp").onclick = function () { var b = this; b.disabled = true; b.textContent = '받는 중…'; (window.caches ? caches.keys().then(function (K) { return Promise.all(K.map(function (k) { return caches.delete(k); })); }) : Promise.resolve())
+      .then(function () { return navigator.serviceWorker && navigator.serviceWorker.getRegistration ? navigator.serviceWorker.getRegistration().then(function (r) { return r && r.update(); }) : null; }).catch(function () {}).then(function () { location.reload(); }); };
     function st() { var n = DECO.demoCount ? DECO.demoCount() : 0; $("dmS").textContent = n ? "지금 가상 자료 " + n + "개가 들어 있습니다." : "지금 가상 자료가 없습니다."; $("dmDel").disabled = !n; $("dmAdd").disabled = !!n; }
     $("dmAdd").onclick = function () { $("dmMsg").className = "msg"; $("dmMsg").textContent = DECO.demoAdd(); st(); };
     $("dmDel").onclick = function () { if (!confirm("(가상) 고객·견적·지시서·거래처·일정을 모두 지울까요? 진짜 고객 자료는 그대로입니다.")) return; $("dmMsg").className = "msg"; $("dmMsg").textContent = DECO.demoDel(); st(); };

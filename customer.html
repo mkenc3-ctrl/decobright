@@ -37,6 +37,8 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     <button class="btn2" type="button" id="cmpB" hidden style="font-weight:800">📊 견적 비교표 (그림)</button>
     <button class="btn2" type="button" id="cpn">🎁 소개 쿠폰 (그림)</button>
     <button class="btn2" type="button" id="vcf">📇 휴대폰 연락처에 저장</button>
+    <button class="btn2" type="button" id="cpA">📋 주소 복사</button>
+    <button class="btn2" type="button" id="cpP">📋 전화번호 복사</button>
     <button class="btn2" type="button" id="kCust" style="background:#FEE500;border-color:#FEE500;color:#191919;font-weight:800">💬 고객 정보 카톡 (직원 공유)</button>
     <span id="maps" style="display:contents"></span>
     <a class="btn2" id="newQ" href="quote.html">이 고객 새 견적</a>
@@ -202,6 +204,11 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     s.addEventListener('change', function () { var r = DECO.replies().filter(function (x) { return x.id === s.value; })[0]; s.value = ''; if (!r) return; var t = DECO.replyFill(r.body);
       if (c && c.name) t = c.name + ' 님, ' + t.replace(/^안녕하세요,?\s*/, '안녕하세요. '); DECO.kakao(t, r.title + ' 답장');
       if (c) { c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '💬 답장 보냄: ' + r.title }); c.touched = Date.now(); DECO.saveCustomer(c); logs(); } }); })();
+  function cpy(btn, v, lab) { if (!v) { btn.textContent = '비어 있음'; setTimeout(function () { btn.textContent = lab; }, 1500); return; }
+    var ok = function () { btn.textContent = '✔ 복사했습니다'; setTimeout(function () { btn.textContent = lab; }, 1800); };
+    (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(ok, function () { var t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); ok(); } catch (e) { btn.textContent = v; } t.remove(); }); }
+  $('cpA').onclick = function () { cpy(this, c && c.addr, '📋 주소 복사'); };
+  $('cpP').onclick = function () { cpy(this, c && c.phone, '📋 전화번호 복사'); };
   $('vcf').addEventListener('click', function () { if (!c) return; DECO.vcf([{ fn: (c.name || '고객') + ' (' + (DECO.settings().company || '데코') + ' 고객)', phone: c.phone, addr: c.addr, note: [c.size, c.source, c.memo].filter(Boolean).join(' · ') }], (c.name || '고객') + '.vcf').then(function (t) { var m = $('msg'); m.className = 'msg'; m.textContent = t; }); });
   // 상담 기록 빠른 문구 (누르면 칸에 들어감)
   $('qp').innerHTML = ['📵 부재중', '📨 견적 보냄', '☎ 다시 연락 달라 함', '💸 가격 비교 중', '👪 가족과 상의 중', '📅 실측 날짜 잡음', '🙅 다음에 하기로'].map(function (t) { return '<button type="button" class="btn2" style="min-height:40px;padding:0 10px;font-size:15px" data-qp="' + t + '">' + t + '</button>'; }).join('');

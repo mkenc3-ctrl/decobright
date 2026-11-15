@@ -125,6 +125,8 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <a class="syncbox" id="balBox" href="stats.html#pay" hidden style="border-color:#2E6A4E;background:#E8F3EC;font-weight:700"></a>
   <a class="syncbox" id="goalBox" href="stats.html" hidden style="border-color:#8A5A12;background:#FFF6E5;font-weight:700"></a>
   <div class="syncbox" id="careBox" hidden style="border-color:#2F6DB5;background:#EAF1FA"></div>
+  <a class="syncbox" id="pastBox" href="calendar.html" hidden style="border-color:#8A7F76;background:#F4F1EC"></a>
+  <a class="syncbox" id="phBox" href="photos.html" hidden style="border-color:#B26B12;background:#FFF6E5"></a>
   <div class="syncbox" id="asBox" hidden style="border-color:#B42318;background:#FDECEC;font-weight:700"></div>
   <a class="syncbox" id="okBox" href="list.html" hidden style="border-color:#2E6A4E;background:#E8F3EC;font-weight:700"></a>
   <a class="syncbox" id="upBox" href="photos.html?new=1" hidden style="border-color:#E0952B;background:#FCEBD2;font-weight:700"></a>
@@ -170,6 +172,12 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
       DECO.orders().forEach(function (o) { if (!o.workDate || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, v = q && q.totals ? q.totals.supply || 0 : 0; if (o.workDate.slice(0, 7) === k && q && q.totals) { sale += v; n++; } else if (o.workDate.slice(0, 7) === pk) ps += v; });
       var p = Math.round(sale / g * 100), d = new Date(), last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate() - d.getDate(); b.hidden = false;
       b.innerHTML = '🎯 이달 매출 목표 ' + DECO.won(g) + ' 중 <b>' + DECO.won(sale) + ' (' + p + '%)</b> · 현장 ' + n + '곳' + '<div style="height:14px;background:#EADFCB;border-radius:7px;margin:8px 0 4px;overflow:hidden"><div style="height:100%;width:' + Math.min(100, p) + '%;background:' + (p >= 100 ? '#2E6A4E' : '#C98A1E') + '"></div></div><small style="font-weight:500">' + (p >= 100 ? '목표를 넘었습니다 👏' : '남은 금액 ' + DECO.won(g - sale) + ' · 이달 ' + last + '일 남음') + (ps ? ' · 지난달 전체 ' + DECO.won(ps) : '') + ' (시공일 기준 공급가)</small>'; }
+    function past() { var b = document.getElementById('pastBox'), td = DECO.today(), lim = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10), L = DECO.events().filter(function (e) { return e.date && e.date < td && e.date >= lim && !e.done && !e.auto && e.kind !== '휴무'; }); if (!b) return;
+      if (!L.length) { b.hidden = true; return; } b.hidden = false; b.innerHTML = '📌 지난 일정 <b>' + L.length + '건</b>이 아직 「다 했음」이 아닙니다 (' + DECO.esc(L.slice(0, 2).map(function (e) { return e.date.slice(5).replace('-', '/') + ' ' + (e.title || e.kind); }).join(', ')) + (L.length > 2 ? ' 등' : '') + ') · 달력에서 정리 ›'; }
+    function phx() { var b = document.getElementById('phBox'); if (!b || !DECO.photoAll) return; var lim = new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10), O = DECO.orders().filter(function (o) { return o.status === '완료' && o.quoteId && (o.workDate || '') >= lim; }); if (!O.length) { b.hidden = true; return; }
+      DECO.photoAll().then(function (A) { var J = {}; A.forEach(function (p) { J[p.job] = 1; }); var N = O.filter(function (o) { return !J[o.quoteId]; }); if (!N.length) { b.hidden = true; return; }
+        b.hidden = false; b.innerHTML = '📷 사진 없는 완료 현장 <b>' + N.length + '곳</b> (' + DECO.esc(N.slice(0, 3).map(function (o) { return o.name || '현장'; }).join(', ')) + ') — 홍보·보증용 사진을 올려 두세요 ›'; b.href = 'photos.html?job=' + encodeURIComponent(N[0].quoteId); }).catch(function () {}); }
+    window.addEventListener('load', function () { try { past(); phx(); } catch (e) {} });
     window.addEventListener('load', function () { bal(); goal(); asb(); try { care(); } catch (e) {} setTimeout(function () { try { care(); } catch (e) {} }, 8000); setTimeout(asb, 8000); setInterval(asb, 60000); chk(); ok(); setTimeout(function () { chk(); ok(); }, 8000); setInterval(function () { chk(); ok(); }, 60000); }); })();
   </script>
   <section class="todo" id="todo" hidden aria-label="오늘 할 일"><h2>✅ 오늘 할 일</h2><ul id="todoL"></ul></section>

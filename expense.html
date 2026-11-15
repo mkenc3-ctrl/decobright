@@ -52,6 +52,7 @@
   <div class="card">
     <div class="mo"><button type="button" id="pv" aria-label="지난달">‹</button><b id="ml"></b><button type="button" id="nx" aria-label="다음달">›</button></div>
     <div class="sum" id="sum"></div>
+    <div id="pmS" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px;font-size:15px"></div>
     <div id="list"></div>
     <div id="yr12" style="margin-top:14px"></div>
   </div>
@@ -84,7 +85,9 @@
     A.forEach(function (x) { var k = String(x.d || '').slice(0, 7); M.forEach(function (m) { if (m.k === k) m.t += +x.amt || 0; }); }); var mx = Math.max.apply(null, M.map(function (m) { return m.t; })) || 1, av = Math.round(M.reduce(function (s, m) { return s + m.t; }, 0) / 12);
     el.innerHTML = '<b style="font-size:18px">📊 최근 12달 지출</b> <small>(한 달 평균 ' + W(av) + ')</small><div style="display:flex;align-items:flex-end;gap:4px;height:130px;margin-top:8px">' + M.map(function (m, i) { return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0"><small style="font-size:11px">' + (m.t ? Math.round(m.t / 10000) : '') + '</small><div title="' + W(m.t) + '" style="width:100%;border-radius:4px 4px 0 0;background:' + (i === 11 ? '#C4572A' : '#D9B48A') + ';height:' + Math.round(m.t / mx * 100) + '%"></div><small style="font-size:12px">' + m.m + '월</small></div>'; }).join('') + '</div><small style="color:var(--muted)">막대 위 숫자는 만 원 단위</small>'; }
   setTimeout(yr12, 0);
-  function draw() { var L = mine(), t = 0, by = {}; L.forEach(function (x) { t += +x.amt || 0; by[x.cat] = (by[x.cat] || 0) + (+x.amt || 0); });
+  function pmS() { var P = {}; mine().forEach(function (x) { var k = x.pm || '기타'; P[k] = (P[k] || 0) + (+x.amt || 0); });
+    $('pmS').innerHTML = Object.keys(P).sort(function (a, b) { return P[b] - P[a]; }).map(function (k) { return '<span style="background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 10px">' + ({ '카드': '💳', '현금': '💵', '계좌이체': '🏦' }[k] || '🧾') + ' ' + E(k) + ' <b>' + W(P[k]) + '</b></span>'; }).join(''); }
+  function draw() { pmS(); var L = mine(), t = 0, by = {}; L.forEach(function (x) { t += +x.amt || 0; by[x.cat] = (by[x.cat] || 0) + (+x.amt || 0); });
     $('ml').textContent = Y + '년 ' + (M + 1) + '월';
     $('sum').innerHTML = '<div><small>이달 지출 합계</small><b>' + W(t) + '</b></div>' + Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }).map(function (c) { return '<div><small>' + E(c) + '</small><b>' + W(by[c]) + '</b></div>'; }).join('');
     $('list').innerHTML = L.length ? L.map(function (x) { return '<div class="r" data-id="' + E(x.id) + '"><div><b>' + E(x.cat) + (x.memo ? ' · ' + E(x.memo) : '') + '</b><small>' + E(x.d.slice(5).replace('-', '/')) + ' · ' + E(x.pm || '') + ' · ' + (x.ph ? '<a href="#" data-ph="' + E(x.ph) + '">🧾 영수증</a> · ' : '') + '<a href="#" data-del>지우기</a></small></div><div class="a">' + W(x.amt) + '</div></div>'; }).join('')

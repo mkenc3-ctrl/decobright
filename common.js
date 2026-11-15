@@ -482,5 +482,11 @@
   window.addEventListener('load', function () { setTimeout(D.ntfCheck, 4000); });
   if ('serviceWorker' in navigator && /^(https:|http:\/\/localhost)/.test(location.href)) {
     window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+    // 앱이 새 버전으로 바뀌면 아래에 알림 (쓰던 글이 날아가지 않게 자동으로 새로 고치지 않음)
+    var hadCtl = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', function () { if (!hadCtl || document.getElementById('nvBar')) return; var b = document.createElement('div'); b.id = 'nvBar';
+      b.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9999;background:#2E6A4E;color:#fff;border-radius:12px;padding:10px 14px;font-size:16px;display:flex;gap:10px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.25);max-width:calc(100% - 32px)';
+      b.innerHTML = '<span>✨ 앱이 새로 바뀌었습니다</span><button type="button" style="font:inherit;font-weight:800;background:#fff;color:#2E6A4E;border:0;border-radius:8px;padding:6px 12px;cursor:pointer">새로 고치기</button>';
+      b.querySelector('button').onclick = function () { location.reload(); }; document.body.appendChild(b); });
   }
 })();

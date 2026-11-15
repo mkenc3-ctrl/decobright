@@ -47,6 +47,7 @@
     <button class="btn2" type="button" id="tod">오늘</button>
   </div>
   <div class="lg" id="lg"></div>
+  <div id="mSum" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;font-size:15px"></div>
   <div class="cal" id="cal"></div>
   <div id="wk7" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:12px 0"></div>
   <section class="panel" id="panel">
@@ -106,6 +107,9 @@
   function draw() {
     var y = view.getFullYear(), m = view.getMonth(), first = new Date(y, m, 1), start = new Date(y, m, 1 - first.getDay()), td = DECO.today(), h = '';
     $('mt').textContent = y + '년 ' + (m + 1) + '월';
+    (function () { var mk = y + '-' + String(m + 1).padStart(2, '0'), on = function (d) { return String(d || '').slice(0, 7) === mk; }, O = DECO.orders().filter(function (o) { return on(o.workDate) && o.status !== '보류'; }), E2 = DECO.events().filter(function (e) { return on(e.date); }), cnt = function (k) { return E2.filter(function (e) { return e.kind === k; }).length; };
+      var S = [['🔨 시공', O.length], ['📏 실측', cnt('실측 방문')], ['💬 상담', cnt('상담')], ['🔧 하자 보수', cnt('하자 보수 방문')], ['🛌 휴무', cnt('휴무')]];
+      $('mSum').innerHTML = '<b style="align-self:center">' + (m + 1) + '월 :</b>' + S.map(function (s) { return '<span style="background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 10px">' + s[0] + ' <b>' + s[1] + '</b></span>'; }).join(''); })();
     h += '일월화수목금토'.split('').map(function (w) { return '<div class="wd">' + w + '</div>'; }).join('');
     for (var i = 0; i < 42; i++) { var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), ds = DECO.ymd(d);
       if (i >= 35 && d.getMonth() !== m) break;
