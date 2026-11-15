@@ -62,6 +62,8 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="card"><table class="tb" id="st"></table></div>
   <h2 class="grp">지역별 고객·계약 <small style="font-size:14px;font-weight:400">(주소의 시·구 기준 · 전체 기간)</small></h2>
   <div class="card" style="overflow-x:auto"><table class="tb" id="regT"></table></div>
+  <h2 class="grp">👷 담당자별 실적 <small style="font-size:14px;font-weight:400">(견적서 담당 칸 기준 · 전체 기간)</small></h2>
+  <div class="card" style="overflow-x:auto"><table class="tb" id="stfT"></table></div>
   <h2 class="grp">⏱ 계약까지 걸린 날 <small style="font-size:14px;font-weight:400">(견적 만든 날 → 계약·첫 입금, 전체 기간)</small></h2>
   <div class="card" id="ldT"></div>
   <h2 class="grp">📞 문의가 많은 요일 <small style="font-size:14px;font-weight:400">(고객 등록일 기준)</small></h2>
@@ -318,6 +320,9 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
       rows += '<tr' + (m === now.getMonth() ? ' style="font-weight:800"' : '') + '><td>' + (m + 1) + '월</td><td class="n">' + (a ? W(a) : '-') + '</td><td class="n">' + (fut ? '' : b ? W(b) : '-') + '</td><td class="n" style="color:' + (b - a < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (fut || (!a && !b) ? '' : (b - a < 0 ? '－' + W(a - b) : '＋' + W(b - a))) + '</td></tr>'; }
     rows += '<tr style="font-weight:800;border-top:2px solid var(--line)"><td>1~' + (now.getMonth() + 1) + '월 합계</td><td class="n">' + W(cA) + '</td><td class="n">' + W(cB) + '</td><td class="n" style="color:' + (cB - cA < 0 ? 'var(--no)' : 'var(--ok)') + '">' + (cA ? Math.round((cB - cA) / cA * 100) + '%' : '') + '</td></tr>';
     $('yoy').innerHTML = rows; })();
+  (function () { var G = {}; DECO.list().forEach(function (q) { var k = ((q.cust && q.cust.staff) || '').trim() || '(담당 없음)', g = G[k] = G[k] || { n: 0, c: 0, s: 0 }; g.n++; if (/계약|시공|완료/.test(q.status || '')) { g.c++; g.s += q.totals ? q.totals.total || 0 : 0; } });
+    var ks = Object.keys(G).sort(function (a, b) { return G[b].s - G[a].s || G[b].n - G[a].n; });
+    $('stfT').innerHTML = ks.length ? '<tr><th>담당</th><th style="text-align:right">견적</th><th style="text-align:right">계약</th><th style="text-align:right">계약률</th><th style="text-align:right">계약 금액</th></tr>' + ks.map(function (k) { var g = G[k]; return '<tr><td>' + E(k) + '</td><td class="n">' + g.n + '건</td><td class="n">' + g.c + '건</td><td class="n">' + Math.round(g.c / g.n * 100) + '%</td><td class="n">' + (g.s ? W(g.s) : '-') + '</td></tr>'; }).join('') : '<tr><td>아직 견적이 없습니다.</td></tr>'; })();
   (function () { var Q = DECO.list(), D2 = [], n = Q.length, c = 0;
     Q.forEach(function (q) { if (!/계약|시공|완료/.test(q.status || '')) return; c++; var t = q.sign && q.sign.at ? q.sign.at : q.pays && q.pays[0] && q.pays[0].d ? new Date(q.pays[0].d + 'T12:00').getTime() : 0; if (t && q.created && t >= q.created) D2.push((t - q.created) / 864e5); });
     var av = D2.length ? Math.round(D2.reduce(function (s, x) { return s + x; }, 0) / D2.length) : null, f = D2.filter(function (x) { return x <= 7; }).length;

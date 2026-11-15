@@ -131,6 +131,8 @@
 
   // ---------- 일정 (실측·상담 방문 등, 시공은 작업 지시서에서) ----------
   var KE = 'deco-events';
+  // 고객·현장 특징 (지시서에 「현장 주의」로 나옴)
+  D.TAGS = ['엘리베이터 없음', '주차 어려움', '반려동물', '아기·어르신 있음', '층고 높음', '오전만 가능', '주말만 가능', '관리실 신고 필요', '소음 민감', '단골·소개 많음'];
   D.KINDS = ['실측 방문', '상담', '자재 입고', '하자 보수 방문', '기타', '시공 예정', '휴무'];
   D.events = function () { return rd(KE, []); };
   D.saveEvent = function (e) { var all = rd(KE, []); if (!e.id) e.id = 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); e.updated = Date.now();

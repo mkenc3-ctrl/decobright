@@ -53,6 +53,7 @@
     <div class="mo"><button type="button" id="pv" aria-label="지난달">‹</button><b id="ml"></b><button type="button" id="nx" aria-label="다음달">›</button></div>
     <div class="sum" id="sum"></div>
     <div id="list"></div>
+    <div id="yr12" style="margin-top:14px"></div>
   </div>
   <p class="sub">※ 세금 신고 때 참고용입니다. 영수증(카드 전표·현금영수증)은 따로 보관하세요.</p>
 </div>
@@ -79,6 +80,10 @@
     FX().forEach(function (f) { if (have[f.id]) return; DECO.saveExp({ d: k + '-' + String(f.day).padStart(2, '0'), cat: f.cat, amt: f.amt, pm: f.pm, memo: f.memo, fx: f.id }); n++; });
     $('fxM').className = 'msg'; $('fxM').textContent = n ? (M + 1) + '월에 고정 지출 ' + n + '건을 넣었습니다.' : (M + 1) + '월에는 이미 다 들어 있습니다.'; draw(); };
   setTimeout(fxD, 0);
+  function yr12() { var el = $('yr12'); if (!el) return; var M = [], A = DECO.exps(); for (var i = 11; i >= 0; i--) { var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i); M.push({ k: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), m: d.getMonth() + 1, t: 0 }); }
+    A.forEach(function (x) { var k = String(x.d || '').slice(0, 7); M.forEach(function (m) { if (m.k === k) m.t += +x.amt || 0; }); }); var mx = Math.max.apply(null, M.map(function (m) { return m.t; })) || 1, av = Math.round(M.reduce(function (s, m) { return s + m.t; }, 0) / 12);
+    el.innerHTML = '<b style="font-size:18px">📊 최근 12달 지출</b> <small>(한 달 평균 ' + W(av) + ')</small><div style="display:flex;align-items:flex-end;gap:4px;height:130px;margin-top:8px">' + M.map(function (m, i) { return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0"><small style="font-size:11px">' + (m.t ? Math.round(m.t / 10000) : '') + '</small><div title="' + W(m.t) + '" style="width:100%;border-radius:4px 4px 0 0;background:' + (i === 11 ? '#C4572A' : '#D9B48A') + ';height:' + Math.round(m.t / mx * 100) + '%"></div><small style="font-size:12px">' + m.m + '월</small></div>'; }).join('') + '</div><small style="color:var(--muted)">막대 위 숫자는 만 원 단위</small>'; }
+  setTimeout(yr12, 0);
   function draw() { var L = mine(), t = 0, by = {}; L.forEach(function (x) { t += +x.amt || 0; by[x.cat] = (by[x.cat] || 0) + (+x.amt || 0); });
     $('ml').textContent = Y + '년 ' + (M + 1) + '월';
     $('sum').innerHTML = '<div><small>이달 지출 합계</small><b>' + W(t) + '</b></div>' + Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }).map(function (c) { return '<div><small>' + E(c) + '</small><b>' + W(by[c]) + '</b></div>'; }).join('');

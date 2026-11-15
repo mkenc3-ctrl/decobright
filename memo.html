@@ -51,6 +51,7 @@
   </section>
   <div class="bar" style="margin-top:18px"><input id="qs" type="search" placeholder="메모 찾기" aria-label="메모 찾기"></div>
   <div class="cats" id="fcats" role="group" aria-label="분류로 거르기"></div>
+  <label style="display:flex;gap:6px;align-items:center;font-size:16px;margin:6px 0"><input type="checkbox" id="hideDn" style="width:20px;height:20px"> ✔ 다 한 것 숨기기</label>
   <div class="list" id="list"></div>
 </div>
 <script src="common.js"></script>
@@ -60,13 +61,15 @@
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, CATS = ['할 일', '자재', '상담', '현장', '기타'], cur = null, cat = '할 일', fc = '', timer = null;
   function chips(el, val, all) { el.innerHTML = (all ? ['전체'] : []).concat(CATS).map(function (c) { var v = c === '전체' ? '' : c; return '<button type="button" data-c="' + v + '" aria-pressed="' + (v === val) + '">' + c + '</button>'; }).join(''); }
   $('toCal').onclick = function () { var t = $('tt').value.trim() || $('bd').value.trim().split('\n')[0]; if (!t) { $('tt').focus(); return; } location.href = 'calendar.html?title=' + encodeURIComponent(t.slice(0, 60)) + '&kind=etc'; };
+  try { $('hideDn').checked = localStorage.getItem('deco-hidedn') === '1'; } catch (e) {}
+  $('hideDn').onchange = function () { try { localStorage.setItem('deco-hidedn', this.checked ? '1' : '0'); } catch (e) {} draw(); };
   $('dn').onchange = function () { if (!cur) return; cur.done = this.checked; DECO.saveMemo(cur); draw(); };
   function open(m) { cur = m; $('dn').checked = !!(m && m.done); $('tt').value = m ? m.title : ''; $('bd').value = m ? m.body : ''; $('pin').checked = !!(m && m.pin); cat = (m && m.cat) || '할 일'; chips($('cats'), cat); $('dl').hidden = !m; $('msg').textContent = m ? DECO.date(m.updated) + ' 저장됨' : ''; }
   function save() { var t = $('tt').value.trim(), b = $('bd').value.trim(); if (!t && !b) return;
     var m = cur || {}; m.title = t; m.body = b; m.cat = cat; m.pin = $('pin').checked; var r = DECO.saveMemo(m);
     if (r) { cur = r; $('dl').hidden = false; $('msg').className = 'msg'; $('msg').textContent = '저장됨'; draw(); } else { $('msg').className = 'msg bad'; $('msg').textContent = '저장하지 못했습니다.'; } }
   function later() { clearTimeout(timer); timer = setTimeout(save, 600); }
-  function draw() { var k = $('qs').value.trim(), L = DECO.memos().filter(function (m) { return (!fc || m.cat === fc) && (!k || (m.title + ' ' + m.body).indexOf(k) >= 0); });
+  function draw() { var k = $('qs').value.trim(), L = DECO.memos().filter(function (m) { return (!fc || m.cat === fc) && !(m.done && $('hideDn').checked) && (!k || (m.title + ' ' + m.body).indexOf(k) >= 0); });
     $('list').innerHTML = L.length ? L.map(function (m) { return '<button type="button" class="m' + (m.pin ? ' pin' : '') + (m.done ? ' dn' : '') + '" data-id="' + m.id + '"><b>' + (m.pin ? '📌 ' : '') + E(m.title || '(제목 없음)') + '</b><p>' + E(m.body) + '</p><small>' + E(m.cat) + ' · ' + DECO.date(m.updated) + '</small></button>'; }).join('')
       : '<div class="empty" style="grid-column:1/-1">' + (k || fc ? '찾는 메모가 없습니다.' : '아직 메모가 없습니다. 위에 적으면 저절로 저장됩니다.') + '</div>'; }
   $('tt').addEventListener('input', later); $('bd').addEventListener('input', later); $('pin').addEventListener('change', save);

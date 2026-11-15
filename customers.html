@@ -50,6 +50,8 @@
     <b style="grid-column:1/-1;font-size:16px">📍 지역 (시·구)</b>
     <select id="fSi" aria-label="시·군으로 거르기"></select>
     <select id="fGu" aria-label="구(또는 읍·면·동)로 거르기"></select>
+    <b style="grid-column:1/-1;font-size:16px;margin-top:4px">🏷 고객 특징</b>
+    <select id="fTg" aria-label="고객 특징으로 거르기" style="grid-column:1/-1"><option value="">전체</option></select>
     <b style="grid-column:1/-1;font-size:16px;margin-top:4px">📅 기간</b>
     <select id="fBy" aria-label="날짜 기준"><option value="c">등록한 날</option><option value="l">최근 연락한 날</option></select>
     <select id="fPe" aria-label="기간"><option value="">전체 기간</option><option value="m0">이번 달</option><option value="m1">지난달</option><option value="m3">최근 3개월</option><option value="y0">올해</option><option value="y1">작년</option><option value="cu">날짜 직접 고르기</option></select>
@@ -120,6 +122,8 @@
   document.getElementById('sum').innerHTML = CAT.map(function (c) { return '<button type="button" data-st="' + E(c[0]) + '" style="--cc:' + c[3] + '"' + (c[2] ? '' : ' class="zero"') + '><span>' + E(c[1]) + '</span><b>' + c[2] + '명</b></button>'; }).join('');
   function catMark() { [].forEach.call(document.querySelectorAll('#sum [data-st]'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.st === fs.value)); }); }
   document.getElementById('sum').addEventListener('click', function (e) { var b = e.target.closest('[data-st]'); if (!b) return; fs.value = b.dataset.st; fs.dispatchEvent(new Event('change')); });
+  (function () { var N = {}; DECO.customers().forEach(function (c) { (c.tags || []).forEach(function (t) { N[t] = (N[t] || 0) + 1; }); });
+    $f('fTg').innerHTML += DECO.TAGS.filter(function (t) { return N[t]; }).map(function (t) { return '<option value="' + E(t) + '">' + E(t) + ' (' + N[t] + '명)</option>'; }).join(''); })();
   document.getElementById('xls').onclick = function () { var C = DECO.customers(), q = function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
     var R = [['이름', '전화', '주소', '시·군', '구·동', '단지', '진행 상태', '견적 금액(최근)', '알게 된 경로', '등록일', '메모']].concat(C.map(function (c) { var r = DECO.region(c.addr), Q = DECO.custQuotes(c), q0 = Q[0];
       return [c.name, c.phone, c.addr, r.si, r.gu, DECO.apt(c.addr), q0 ? q0.status || '상담' : '견적 전', q0 && q0.totals ? q0.totals.total || 0 : '', c.source || '', c.created ? DECO.date(c.created) : '', c.memo || '']; }));
@@ -131,14 +135,14 @@
       return [c.name, c.addr].join(' ').indexOf(k) >= 0 || (kd.length >= 3 && String(c.phone).replace(/\D/g, '').indexOf(kd) >= 0); });
     if (fs.value === '_call') L.sort(function (a, b) { return a.ago - b.ago; }); if (fs.value === '_due') L.sort(function (a, b) { return b.due - a.due; });
     catMark(); var si = $f('fSi').value, gu = $f('fGu').value, pr = period(), by = $f('fBy').value, vw = $f('fVw').value;
-    L = L.filter(function (x) { if (si && x.si !== si) return false; if (gu && x.gu !== gu) return false; if (pr) { var t = by === 'l' ? (x.ago < 999 ? x.ld : 0) : x.cd; if (!(t >= pr[0].getTime() && t < pr[1].getTime())) return false; } return true; });
+    var tg = $f('fTg').value; L = L.filter(function (x) { if (tg && (x.c.tags || []).indexOf(tg) < 0) return false; if (si && x.si !== si) return false; if (gu && x.gu !== gu) return false; if (pr) { var t = by === 'l' ? (x.ago < 999 ? x.ld : 0) : x.cd; if (!(t >= pr[0].getTime() && t < pr[1].getTime())) return false; } return true; });
     if (vw === 'reg') L.sort(function (a, b) { return (a.si === '주소 없음·모름') - (b.si === '주소 없음·모름') || a.si.localeCompare(b.si) || a.gu.localeCompare(b.gu) || String(a.c.name || '').localeCompare(String(b.c.name || '')); });
     if (vw === 'mon') L.sort(function (a, b) { return by === 'l' ? a.ago - b.ago : b.cd - a.cd; });
     $f('fN').textContent = (k || fs.value || anyF()) ? '찾은 고객 ' + L.length + '명' : '';
     var HC = {}; if (vw) L.forEach(function (x) { var h = hdr(x); HC[h] = (HC[h] || 0) + 1; }); var lastH = null;
     if (!L.length) { box.innerHTML = '<div class="empty">' + (k || fs.value || anyF() ? '찾는 고객이 없습니다.' : '아직 고객이 없습니다. 견적을 저장하거나 「+ 고객 등록」을 누르세요.') + '</div>'; return; }
     box.innerHTML = L.map(function (x) { var c = x.c, hd = ''; if (vw) { var h = hdr(x); if (h !== lastH) { lastH = h; hd = '<h2 style="font-size:19px;margin:16px 0 6px;padding:6px 10px;background:#3B2F2A;color:#fff;border-radius:8px">' + E(h) + ' <small style="font-weight:400">(' + HC[h] + '명)</small></h2>'; } }
-      return hd + '<a class="c" href="customer.html?id=' + encodeURIComponent(c.id) + '"><div><h3>' + E(c.name || '이름 없음') + ' 님<span class="tag">' + E(x.st) + '</span>' + (x.nc >= 2 ? '<span class="tag" style="background:#FFF1D6;color:#8A5A12;border-color:#E9C27A">🏅 단골 ' + x.nc + '번</span>' : '') + (x.nr ? '<span class="tag" style="background:#E8F3EC;color:#2E6A4E;border-color:#9BC7AE">🤝 소개 ' + x.nr + '명</span>' : '') + '</h3>' +
+      return hd + '<a class="c" href="customer.html?id=' + encodeURIComponent(c.id) + '"><div><h3>' + E(c.name || '이름 없음') + ' 님<span class="tag">' + E(x.st) + '</span>' + (c.tags || []).slice(0, 3).map(function (t) { return '<span class="tag" style="background:#EAF1FA;color:#2F6DB5">' + E(t) + '</span>'; }).join('') + (x.nc >= 2 ? '<span class="tag" style="background:#FFF1D6;color:#8A5A12;border-color:#E9C27A">🏅 단골 ' + x.nc + '번</span>' : '') + (x.nr ? '<span class="tag" style="background:#E8F3EC;color:#2E6A4E;border-color:#9BC7AE">🤝 소개 ' + x.nr + '명</span>' : '') + '</h3>' +
         '<div class="m">' + E(c.phone || '전화 없음') + (c.addr ? ' · ' + E(c.addr) : '') + '</div>' +
         '<div class="m">견적 ' + x.n + '건' + (c.source ? ' · ' + E(c.source) : '') + (c.logs && c.logs.length ? ' · 최근 상담 ' + E(c.logs[c.logs.length - 1].date) : '') + (x.ago < 999 ? ' · ' + (x.ago ? x.ago + '일 전 연락' : '오늘 연락') : '') + (x.due ? ' · <b style="color:#b5462f">받을 돈 ' + DECO.won(x.due) + '</b>' : '') + '</div></div>' +
         '<div class="r">' + (x.won ? '<b>' + DECO.won(x.won) + '</b><span class="m">계약 금액</span>' : '') + '</div></a>';
@@ -172,7 +176,7 @@
     DECO.kakao(DECO.kfmt({ icon: S0[0].split(' ')[0], title: S0[0].replace(/^\S+\s/, ''), secs: [['알아 두시면 좋아요', S0[1]]], foot: ['안녕하세요, 데코브라이트 시공 고객님! ' + S0[2], '궁금한 점은 편하게 답장 주세요. 🙏'] }), '계절 안내 카톡 · 보낼 고객 ' + W0.length + '명'); };
   qs.addEventListener('input', draw); fs.addEventListener('change', draw);
   // 거르기 기억 (이 기기, 화면을 다시 열어도 그대로)
-  var FK = ['fs', 'fSi', 'fGu', 'fBy', 'fPe', 'fD1', 'fD2', 'fVw'];
+  var FK = ['fs', 'fTg', 'fSi', 'fGu', 'fBy', 'fPe', 'fD1', 'fD2', 'fVw'];
   try { var SV = JSON.parse(sessionStorage.getItem('deco-cflt') || '{}'); FK.forEach(function (k) { if (SV[k] != null) { $f(k).value = SV[k]; if (k === 'fSi') guOpts(); } }); } catch (e) {}
   function fsave() { var o = {}; FK.forEach(function (k) { o[k] = $f(k).value; }); try { sessionStorage.setItem('deco-cflt', JSON.stringify(o)); } catch (e) {} }
   FK.forEach(function (k) { $f(k).addEventListener('change', function () { if (k === 'fSi') { $f('fGu').value = ''; guOpts(); } fsave(); draw(); }); });

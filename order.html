@@ -58,6 +58,7 @@ h2.s{font-size:19px;margin:20px 0 8px}
   <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a><a class="home" href="orders.html">지시서 목록</a></div>
   <div class="form">
     <h1 class="t">작업 지시서</h1>
+    <div id="tgW" hidden style="background:#FFF4E5;border:2px solid #E0952B;border-radius:12px;padding:8px 12px;margin:0 0 10px;font-size:17px"></div>
     <p class="sub" id="sub">① 현장·시공일을 넣고 ② 목수·전기·도배 거래처별 작업을 확인한 뒤 ③ 「문자로 보내기」나 「인쇄」를 누르세요. 금액은 아래 「내부 정산」에만 적고 거래처에게는 나가지 않습니다.</p>
     <form class="card" id="f" autocomplete="off">
       <div class="grid2">
@@ -130,6 +131,8 @@ h2.s{font-size:19px;margin:20px 0 8px}
   var CK = ['차단기 내림·전기 확인', '바닥·가구 보양', '기존 조명 철거', '배선·전선 상태 확인', '천장 보강(실링팬)', '목공·우물 마감', '조명 설치·점등 시험', '색온도 고객 확인', '도배 마감·들뜸 확인', '청소·폐기물 정리'];
   var TIME = { '목수': '08:00', '전기': '10:00', '도배': '14:00' }, PT = DECO.partners();
   var o = P.get('id') ? DECO.getOrder(P.get('id')) : null, qid = P.get('quote');
+  setTimeout(function () { var cid = (o && o.custId) || (qid && (DECO.getQuote(qid) || {}).custId), cu = cid && DECO.getCustomer(cid), T = cu && cu.tags || [], w = document.getElementById('tgW'); if (!w || !T.length) return;
+    w.hidden = false; w.innerHTML = '⚠ <b>현장 주의</b> : ' + T.map(DECO.esc).join(' · ') + ' <small>(고객 카드에서 고침)</small>'; }, 0);
   if (!o && qid) o = DECO.orders().filter(function (x) { return x.quoteId === qid; })[0] || null;
   var qW = qid ? DECO.getQuote(qid) : null;
   if (!o) { o = { quoteId: qid || '', workDate: P.get('date') || (qW && (qW.wish || (qW.sign && qW.sign.d1))) || DECO.today(), status: '예정', checks: {}, trades: {} };

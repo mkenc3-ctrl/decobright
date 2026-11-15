@@ -48,6 +48,7 @@
   </div>
   <div class="lg" id="lg"></div>
   <div class="cal" id="cal"></div>
+  <div id="wk7" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:12px 0"></div>
   <section class="panel" id="panel">
     <h3 id="pt"></h3>
     <div id="plist"></div>
@@ -93,6 +94,15 @@
       return { k: DECO.KINDS.indexOf(e.kind) + 1, time: e.time || '', t: e.kind + (e.custId ? ' ' + cname(e.custId) : ''), s: e.title, done: !!e.done, ev: e }; });
     return a.concat(b).sort(function (x, y) { return (x.time || '99').localeCompare(y.time || '99'); });
   }
+  function wk7() { var el = document.getElementById('wk7'); if (!el) return; var h = '', n = 0;
+    for (var i = 0; i < 7; i++) { var d = new Date(); d.setDate(d.getDate() + i); var ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      var L = DECO.orders().filter(function (o) { return o.workDate === ds && o.status !== '보류'; }).map(function (o) { return [o.workTime || '', '🔨 시공 · ' + (o.name || '') + (o.addr ? ' · ' + o.addr : ''), 'order.html?id=' + encodeURIComponent(o.id)]; })
+        .concat(DECO.events().filter(function (e) { return e.date === ds && !e.done && !(e.auto && e.kind === '시공 예정' && DECO.orders().some(function (o) { return o.workDate === ds; })); }).map(function (e) { return [e.time || '', (e.kind === '휴무' ? '🛌 ' : '📌 ') + e.kind + ' · ' + (e.title || ''), '']; }))
+        .sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+      n += L.length; h += '<div style="display:flex;gap:10px;padding:6px 0;border-top:1px dashed var(--line)"><b style="min-width:76px;' + (i === 0 ? 'color:#C4572A' : '') + '">' + (i === 0 ? '오늘' : i === 1 ? '내일' : (d.getMonth() + 1) + '/' + d.getDate()) + ' (' + '일월화수목금토'[d.getDay()] + ')</b><div style="flex:1;min-width:0">' +
+        (L.length ? L.map(function (x) { var t = (x[0] ? x[0] + ' ' : '') + DECO.esc(x[1]); return '<div>' + (x[2] ? '<a href="' + x[2] + '">' + t + '</a>' : t) + '</div>'; }).join('') : '<span style="color:var(--muted)">일정 없음</span>') + '</div></div>'; }
+    el.innerHTML = '<b style="font-size:18px">🗓 앞으로 7일 일정 ' + n + '건</b>' + h; }
+  setTimeout(wk7, 0);
   function draw() {
     var y = view.getFullYear(), m = view.getMonth(), first = new Date(y, m, 1), start = new Date(y, m, 1 - first.getDay()), td = DECO.today(), h = '';
     $('mt').textContent = y + '년 ' + (m + 1) + '월';

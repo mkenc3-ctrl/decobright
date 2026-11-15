@@ -61,10 +61,12 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     <p class="msg" id="msg" role="status"></p>
   </form>
   <div id="more" hidden>
+    <div id="tagB" style="margin:0 0 12px"></div>
     <div id="flow" style="margin:6px 0 14px"></div>
     <div id="aptB" style="margin:0 0 14px" hidden></div>
     <h2 class="s">상담 기록 <small>통화·방문 내용을 짧게 남기세요</small></h2>
     <div id="logs"></div>
+    <div id="qp" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px"></div>
     <div class="addlog"><input type="date" id="ld" aria-label="날짜"><input type="text" id="lt" data-mic placeholder="예: 실측 방문 약속, 실링팬 우드 원함" aria-label="상담 내용"><button class="btn2 pri" type="button" id="la">기록 추가</button></div>
     <div class="addlog" id="nxBox" style="margin-top:8px"><b style="align-self:center;font-size:15px">📅 다음 연락할 날</b><input type="date" id="nxd" aria-label="다음 연락할 날"><input type="text" id="nxm" placeholder="예: 이사 날짜 정해지면 다시 견적" aria-label="연락 이유"><button class="btn2 pri" type="button" id="nxs">정하기</button><button class="btn2" type="button" id="nxc" hidden>✔ 연락함</button></div>
     <p class="msg" id="nxT" style="margin:4px 0 0"></p>
@@ -201,6 +203,15 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
       if (c && c.name) t = c.name + ' 님, ' + t.replace(/^안녕하세요,?\s*/, '안녕하세요. '); DECO.kakao(t, r.title + ' 답장');
       if (c) { c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '💬 답장 보냄: ' + r.title }); c.touched = Date.now(); DECO.saveCustomer(c); logs(); } }); })();
   $('vcf').addEventListener('click', function () { if (!c) return; DECO.vcf([{ fn: (c.name || '고객') + ' (' + (DECO.settings().company || '데코') + ' 고객)', phone: c.phone, addr: c.addr, note: [c.size, c.source, c.memo].filter(Boolean).join(' · ') }], (c.name || '고객') + '.vcf').then(function (t) { var m = $('msg'); m.className = 'msg'; m.textContent = t; }); });
+  // 상담 기록 빠른 문구 (누르면 칸에 들어감)
+  $('qp').innerHTML = ['📵 부재중', '📨 견적 보냄', '☎ 다시 연락 달라 함', '💸 가격 비교 중', '👪 가족과 상의 중', '📅 실측 날짜 잡음', '🙅 다음에 하기로'].map(function (t) { return '<button type="button" class="btn2" style="min-height:40px;padding:0 10px;font-size:15px" data-qp="' + t + '">' + t + '</button>'; }).join('');
+  $('qp').addEventListener('click', function (e) { var b = e.target.closest('[data-qp]'); if (!b) return; var v = $('lt').value.trim(), t = b.dataset.qp.replace(/^\S+\s/, ''); $('lt').value = v ? v + ', ' + t : t; $('lt').focus(); });
+  // 고객 특징 태그
+  function tagD() { var b = $('tagB'); if (!c || !b) { if (b) b.innerHTML = ''; return; } var T = c.tags || [];
+    b.innerHTML = '<b style="font-size:17px">🏷 고객·현장 특징</b> <small style="color:var(--muted)">(누르면 표시 · 지시서에 「현장 주의」로 나옵니다)</small><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">' + DECO.TAGS.map(function (t) { var on = T.indexOf(t) >= 0;
+      return '<button type="button" data-tg="' + t + '" aria-pressed="' + on + '" style="font:inherit;font-size:15px;min-height:40px;padding:0 12px;border-radius:999px;cursor:pointer;border:1px solid ' + (on ? '#2F6DB5;background:#2F6DB5;color:#fff' : 'var(--line);background:#fff;color:var(--ink)') + '">' + (on ? '✔ ' : '') + t + '</button>'; }).join('') + '</div>'; }
+  $('tagB').addEventListener('click', function (e) { var b = e.target.closest('[data-tg]'); if (!b || !c) return; var T = (c.tags || []).slice(), i = T.indexOf(b.dataset.tg); if (i >= 0) T.splice(i, 1); else T.push(b.dataset.tg); c.tags = T; DECO.saveCustomer(c); tagD(); });
+  if (c) setTimeout(tagD, 0);
   $('la').addEventListener('click', function () { var t = $('lt').value.trim(); if (!t) { $('lt').focus(); return; }
     c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: $('ld').value || DECO.today(), text: t }); c.touched = Date.now(); DECO.saveCustomer(c); $('lt').value = ''; logs(); });
   $('logs').addEventListener('click', function (e) { var b = e.target.closest('[data-l]'); if (!b || !confirm('이 상담 기록을 지울까요?')) return;

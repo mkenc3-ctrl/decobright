@@ -35,6 +35,7 @@
   <div class="bar">
     <input id="qs" type="search" placeholder="고객명·주소·견적번호로 찾기" aria-label="견적 찾기">
     <select id="fst" class="st2" aria-label="상태로 거르기"></select>
+    <select id="prd" class="st2" aria-label="기간"><option value="">전체 기간</option><option value="m0">이번 달 만든 견적</option><option value="m1">지난달 만든 견적</option><option value="d7">최근 7일</option></select>
     <select id="srt" class="st2" aria-label="정렬"><option value="">최근 고친 순</option><option value="amt">금액 큰 순</option><option value="name">이름 가나다순</option><option value="old">오래된 순</option></select>
     <a class="btn2 pri" href="quote.html">+ 새 견적</a>
   </div>
@@ -67,9 +68,11 @@
   document.addEventListener('click', function (e) { if (e.target.id !== 'oldGo') return; var L = old90(); if (!confirm(L.length + '건을 「보류」로 바꿀까요?\n(지우는 것이 아니며, 언제든 상태를 다시 바꿀 수 있습니다)')) return; L.forEach(function (q) { DECO.setQuoteStatus(q.id, '보류'); }); oldBox(); draw(); });
   setTimeout(oldBox, 0);
   document.getElementById('srt').addEventListener('change', function () { draw(); });
+  document.getElementById('prd').addEventListener('change', function () { draw(); });
   function draw() {
     var k = qs.value.trim(), L = DECO.list().filter(function (q) {
       if (fs.value && (q.status || '상담') !== fs.value) return false;
+      var pv = document.getElementById('prd').value; if (pv) { var cd = new Date(q.created || q.updated), nw = new Date(); if (pv === 'd7' && Date.now() - cd > 7 * 864e5) return false; if (pv === 'm0' && (cd.getFullYear() !== nw.getFullYear() || cd.getMonth() !== nw.getMonth())) return false; if (pv === 'm1') { var pm = new Date(nw.getFullYear(), nw.getMonth() - 1, 1); if (cd.getFullYear() !== pm.getFullYear() || cd.getMonth() !== pm.getMonth()) return false; } }
       if (!k) return true; var c = q.cust || {}; return [c.name, c.addr, c.phone, q.no].join(' ').indexOf(k) >= 0; });
     var sv = document.getElementById('srt').value, am = function (q) { return q.totals ? q.totals.total || 0 : 0; };
     if (sv === 'amt') L.sort(function (a, b) { return am(b) - am(a); }); else if (sv === 'name') L.sort(function (a, b) { return ((a.cust || {}).name || '').localeCompare((b.cust || {}).name || '', 'ko'); }); else if (sv === 'old') L.sort(function (a, b) { return a.updated - b.updated; });
