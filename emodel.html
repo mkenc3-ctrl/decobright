@@ -591,9 +591,9 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
     var tel = String(S.phone || '').replace(/[^\d]/g, ''), ios = /iPhone|iPad/.test(navigator.userAgent);
     $('cTel').href = 'tel:' + tel; $('cSms').href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(t); }
   $('pk').innerHTML = PK.map(function (p) { var hp = cust && hidePr, L = p.lines && !p.descEdited ? p.lines : null;
-    return '<button type="button" data-p="' + E(p.id) + '"' + (p.ad ? ' class="tr ad"' : p.trend ? ' class="tr"' : '') + '>' + (p.ad ? '<em class="tb">📢 엘리베이터 광고 상품 · 요즘 문의 1위</em>' : p.trend ? '<em class="tb">🔥 요즘 가장 많이 하는 구성</em>' : '') + '<b>' + E(p.name) + '</b><i class="pp">' + (hp ? '상담 후 안내' : W(p.price)) + '</i>' +
+    return '<button type="button" data-p="' + E(p.id) + '"' + (p.ad ? ' class="tr ad"' : p.trend ? ' class="tr"' : '') + '>' + (p.ad ? '<em class="tb">📢 엘리베이터 광고 상품 · 요즘 문의 1위</em>' : p.web ? '<em class="tb">📋 세부 항목 · 원하는 것만 골라 계산</em>' : p.trend ? '<em class="tb">🔥 요즘 가장 많이 하는 구성</em>' : '') + '<b>' + E(p.name) + '</b><i class="pp">' + (p.web ? '' : hp ? '상담 후 안내' : W(p.price)) + '</i>' +
       (L ? '<table class="pl">' + L.map(function (l, i) { return (i === 0 || L[i - 1][0] !== l[0] ? '<tr><th colspan="2">' + E(l[0]) + '</th></tr>' : '') + '<tr><td>' + E(l[1]) + '</td><td>' + (hp || !l[2] ? '' : W(l[2])) + '</td></tr>'; }).join('') +
-        (p.opts ? '<tr><th colspan="2">추가 선택 <small>(원하는 것만)</small></th></tr>' + p.opts.map(function (o) { return '<tr><td>' + E(o[1]) + (o[4] ? '<br><small style="color:var(--muted)">' + E(o[4]) + '</small>' : '') + '</td><td>' + (hp ? '' : W(o[2]) + (/개$/.test(o[3]) && o[2] < 100000 ? ' / ' + o[3] : '')) + '</td></tr>'; }).join('') : '') + '</table>' +
+        (p.opts ? (p.web ? '' : '<tr><th colspan="2">추가 선택 <small>(원하는 것만)</small></th></tr>') + p.opts.map(function (o) { return '<tr><td>' + E(o[1]) + (o[4] ? '<br><small style="color:var(--muted)">' + E(o[4]) + '</small>' : '') + '</td><td>' + (hp ? '' : W(o[2]) + (/개$/.test(o[3]) && o[2] < 100000 ? ' / ' + o[3] : '')) + '</td></tr>'; }).join('') : '') + '</table>' +
         (p.note && !hp ? '<div class="pn">' + p.note.map(function (x) { return '<div>' + E(x) + '</div>'; }).join('') + '</div>' : '') : '<span>' + E(p.desc) + '</span>') + '</button>'; }).join('') + PK.filter(function (p) { return p.blog; }).map(function (p) { return '<a class="blg" href="' + E(p.blog) + '" target="_blank" rel="noopener">📖 요즘 트렌드 실제 시공 글 보기 <small>(데코브라이트 블로그)</small> ›</a>'; }).join('');
   // 손님 화면: 광고·트렌드 패키지만 펼치고 나머지는 「다른 패키지 더 보기」로 접기
   if (cust) { (function () { var pk = $('pk'), R = [].filter.call(pk.querySelectorAll(':scope > button[data-p]'), function (b) { return !b.classList.contains('tr'); }); if (R.length < 2) return;
@@ -649,7 +649,7 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
   var CI = [['i1', '다운라이트 추가', '개'], ['i3', '커튼박스 간접등 추가', '곳'], ['i10', '현관 간접 센서등', '곳'], ['i11', '욕실 센서등', '곳'], ['fan', '방 실링팬 추가 (배선·보강 포함)', '대'], ['i12', '스마트 스위치 (원격)', '개']], CQ = {}, CALC = '';
   var CI0 = CI;
   function ip(id) { var p = PK.filter(function (x) { return x.id === $('cPk').value; })[0], o = p && p.opts ? p.opts.filter(function (x) { return x[0] === id; })[0] : null; if (o) return o[2]; return id === 'fan' ? (IT.i6 || 0) + (IT.i7 || 0) + (IT.i8 || 0) : (IT[id] || 0); }
-  $('cPk').innerHTML = '<option value="">패키지 없이 (아래 항목만)</option>' + PK.map(function (p) { return '<option value="' + E(p.id) + '">' + E(p.name) + (cust && hidePr ? '' : ' · ' + W(p.price)) + '</option>'; }).join('');
+  $('cPk').innerHTML = '<option value="">패키지 없이 (아래 항목만)</option>' + PK.map(function (p) { return '<option value="' + E(p.id) + '">' + E(p.web ? '세부 항목으로 직접 고르기' : p.name) + (cust && hidePr || p.web ? '' : ' · ' + W(p.price)) + '</option>'; }).join('');
   if (PK[0] && (PK[0].trend || PK[0].ad)) $('cPk').value = PK[0].id; else if (PK[2]) $('cPk').value = PK[2].id;
   function calc() { var hide = cust && hidePr, p = PK.filter(function (x) { return x.id === $('cPk').value; })[0], sup = p ? p.price : 0, L = [];
     CI = p && p.opts ? p.opts.map(function (o) { return [o[0], o[1], o[3]]; }) : CI0;

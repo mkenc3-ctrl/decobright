@@ -320,7 +320,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 (() => {
   // ---------- prices: 데코브라이트 견적프로그램(최신) 기준, 공급가액 ----------
   // 가격표: prices-default.js 기본값 + 가격표 관리 화면에서 고친 값
-  const PKGS = DECO.pkgs();
+  const PKGS = DECO.pkgs().filter(p=>!p.web);
   const QI0 = DECO.items();
   let QI = QI0.map(x=>({...x, qty:0, opt:""})), etcRows = [], etcId = 1;
   const DL_PRICE = 30000;
@@ -893,7 +893,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   // 온라인 문의(e모델하우스)에서 왔으면 고객·패키지·추가 선택을 채움
   (()=>{ const iq=new URLSearchParams(location.search).get("inq"); if(!iq||curId) return; let L=[]; try{ L=JSON.parse(localStorage.getItem("deco-inq")||"[]"); }catch(e){}
     const a=L.find(x=>x&&x.id===iq); if(!a) return; [["custName",a.name],["custPhone",a.phone],["custAddr",a.addr]].forEach(([k,v])=>{ if(v){ $(k).value=v; $(k).dispatchEvent(new Event("input",{bubbles:true})); } });
-    if(a.pkg && PKGS.some(p=>p.id===a.pkg)) pkg=a.pkg; const OM=window.DECO_OPTMAP||{};
+    if(a.pkg && PKGS.some(p=>p.id===a.pkg)) pkg=a.pkg; else if(a.pkg==='p6') pkg='none'; const OM=window.DECO_OPTMAP||{};
     Object.keys(a.opts||{}).forEach(k=>{ const m=OM[k], it=m&&QI.find(x=>x.id===m[0]); if(it) it.qty+=m[1]*(+a.opts[k]||0); });
     $("memoInput").value="[온라인 문의] "+(a.calc||"")+(a.ph&&a.ph.length?" · 천장 사진 "+a.ph.length+"장":""); $("qStatus").value="상담";
     const cid=DECO.ensureCustomer({name:a.name,phone:a.phone,addr:a.addr}); if(cid){ curCust=cid; const c=DECO.getCustomer(cid); if(c&&!c.source){ c.source="온라인 (e모델하우스)"; DECO.saveCustomer(c); } }
