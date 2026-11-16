@@ -120,6 +120,9 @@ body.cust .qform .qph{display:flex;align-items:center;justify-content:center;min
 body.cust #qSend{font:inherit;font-size:20px;font-weight:800;min-height:60px;border:0;border-radius:999px;background:#1d1714;color:#f6c477;cursor:pointer}
 body.cust #qSend:disabled{opacity:.6}
 body.cust #nvBar{display:none!important}
+.appbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#2F6DB5;color:#fff;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));font-size:15px;font-weight:700}
+.appbar a{color:#fff;text-decoration:none;background:rgba(255,255,255,.18);border-radius:999px;padding:6px 12px;font-size:16px}
+.appbar a.s{background:#FEE500;color:#191919}
 .hz{display:none}
 body.cust .hz{display:inline-block;margin-top:12px;font-size:15px;font-weight:700;color:#f3d9b0;background:rgba(0,0,0,.35);border:1px solid rgba(240,176,90,.45);border-radius:999px;padding:5px 12px}
 body.cust .why ul{margin:6px 0 0;padding-left:18px;font-size:15px;line-height:1.6;color:#d9c9b4}
@@ -515,6 +518,8 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
 (function () {
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, W = DECO.won, S = DECO.settings(), Q = new URLSearchParams(location.search);
   var cust = Q.get('c') === '1'; if (cust) document.body.classList.add('cust');
+  // 앱에서 「손님용 화면」으로 열었을 때만: 앱으로 돌아가기 · 보내기 단추 (손님에게는 안 보임)
+  if (cust && Q.get('app') === '1') { var ab = document.createElement('div'); ab.className = 'appbar'; ab.innerHTML = '<a href="index.html">← 앱으로</a><span>손님이 보는 화면</span><a href="send.html" class="s">📤 보내기</a>'; document.body.insertBefore(ab, document.body.firstChild); }
   // 손님 화면: 첫 화면 문구·바로 가기 버튼·회사 정보·스르륵 나타나기
   if (cust) { (function () { var h = document.querySelector('.hero');
     h.querySelector('.h1o').hidden = true; h.querySelector('.h1c').hidden = false; h.querySelector('.hx2').hidden = false;
