@@ -250,6 +250,40 @@ body.cust .cbar{background:transparent;border-top:0;padding:10px 0 calc(12px + e
 body.cust .cbar a{min-height:58px;border-radius:999px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(29,23,20,.3)}
 body.cust .cbar a.pri{background:#1d1714;border-color:#1d1714;color:#f6c477}
 body.cust .cbar a:not(.pri){background:#fff;border-color:#e6d9c6}
+/* 휴대폰: 꼭 볼 것은 펼치고 나머지는 「더 알아보기」 접기 */
+.more{display:none}
+body.cust .more{display:grid;gap:10px;margin:8px 0 0}
+body.cust .more>h2.grp{margin-bottom:4px}
+body.cust .fold{background:#fffdf9;border:1px solid #eadfce;border-radius:16px;box-shadow:0 3px 12px rgba(59,47,42,.06);overflow:hidden;scroll-margin-top:66px}
+body.cust .fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;min-height:64px;padding:12px 16px;font-size:18px;font-weight:800;color:#221c18}
+body.cust .fold>summary::-webkit-details-marker{display:none}
+body.cust .fold>summary i{font-style:normal;font-size:24px;width:30px;text-align:center}
+body.cust .fold>summary small{display:block;font-size:14px;font-weight:500;color:#7a6e66}
+body.cust .fold>summary span{flex:1;min-width:0}
+body.cust .fold>summary::after{content:'펼치기 ▾';flex:0 0 auto;font-size:14px;font-weight:700;color:#b5541c;background:#fcebd2;border-radius:999px;padding:5px 10px}
+body.cust .fold[open]>summary::after{content:'접기 ▴';background:#f1e8da;color:#4a403a}
+body.cust .fold[open]>summary{border-bottom:1px solid #eadfce}
+body.cust .fold>.fb{padding:14px 12px 16px;display:grid;gap:10px}
+body.cust .fold>.fb>*{margin-top:0;margin-bottom:0}
+body.cust .fold .calc,body.cust .fold .faq details{box-shadow:none}
+body.cust .fold .why div{padding:14px}
+@media (max-width:560px){
+body.cust .page{padding-left:12px;padding-right:12px}
+body.cust .hero{padding:22px 18px 20px}
+body.cust .guide{padding:12px 14px}
+body.cust .guide b.t{font-size:17px;padding-right:90px}
+body.cust .guide li{font-size:15px}
+body.cust .lbox{padding:12px 10px}
+body.cust .ltab button{font-size:15px!important;min-height:52px;padding:0 4px;line-height:1.3}
+body.cust .lctl .seg button{flex:1 1 45%}
+body.cust .pk{grid-template-columns:minmax(0,1fr)}
+body.cust .est{grid-template-columns:minmax(0,1fr);text-align:left}
+body.cust .est .pr,body.cust .est small[style]{text-align:left!important}
+body.cust .strip button{flex-basis:72px;height:72px}
+body.cust .acts .btn2{flex:1 1 100%}
+body.cust .steps{grid-template-columns:minmax(0,1fr)}
+body.cust .nav{width:40px;height:56px;font-size:30px}
+}
 .rv{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
 .rv.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
@@ -401,6 +435,7 @@ body.cust .cbar a:not(.pri){background:#fff;border-color:#e6d9c6}
   </div>
   <p class="sub" style="margin-top:14px">※ 사진과 영상은 실제 시공 현장입니다. 금액은 참고용이며 정확한 모양·금액·기간은 현장 실측 후 정해집니다.</p>
 
+  <div class="more" id="more"><h2 class="grp">더 알아보기 <small style="font-size:15px;font-family:'Noto Sans KR',sans-serif;font-weight:500;color:var(--muted)">궁금한 것만 눌러 펼쳐 보세요</small></h2></div>
   <div class="foot" id="foot"></div>
   <div id="zm" hidden><img id="zI" alt=""><button type="button" id="zX">✕ 닫기</button><button type="button" class="zn zp" id="zP" aria-label="이전 사진">‹</button><button type="button" class="zn zx" id="zN" aria-label="다음 사진">›</button><span id="zT"></span></div>
   <button type="button" id="toTop" hidden aria-label="맨 위로">▲<br>맨 위</button>
@@ -423,8 +458,25 @@ body.cust .cbar a:not(.pri){background:#fff;border-color:#e6d9c6}
     $('foot').innerHTML = '<b class="n">' + E(S.company || '데코브라이트') + '</b>' + E(S.bizName || '간접조명 · 실링팬 전문') + '<br>' + (tn ? '<a href="tel:' + tn + '">📞 ' + E(t) + '</a><br>' : '') +
       (S.addr ? '📍 ' + E(S.addr) + '<br>' : '') + (S.ceo ? '대표 ' + E(S.ceo) : '') + (S.bizno ? ' · 사업자등록번호 ' + E(S.bizno) : '') +
       '<small>사진과 영상은 모두 실제 시공 현장입니다. 금액은 참고용이며, 정확한 금액은 현장 실측 후 알려 드립니다.</small>';
+    // 접는 칸: [제목 찾기, 아이콘, 접힌 칸 이름, 짧은 설명]
+    var MR = $('more'), FD = [['s3', '🎬', '영상으로 보기', '불 켜지는 순간 · 집 한 바퀴'], ['s4b', '🧮', '우리 집 예상 금액 계산', '패키지 + 더 넣을 것'], ['실제 시공 전·후', '↔', '시공 전·후 비교', '밀어서 비교해 보기'], ['다른 시공 사례', '🖼', '다른 시공 사례', '사진 더 보기'],
+      ['데코브라이트를 고르시는 이유', '🤝', '데코브라이트를 고르는 이유', '설계 · 마무리 · 1년 점검'], ['시공은 이렇게 진행됩니다', '📋', '시공 진행 순서', '상담부터 1년 점검까지'], ['s6', '❓', '자주 묻는 질문', '공사 기간 · 전기요금 · 고장']];
+    var HS = [].slice.call(document.querySelectorAll('.page > h2.grp'));
+    FD.forEach(function (f) { var h = HS.filter(function (x) { return x.id === f[0] || x.textContent.trim() === f[0]; })[0]; if (!h) return;
+      var d = document.createElement('details'), b = document.createElement('div'); d.className = 'fold'; d.id = h.id ? h.id : ''; h.removeAttribute('id'); b.className = 'fb';
+      d.innerHTML = '<summary><i>' + f[1] + '</i><span>' + f[2] + '<small>' + f[3] + '</small></span></summary>'; d.appendChild(b);
+      var n = h.nextElementSibling; while (n && !(n.matches('h2.grp') || n.id === 'rvS' || n.id === 'more' || n.id === 'foot' || n.id === 'zm')) { var nx = n.nextElementSibling; b.appendChild(n); n = nx; }
+      h.remove(); MR.appendChild(d); });
+    MR.parentNode.insertBefore(MR, $('s5'));
+    document.querySelectorAll('.page > h2.grp').forEach(function (h) { var t = h.firstChild; if (t && t.nodeType === 3) t.nodeValue = t.nodeValue.replace(/^[①-⑩]s*/, ''); });
+    // 바로 가기 단추 다시 만들기
+    var QN = document.querySelector('.qnav'); [].slice.call(QN.querySelectorAll('a')).forEach(function (a) { a.remove(); });
+    [['#s1', '💡 불 켜기'], ['#s2', '🏠 전시실'], ['#s4', '💰 금액'], ['#more', '📂 더 알아보기'], ['#s5', '📝 상담 신청']].forEach(function (x) { var a = document.createElement('a'); a.href = x[0]; a.textContent = x[1]; QN.insertBefore(a, $('bigT')); });
+    // 접힌 칸 안으로 가는 바로 가기는 펼친 뒤 이동
+    document.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a || a.getAttribute('href').length < 2) return; var t = document.querySelector(a.getAttribute('href')); if (!t) return;
+      var d = t.closest('details.fold'); if (d && !d.open) d.open = true; }, true);
     if ('IntersectionObserver' in window) { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -8% 0px' });
-      document.querySelectorAll('.page > h2.grp, .page > .pk, .page > .exv, .page > .vgal, .page > .why, .page > .steps, .page > .faq, .page > .calc, .page > .card, .page > .ba, .page > .gal, .page > .trust, .page > .foot').forEach(function (el) { el.classList.add('rv'); io.observe(el); }); } })(); }
+      document.querySelectorAll('.page > h2.grp, .page > .pk, .page > .exv, .page > .vgal, .page > .why, .page > .steps, .page > .faq, .page > .calc, .page > .card, .page > .ba, .page > .gal, .page > .trust, .page > .foot, .page > .more').forEach(function (el) { el.classList.add('rv'); io.observe(el); }); } })(); }
 
   // ── 가격: 이 기기 가격표, 고객 링크로 열면 사장님 가격(p=)으로 덮어씀 ──
   var PK = DECO.pkgs().filter(function (p) { return p.id !== 'none' && p.f; }), IT = {}; DECO.items().forEach(function (i) { IT[i.id] = i.price || 0; });
