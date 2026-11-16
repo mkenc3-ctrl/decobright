@@ -82,6 +82,23 @@ body.big .pk button span{font-size:16px}
 .pkm[open]>summary::after{content:'접기 ▴'}
 .pkm>.pk{padding:0 10px 12px}
 body.cust #guide,body.cust .est,body.cust #exSh{display:none!important}
+#cKk{display:none}
+body.cust .cbar #cKk{order:-1;display:flex;background:#FEE500!important;border-color:#FEE500!important;color:#191919}
+body.cust .cbar.kk #cSms{display:none}
+.kbox{display:none}
+body.cust .kbox{display:grid;gap:10px;background:#fffdf9;border:1px solid #eadfce;border-radius:16px;padding:16px;box-shadow:0 3px 12px rgba(59,47,42,.06)}
+body.cust .kbox p{margin:0;font-size:17px;line-height:1.55}
+body.cust .kbox a{display:flex;align-items:center;justify-content:center;min-height:60px;border-radius:999px;font-size:20px;font-weight:800;text-decoration:none}
+body.cust .kbox .kb1{background:#FEE500;color:#191919}
+body.cust .kbox .kb2{background:#1d1714;color:#f6c477}
+body.cust .card.ask{display:none!important}
+body.cust .hcta a.kk{background:#FEE500!important;color:#191919!important}
+body.cust .hcta a{flex-basis:100%!important}
+.hz{display:none}
+body.cust .hz{display:inline-block;margin-top:12px;font-size:15px;font-weight:700;color:#f3d9b0;background:rgba(0,0,0,.35);border:1px solid rgba(240,176,90,.45);border-radius:999px;padding:5px 12px}
+body.cust .why ul{margin:6px 0 0;padding-left:18px;font-size:15px;line-height:1.6;color:#d9c9b4}
+body.cust .whyI{grid-column:1/-1;background:#fffdf9!important;color:var(--ink)!important;border:1px solid #eadfce}
+body.cust .whyI b{color:var(--acc)!important}
 .pk .pn{margin-top:10px;background:#fcebd2;border-radius:10px;padding:8px 10px;font-size:15px;font-weight:700;color:#7a3b12;line-height:1.5}
 .pk .pl{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px}
 .pk .pl th{text-align:left;font-size:13px;color:var(--muted);font-weight:700;padding:8px 0 2px;border-bottom:1px solid var(--line)}
@@ -414,7 +431,7 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
 
   <div id="rvS" hidden><h2 class="grp">⭐ 고객 후기 <small id="rvN" style="font-size:15px;color:var(--muted);font-weight:500"></small></h2><div id="rvL" style="display:grid;gap:10px"></div></div>
   <h2 class="grp">데코브라이트를 고르시는 이유</h2>
-  <div class="why"><div><span>📐</span><b>집에 맞춘 설계</b>천장 높이·구조를 직접 재고, 그 집에 어울리는 빛을 제안합니다.</div><div><span>🧹</span><b>깔끔한 마무리</b>가구는 덮어 보호하고, 공사 뒤 먼지까지 치우고 갑니다.</div><div><span>🤝</span><b>끝까지 책임</b>시공 부위는 1년 동안 무상으로 점검·보수해 드립니다.</div></div>
+  <div class="why"><div class="whyI"><span>💡</span><b>간접조명 · 실링팬 전문 브랜드</b>공간 구조에 맞춘 설계부터 목공·전기 원스톱 시공, A/S 1년까지 책임집니다.</div><div><span>🏛</span><b>무몰딩 우물천장</b><ul><li>정밀 목공 작업</li><li>정확한 수평·수직 설계</li><li>부드럽고 균일한 라운드 마감</li><li>빛의 흐름까지 계산한 간접조명</li></ul></div><div><span>⭕</span><b>PVC 우물천장</b><ul><li>한방 라운드 고급형 PVC만 사용</li><li>이음새 없는 깨끗한 곡선</li></ul></div><div><span>🌀</span><b>실링팬 시공</b><ul><li>흔들림 없는 안전한 설치</li><li>천장 구조에 맞춘 균형 설계</li><li>하자 없는 마감</li></ul></div><div hidden><span>📐</span><b>집에 맞춘 설계</b>천장 높이·구조를 직접 재고, 그 집에 어울리는 빛을 제안합니다.</div><div><span>🧹</span><b>깔끔한 마무리</b>가구는 덮어 보호하고, 공사 뒤 먼지까지 치우고 갑니다.</div><div><span>🤝</span><b>끝까지 책임</b>시공 부위는 1년 동안 무상으로 점검·보수해 드립니다.</div></div>
   <h2 class="grp">시공은 이렇게 진행됩니다</h2>
   <ol class="steps">
     <li><b>상담</b><br>전화·문자로 원하는 구성을 알려 주세요.</li>
@@ -448,6 +465,7 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
   <h2 class="grp" id="s6">⑥ 자주 묻는 질문</h2>
   <div class="faq">
     <details><summary>공사는 며칠 걸리나요?</summary><p>보통 하루면 끝납니다. 우물 목공(천장 모양 새로 만들기)이 있으면 이틀 정도 걸립니다. 정확한 기간은 실측 후 알려 드립니다.</p></details>
+    <details><summary>시공 지역이 어디인가요?</summary><p>부산 · 창원 · 경남 전 지역 시공합니다. 그 밖의 지역은 전화나 카톡으로 문의해 주세요.</p></details>
     <details><summary>살면서도 공사할 수 있나요?</summary><p>네, 살고 계신 집에서도 합니다. 공사하는 곳 아래 가구는 미리 옮기거나 덮어서 보호합니다.</p></details>
     <details><summary>빛 색을 나중에 바꿀 수 있나요?</summary><p>색을 바꾸는 조명을 쓰면 위 영상처럼 스위치로 하얀 빛·중간 빛·따뜻한 빛을 바꿀 수 있습니다. 쓰시는 제품에 따라 다르니 상담 때 말씀해 주세요.</p></details>
     <details><summary>실링팬을 달면 천장이 괜찮나요?</summary><p>실링팬 자리는 천장을 보강한 뒤 답니다. 보강이 필요한지는 실측 때 확인합니다.</p></details>
@@ -460,7 +478,7 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
   <div class="foot" id="foot"></div>
   <div id="zm" hidden><img id="zI" alt=""><button type="button" id="zX">✕ 닫기</button><button type="button" class="zn zp" id="zP" aria-label="이전 사진">‹</button><button type="button" class="zn zx" id="zN" aria-label="다음 사진">›</button><span id="zT"></span></div>
   <button type="button" id="toTop" hidden aria-label="맨 위로">▲<br>맨 위</button>
-  <div class="cbar"><a class="btn2 pri" id="cTel" href="#">📞 전화 상담</a><a class="btn2" id="cSms" href="#">💬 문자 문의</a></div>
+  <div class="cbar"><a class="btn2 pri" id="cTel" href="#">📞 전화 상담</a><a class="btn2" id="cSms" href="#">💬 문자 문의</a><a class="btn2" id="cKk" href="#" target="_blank" rel="noopener">💬 카톡 상담</a></div>
 </div>
 <div id="lb" hidden><img id="lbi" alt=""><p id="lbt"></p></div>
 <script src="common.js"></script>
@@ -474,14 +492,19 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
   if (cust) { (function () { var h = document.querySelector('.hero');
     h.querySelector('.h1o').hidden = true; h.querySelector('.h1c').hidden = false; h.querySelector('.hx2').hidden = false;
     $('heroP').textContent = '실제로 시공한 집입니다. 직접 불을 켜 보고, 빛 색을 바꿔 보고, 방마다 둘러보세요.';
-    var c = document.createElement('div'); c.className = 'hcta'; c.innerHTML = '<a class="g" href="#s1">💡 직접 불 켜 보기</a><a class="w" href="#s5">📝 무료 실측 상담</a>'; h.appendChild(c);
+    var c = document.createElement('div'); c.className = 'hcta'; var KK = S.kakaoCh || '#s5'; c.innerHTML = '<a class="g" href="#s1">💡 직접 불 켜 보기</a><a class="kk" href="' + E(KK) + '"' + (S.kakaoCh ? ' target="_blank" rel="noopener"' : '') + '>💬 카톡으로 상담하기</a>';
+    // 상담 칸: 긴 신청서 대신 카톡·전화 두 단추만
+    var h5 = $('s5'); h5.textContent = '상담은 카톡으로 편하게'; var cb = document.createElement('div'); cb.className = 'kbox';
+    cb.innerHTML = '<p>사진 한 장만 보내 주셔도 대략 금액을 바로 알려 드립니다.</p>' + (S.kakaoCh ? '<a class="kb1" href="' + E(S.kakaoCh) + '" target="_blank" rel="noopener">💬 카톡으로 상담하기</a>' : '') +
+      (S.phone ? '<a class="kb2" href="tel:' + String(S.phone).replace(/[^0-9]/g, '') + '">📞 전화 ' + E(S.phone) + '</a>' : ''); h5.after(cb); h.appendChild(c);
+    if (S.kakaoCh) { $('cKk').href = S.kakaoCh; document.querySelector('.cbar').classList.add('kk'); }
     var t = String(S.phone || ''), tn = t.replace(/[^\d]/g, '');
     $('foot').innerHTML = '<b class="n">' + E(S.company || '데코브라이트') + '</b>' + E(S.bizName || '간접조명 · 실링팬 전문') + '<br>' + (tn ? '<a href="tel:' + tn + '">📞 ' + E(t) + '</a><br>' : '') +
-      (S.addr ? '📍 ' + E(S.addr) + '<br>' : '') + (S.ceo ? '대표 ' + E(S.ceo) : '') + (S.bizno ? ' · 사업자등록번호 ' + E(S.bizno) : '') +
+      (S.kakaoCh ? '<a href="' + E(S.kakaoCh) + '" target="_blank" rel="noopener" style="font-size:18px">💬 카톡 상담하기 ›</a><br>' : '') + '🏠 시공 지역: ' + E(S.areaTxt || '부산 · 창원 · 경남 전 지역') + '<br>' + (S.addr ? '📍 ' + E(S.addr) + '<br>' : '') + (S.ceo ? '대표 ' + E(S.ceo) : '') + (S.bizno ? ' · 사업자등록번호 ' + E(S.bizno) : '') +
       '<small>사진과 영상은 모두 실제 시공 현장입니다. 금액은 참고용이며, 정확한 금액은 현장 실측 후 알려 드립니다.</small>';
     // 접는 칸: [제목 찾기, 아이콘, 접힌 칸 이름, 짧은 설명]
     var MR = $('more'), FD = [['s3', '🎬', '영상으로 보기', '불 켜지는 순간 · 집 한 바퀴'], ['s4b', '🧮', '우리 집 예상 금액 계산', '패키지 + 더 넣을 것'], ['실제 시공 전·후', '↔', '시공 전·후 비교', '밀어서 비교해 보기'], ['다른 시공 사례', '🖼', '다른 시공 사례', '사진 더 보기'],
-      ['데코브라이트를 고르시는 이유', '🤝', '데코브라이트를 고르는 이유', '설계 · 마무리 · 1년 점검'], ['시공은 이렇게 진행됩니다', '📋', '시공 진행 순서', '상담부터 1년 점검까지'], ['s6', '❓', '자주 묻는 질문', '공사 기간 · 전기요금 · 고장']];
+      ['데코브라이트를 고르시는 이유', '🤝', '데코브라이트 시공 소개', '무몰딩 · PVC 우물천장 · 실링팬'], ['시공은 이렇게 진행됩니다', '📋', '시공 진행 순서', '상담부터 1년 점검까지'], ['s6', '❓', '자주 묻는 질문', '공사 기간 · 전기요금 · 고장']];
     var HS = [].slice.call(document.querySelectorAll('.page > h2.grp'));
     FD.forEach(function (f) { var h = HS.filter(function (x) { return x.id === f[0] || x.textContent.trim() === f[0]; })[0]; if (!h) return;
       var d = document.createElement('details'), b = document.createElement('div'); d.className = 'fold'; d.id = h.id ? h.id : ''; h.removeAttribute('id'); b.className = 'fb';
@@ -492,7 +515,7 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
     document.querySelectorAll('.page > h2.grp').forEach(function (h) { var t = h.firstChild; if (t && t.nodeType === 3) t.nodeValue = t.nodeValue.replace(/^[①-⑩]s*/, ''); });
     // 바로 가기 단추 다시 만들기
     var QN = document.querySelector('.qnav'); [].slice.call(QN.querySelectorAll('a')).forEach(function (a) { a.remove(); });
-    [['#s1', '💡 불 켜기'], ['#s2', '🏠 전시실'], ['#s4', '💰 금액'], ['#more', '📂 더 알아보기'], ['#s5', '📝 상담 신청']].forEach(function (x) { var a = document.createElement('a'); a.href = x[0]; a.textContent = x[1]; QN.insertBefore(a, $('bigT')); });
+    [['#s1', '💡 불 켜기'], ['#s2', '🏠 전시실'], ['#s4', '💰 금액'], ['#more', '📂 더 알아보기'], ['#s5', '💬 카톡 상담']].forEach(function (x) { var a = document.createElement('a'); a.href = x[0]; a.textContent = x[1]; QN.insertBefore(a, $('bigT')); });
     // 접힌 칸 안으로 가는 바로 가기는 펼친 뒤 이동
     document.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a || a.getAttribute('href').length < 2) return; var t = document.querySelector(a.getAttribute('href')); if (!t) return;
       var d = t.closest('details.fold'); if (d && !d.open) d.open = true; }, true);
