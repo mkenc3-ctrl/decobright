@@ -890,6 +890,14 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   // ---------- start ----------
   renderPanel(); showReal();
   if (!curId && curCust){ const c=DECO.getCustomer(curCust); if(c){ $("custName").value=c.name||""; $("custPhone").value=c.phone||""; $("custAddr").value=c.addr||""; } }
+  // 온라인 문의(e모델하우스)에서 왔으면 고객·패키지·추가 선택을 채움
+  (()=>{ const iq=new URLSearchParams(location.search).get("inq"); if(!iq||curId) return; let L=[]; try{ L=JSON.parse(localStorage.getItem("deco-inq")||"[]"); }catch(e){}
+    const a=L.find(x=>x&&x.id===iq); if(!a) return; [["custName",a.name],["custPhone",a.phone],["custAddr",a.addr]].forEach(([k,v])=>{ if(v){ $(k).value=v; $(k).dispatchEvent(new Event("input",{bubbles:true})); } });
+    if(a.pkg && PKGS.some(p=>p.id===a.pkg)) pkg=a.pkg; const OM=window.DECO_OPTMAP||{};
+    Object.keys(a.opts||{}).forEach(k=>{ const m=OM[k], it=m&&QI.find(x=>x.id===m[0]); if(it) it.qty+=m[1]*(+a.opts[k]||0); });
+    $("memoInput").value="[온라인 문의] "+(a.calc||"")+(a.ph&&a.ph.length?" · 천장 사진 "+a.ph.length+"장":""); $("qStatus").value="상담";
+    const cid=DECO.ensureCustomer({name:a.name,phone:a.phone,addr:a.addr}); if(cid){ curCust=cid; const c=DECO.getCustomer(cid); if(c&&!c.source){ c.source="온라인 (e모델하우스)"; DECO.saveCustomer(c); } }
+    renderPanel(); render(); toast("온라인 문의를 불러왔습니다. 확인 후 「견적 저장」을 누르세요."); })();
   if (curId){ const q=DECO.getQuote(curId); if(q){ curCust=q.custId||""; restore(q); $("qno").textContent="견적번호 "+q.no+" · "+DECO.date(q.updated)+" 저장"; } else curId=null; }
 })();
 </script>

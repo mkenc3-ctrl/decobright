@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
     const { coll, id, n } = await req.json();
-    if (!["okq", "asreq", "chk", "rvq", "photos"].includes(coll) || typeof id !== "string" || id.length > 80) return out({ err: "bad" }, 400);
+    if (!["okq", "asreq", "chk", "rvq", "photos", "inq"].includes(coll) || typeof id !== "string" || id.length > 80) return out({ err: "bad" }, 400);
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY"))!);
     const { data: row } = await sb.from("records").select("data").eq("coll", coll).eq("id", id).maybeSingle();
     const d = row?.data;
@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
     if (coll === "okq") { title += " · 손님 답"; body = (d.name || d.no || "손님") + " 님 " + (d.act === "ok" ? "「이 견적으로 진행」" : "「상담이 더 필요」") + (d.md ? " · 실측 희망 " + d.md : ""); url = "list.html"; }
     else if (coll === "asreq") { title += " · 🛠 하자 접수"; body = (d.name || "고객") + " 님 · " + ((d.kinds || []).join(", ") || d.say || ""); }
     else if (coll === "chk") { title += " · 점검표 도착"; body = (d.by || "작업자") + (d.tr ? " (" + d.tr + ")" : "") + (d.no && d.no.length ? " · 못 한 것 " + d.no.length + "개" : " · 모두 확인"); url = "order.html?id=" + encodeURIComponent(d.oid || ""); }
+    else if (coll === "inq") { title += " · 📨 새 온라인 문의"; body = (d.name || "손님") + " · " + (d.phone || "") + (d.calc ? " · " + String(d.calc).slice(0, 50) : "") + (d.ph && d.ph.length ? " · 사진 " + d.ph.length + "장" : ""); url = "index.html"; }
     else if (coll === "rvq") { title += " · ⭐ 새 후기"; body = "★".repeat(d.star || 0) + " " + String(d.text || "").slice(0, 40); url = "stats.html"; }
     else { title += " · 📸 새 사진" + (n > 1 ? " " + n + "장" : ""); body = String(d.by || "") + (d.memo ? " · " + String(d.memo).slice(0, 40) : ""); url = "photos.html"; }
     webpush.setVapidDetails(SITE, PUB, Deno.env.get("VAPID_PRIVATE")!);
