@@ -68,6 +68,10 @@ body.big .pk button span{font-size:16px}
 .pk button span{display:block;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}
 .pk button.tr{grid-column:1/-1;border-left-color:#c8323c;background:linear-gradient(135deg,#fffaf2,#fff)}
 .pk .tb{display:inline-block;font-style:normal;font-size:14px;font-weight:800;color:#fff;background:#c8323c;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+.pk .tr{order:-2}
+.pk .blg{order:-1;grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;min-height:54px;border-radius:14px;background:#03c75a;color:#fff;font-weight:800;font-size:17px;text-decoration:none;padding:8px 14px;text-align:center}
+.pk .blg small{font-weight:500;opacity:.9}
+.pk .pl th small{font-weight:500}
 .pk .pl{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px}
 .pk .pl th{text-align:left;font-size:13px;color:var(--muted);font-weight:700;padding:8px 0 2px;border-bottom:1px solid var(--line)}
 .pk .pl td{padding:5px 0;border-bottom:1px dashed var(--line2)}
@@ -504,7 +508,8 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
     $('cTel').href = 'tel:' + tel; $('cSms').href = 'sms:' + tel + (ios ? '&' : '?') + 'body=' + encodeURIComponent(t); }
   $('pk').innerHTML = PK.map(function (p) { var hp = cust && hidePr, L = p.lines && !p.descEdited ? p.lines : null;
     return '<button type="button" data-p="' + E(p.id) + '"' + (p.trend ? ' class="tr"' : '') + '>' + (p.trend ? '<em class="tb">🔥 요즘 가장 많이 하는 구성</em>' : '') + '<b>' + E(p.name) + '</b><i class="pp">' + (hp ? '상담 후 안내' : W(p.price)) + '</i>' +
-      (L ? '<table class="pl">' + L.map(function (l, i) { return (i === 0 || L[i - 1][0] !== l[0] ? '<tr><th colspan="2">' + E(l[0]) + '</th></tr>' : '') + '<tr><td>' + E(l[1]) + '</td><td>' + (hp ? '' : W(l[2])) + '</td></tr>'; }).join('') + '</table>' : '<span>' + E(p.desc) + '</span>') + '</button>'; }).join('');
+      (L ? '<table class="pl">' + L.map(function (l, i) { return (i === 0 || L[i - 1][0] !== l[0] ? '<tr><th colspan="2">' + E(l[0]) + '</th></tr>' : '') + '<tr><td>' + E(l[1]) + '</td><td>' + (hp ? '' : W(l[2])) + '</td></tr>'; }).join('') +
+        (p.opts ? '<tr><th colspan="2">추가 선택 <small>(원하는 것만)</small></th></tr>' + p.opts.map(function (o) { return '<tr><td>' + E(o[1]) + '</td><td>' + (hp ? '' : W(o[2]) + (/개$/.test(o[3]) && o[2] < 100000 ? ' / ' + o[3] : '')) + '</td></tr>'; }).join('') : '') + '</table>' : '<span>' + E(p.desc) + '</span>') + '</button>'; }).join('') + PK.filter(function (p) { return p.blog; }).map(function (p) { return '<a class="blg" href="' + E(p.blog) + '" target="_blank" rel="noopener">📖 요즘 트렌드 실제 시공 글 보기 <small>(데코브라이트 블로그)</small> ›</a>'; }).join('');
   $('pk').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b) return; best = PK.filter(function (x) { return x.id === b.dataset.p; })[0] || null; est(); });
   if (Q.get('k')) best = PK.filter(function (x) { return x.id === Q.get('k'); })[0] || null;
 
@@ -554,10 +559,12 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
   var HOUSE = 'https://mkenc3-ctrl.github.io/decobright/house.html';
   // ── 예상 금액 계산 (패키지 + 추가 항목, 부가세 포함) ──
   var CI = [['i1', '다운라이트 추가', '개'], ['i3', '커튼박스 간접등 추가', '곳'], ['i10', '현관 간접 센서등', '곳'], ['i11', '욕실 센서등', '곳'], ['fan', '방 실링팬 추가 (배선·보강 포함)', '대'], ['i12', '스마트 스위치 (원격)', '개']], CQ = {}, CALC = '';
-  function ip(id) { return id === 'fan' ? (IT.i6 || 0) + (IT.i7 || 0) + (IT.i8 || 0) : (IT[id] || 0); }
+  var CI0 = CI;
+  function ip(id) { var p = PK.filter(function (x) { return x.id === $('cPk').value; })[0], o = p && p.opts ? p.opts.filter(function (x) { return x[0] === id; })[0] : null; if (o) return o[2]; return id === 'fan' ? (IT.i6 || 0) + (IT.i7 || 0) + (IT.i8 || 0) : (IT[id] || 0); }
   $('cPk').innerHTML = '<option value="">패키지 없이 (아래 항목만)</option>' + PK.map(function (p) { return '<option value="' + E(p.id) + '">' + E(p.name) + (cust && hidePr ? '' : ' · ' + W(p.price)) + '</option>'; }).join('');
-  if (PK[2]) $('cPk').value = PK[2].id;
+  if (PK[0] && PK[0].trend) $('cPk').value = PK[0].id; else if (PK[2]) $('cPk').value = PK[2].id;
   function calc() { var hide = cust && hidePr, p = PK.filter(function (x) { return x.id === $('cPk').value; })[0], sup = p ? p.price : 0, L = [];
+    CI = p && p.opts ? p.opts.map(function (o) { return [o[0], o[1], o[3]]; }) : CI0;
     $('cIt').innerHTML = CI.map(function (c) { var n = CQ[c[0]] || 0; return '<div class="row"><span>' + E(c[1]) + (hide ? '' : '<br><small style="color:var(--muted)">' + W(ip(c[0])) + ' / ' + c[2] + '</small>') + '</span><span class="q"><button type="button" data-cm="' + c[0] + '" aria-label="' + E(c[1]) + ' 빼기">－</button><span>' + n + '</span><button type="button" data-cp="' + c[0] + '" aria-label="' + E(c[1]) + ' 더하기">＋</button></span></div>'; }).join('');
     CI.forEach(function (c) { var n = CQ[c[0]] || 0; if (n) { sup += n * ip(c[0]); L.push(c[1] + ' ' + n + c[2]); } });
     var vat = Math.round(sup * 0.1);
