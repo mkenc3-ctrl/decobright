@@ -53,7 +53,7 @@
   D.savePriceEdits = function (o) { return wr(KP, o); };
   D.pkgs = function () { var e = D.priceEdits().pkgs || {};
     return (window.DECO_PKGS0 || []).map(function (p) { var x = e[p.id] || {}, o = {}; for (var k in p) o[k] = p[k];
-      if (x.price != null && p.id !== 'none') o.price = x.price; if (x.desc) { o.desc = x.desc; o.descEdited = true; } if (x.name) o.name = x.name; o.hide = !!x.hide && p.id !== 'none'; return o; }); };
+      if (x.price != null && p.id !== 'none') o.price = x.price; if (x.desc) { o.desc = x.desc; o.descEdited = true; } if (x.name) o.name = x.name; if (x.lines) o.lines = x.lines; if (x.opts) o.opts = x.opts; if (x.note) o.note = x.note; o.hide = !!x.hide && p.id !== 'none'; return o; }); };
   D.items = function () { var E2 = D.priceEdits(), e = E2.items || {};
     return (window.DECO_ITEMS0 || []).map(function (i) { var x = e[i.id] || {}, o = {}; for (var k in i) o[k] = i[k];
       if (x.price != null) o.price = x.price; if (x.name) o.name = x.name; if (x.unit) o.unit = x.unit; o.hide = !!x.hide; return o; })
@@ -144,7 +144,12 @@
     D.events().forEach(function (x) { if (x.date && x.date >= t0 && x.date <= t1 && !x.done && /실측|시공|하자|휴무/.test(x.kind || '')) B[x.date] = (B[x.date] || 0) + (x.kind === '휴무' ? 9 : x.kind === '시공 예정' ? 2 : 1); });
     var old = rd('deco-pub', []).filter(function (x) { return x && x.id === 'free'; })[0];
     if (old && JSON.stringify(old.busy) === JSON.stringify(B) && old.from === t0) return;
-    wr('deco-pub', [{ id: 'free', from: t0, busy: B, at: Date.now() }]); };
+    wr('deco-pub', rd('deco-pub', []).filter(function (x) { return x && x.id && x.id !== 'free'; }).concat([{ id: 'free', from: t0, busy: B, at: Date.now() }])); };
+  // 고친 금액·내역을 손님 화면(e모델하우스 손님용)에 올림 — 서버 pub/pkgs. 바뀐 게 없으면 false
+  D.pubPkgs = function () { var E2 = D.priceEdits(), ed = { pkgs: E2.pkgs || {}, items: E2.items || {}, extra: E2.extra || [] }, arr = rd('deco-pub', []).filter(function (x) { return x && x.id; }), old = arr.filter(function (x) { return x.id === 'pkgs'; })[0];
+    if (old && JSON.stringify(old.ed) === JSON.stringify(ed)) return false; var it = { id: 'pkgs', at: Date.now(), ed: ed };
+    try { localStorage.setItem('deco-pubpk', JSON.stringify({ at: it.at, ed: ed })); } catch (e) {}
+    return wr('deco-pub', arr.filter(function (x) { return x.id !== 'pkgs'; }).concat([it])); };
   // ---------- 주소 → 시·군 / 구 (구가 없으면 읍·면·동) ----------
   // ---------- 주소 → 아파트 단지 이름 (지번 다음 ~ 「○동/○호」 앞) ----------
   D.apt = function (a) { var t = String(a || '').replace(/\([^)]*\)/g, ' ').replace(/,/g, ' ').trim().split(/\s+/), i, s = -1, e = t.length;

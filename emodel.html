@@ -519,7 +519,7 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, W = DECO.won, S = DECO.settings(), Q = new URLSearchParams(location.search);
   var cust = Q.get('c') === '1'; if (cust) document.body.classList.add('cust');
   // 앱에서 「손님용 화면」으로 열었을 때만: 앱으로 돌아가기 · 보내기 단추 (손님에게는 안 보임)
-  if (cust && Q.get('app') === '1') { var ab = document.createElement('div'); ab.className = 'appbar'; ab.innerHTML = '<a href="index.html">← 앱으로</a><span>손님이 보는 화면</span><a href="send.html" class="s">📤 보내기</a>'; document.body.insertBefore(ab, document.body.firstChild); }
+  if (cust && Q.get('app') === '1') { var ab = document.createElement('div'); ab.className = 'appbar'; ab.innerHTML = '<a href="index.html">← 앱으로</a><a href="custedit.html">✏️ 금액 고치기</a><a href="send.html" class="s">📤 보내기</a>'; document.body.insertBefore(ab, document.body.firstChild); }
   // 손님 화면: 첫 화면 문구·바로 가기 버튼·회사 정보·스르륵 나타나기
   if (cust) { (function () { var h = document.querySelector('.hero');
     h.querySelector('.h1o').hidden = true; h.querySelector('.h1c').hidden = false; h.querySelector('.hx2').hidden = false;
@@ -582,9 +582,11 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
       document.querySelectorAll('.page > h2.grp, .page > .pk, .page > .exv, .page > .vgal, .page > .why, .page > .steps, .page > .faq, .page > .calc, .page > .card, .page > .ba, .page > .gal, .page > .trust, .page > .foot, .page > .more').forEach(function (el) { el.classList.add('rv'); io.observe(el); }); } })(); }
 
   // ── 가격: 이 기기 가격표, 고객 링크로 열면 사장님 가격(p=)으로 덮어씀 ──
-  var PK = DECO.pkgs().filter(function (p) { return p.id !== 'none' && p.f; }), IT = {}; DECO.items().forEach(function (i) { IT[i.id] = i.price || 0; });
+  // 손님(링크로 연 사람)은 앱에서 올린 금액·내역(pub/pkgs)을 씀. 앱의 「손님용 화면」은 이 기기 가격표 그대로
+  var PUBK = cust && Q.get('app') !== '1', PE = null; if (PUBK) { try { PE = JSON.parse(localStorage.getItem('deco-pubpk') || 'null'); } catch (e) {} if (PE && PE.ed) { var PE0 = PE.ed; DECO.priceEdits = function () { return PE0; }; } else PE = null; }
+  var PK = DECO.pkgs().filter(function (p) { return p.id !== 'none' && p.f && !p.hide; }), IT = {}; DECO.items().forEach(function (i) { IT[i.id] = i.price || 0; });
   var PIDS = PK.map(function (p) { return p.id; }), IIDS = ['i1', 'i3', 'i4', 'i6', 'i7', 'i8', 'i5', 'i14', 'i10', 'i11', 'i12'], hidePr = false;
-  if (cust && Q.get('p')) { if (Q.get('p') === 'x') hidePr = true; else { var pv = Q.get('p').split('.'); PK.forEach(function (p, i) { if (pv[i]) p.price = +pv[i] * 1000; }); IIDS.forEach(function (id, i) { var v = pv[PIDS.length + i]; if (v) IT[id] = +v * 1000; }); } }
+  if (cust && Q.get('p') && (!PE || Q.get('p') === 'x')) { if (Q.get('p') === 'x') hidePr = true; else { var pv = Q.get('p').split('.'); PK.forEach(function (p, i) { if (pv[i]) p.price = +pv[i] * 1000; }); IIDS.forEach(function (id, i) { var v = pv[PIDS.length + i]; if (v) IT[id] = +v * 1000; }); } }
   PK.sort(function (a, b) { var r = function (p) { return p.ad ? 3 : p.trend ? 2 : p.web ? 1 : 0; }; return r(b) - r(a) || a.price - b.price; });
   // ── 패키지 고르기 ──
   var best = null;
@@ -684,6 +686,8 @@ body.cust .nav{width:40px;height:56px;font-size:30px}
     $('aVd').innerHTML = h; }
   $('aVd').addEventListener('click', function (e) { var b = e.target.closest('[data-vd]'); if (!b || b.disabled) return; VD = VD === b.dataset.vd ? '' : b.dataset.vd; vdDraw(); });
   vdDraw();
+  if (PUBK) sb().then(function (C) { return C.from('records').select('data').eq('coll', 'pub').eq('id', 'pkgs').maybeSingle(); }).then(function (r) { var x = r && r.data && r.data.data; if (!x || x._del || !x.ed || (PE && PE.at === x.at)) return;
+    try { localStorage.setItem('deco-pubpk', JSON.stringify({ at: x.at, ed: x.ed })); if (sessionStorage.getItem('deco-pubrl')) return; sessionStorage.setItem('deco-pubrl', '1'); } catch (e) { return; } location.reload(); }).catch(function () {});
   sb().then(function (C) { return C.from('records').select('data').eq('coll', 'pub').eq('id', 'free').maybeSingle(); }).then(function (r) { var x = r && r.data && r.data.data; if (x && x.busy && !x._del) { BUSY = x.busy; vdDraw(); } }).catch(function () {});
   function vdLab() { var b = VD && $('aVd').querySelector('[data-vd="' + VD + '"]'); return b ? b.dataset.lab : ''; }
   function askText() { var v = function (id) { return $(id).value.trim(); }, ck = [].filter.call($('aCk').querySelectorAll('input'), function (i) { return i.checked; }).map(function (i) { return i.value; });
