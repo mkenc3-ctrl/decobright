@@ -365,6 +365,26 @@
     return D.kfmt({ icon: '🌙', title: '오늘 마감 보고', info: [['📅', '날짜', wd(d)], ['📌', '요약', '시공 ' + O.length + '곳 · 새 견적 ' + nq.length + '건 · 입금 ' + ins.length + '건']],
       secs: [['🛠 오늘 현장', site.length ? site : ['시공 없음']], ['⚠ 점검표 아직 안 온 현장', nochk.map(function (o) { return o.name || o.addr || '현장'; })], ['💰 오늘 들어온 돈', ins], ['🧾 오늘 지출', ex ? [D.won(ex)] : []], ['📨 손님 답·하자 접수', ok.map(function (a) { return (a.name || '손님') + ' 님 ' + (a.act === 'ok' ? '진행 결정' : '상담 요청'); }).concat(as.map(function (a) { return '🛠 ' + (a.name || '고객') + ' 님 하자 접수'; }))], ['🔜 내일 ' + wd(t2), nx.length ? nx : ['일정 없음']]],
       total: sum ? ['💰 오늘 입금 합계 : ' + D.won(sum)] : [], foot: ['오늘도 수고 많으셨습니다! 🙏'] }); };
+  // 숨고 견적 메시지 (광고 상품 + 요즘 트렌드 견적 + 연락처 묶음). pkg: 견적에서 고른 패키지 id, nmIn: 고객 이름
+  D.soomgo = function (pkg, nmIn) { const s=D.settings(), won=D.won, PKGS=D.pkgs().filter(p=>!p.web), mw=v=>v%10000===0?(v/10000).toLocaleString()+"만 원":won(v);
+    const p=PKGS.find(x=>x.id===pkg&&(x.lines||x.opts))||PKGS.find(x=>x.ad)||PKGS.find(x=>x.trend); if(!p){ return ""; }
+    const nm=String(nmIn||"").trim().replace(/\s*(고객님|님)$/,""), L=[];
+    L.push("안녕하세요"+(nm?", "+nm+" 고객님":"")+". "+(s.company||"데코브라이트")+"입니다.");
+    L.push(p.name.replace(/\s*\(.*\)$/,"")+" 구성과 금액 안내드립니다.","");
+    // 요즘 트렌드 견적 모양: [거실] - 항목 : 금액 … 총 견적
+    const trBlock=t=>{ L.push("■ 요즘 트렌드 시공 견적 ("+((t.name.match(/\(([^)]*)\)/)||[])[1]||"거실 기준")+")"); let g="";
+      t.lines.forEach(l=>{ if(l[0]!==g){ g=l[0]; L.push("","["+g+"]"); } L.push("- "+l[1]+" : "+mw(l[2])); }); L.push("","총 견적 : "+mw(t.price)); if(t.blog) L.push("▶ 트렌드 시공 사례 : "+t.blog); };
+    if(p.trend) trBlock(p); else { L.push("■ 기본 구성 — "+mw(p.price));
+    (p.lines||[]).forEach((l,i)=>L.push((i+1)+". "+l[1]+(l[2]?" ("+mw(l[2])+")":""))); }
+    if(p.opts&&p.opts.length){ L.push("","■ 추가 추천 항목"); p.opts.forEach((o,i)=>L.push((i+1)+". "+o[1]+" — "+mw(o[2])+(o[3]==="개"&&o[2]<100000?" (개당)":"")+(o[4]?" ("+o[4]+")":""))); }
+    if(p.note&&p.note.length){ L.push("","■ "+p.note[0].replace(/^·\s*/,"")); p.note.slice(1).forEach(x=>L.push(x.replace(/^·\s*/,"• "))); }
+    const tr=PKGS.find(x=>x.trend&&x.lines&&x.lines.length); if(tr&&tr!==p){ L.push(""); trBlock(tr); }
+    L.push("","✔ 실측 후 정확한 견적을 드립니다","✔ 대부분 하루면 시공이 끝납니다","✔ 시공 부위는 1년 동안 무상 점검해 드립니다","");
+    L.push("실제 시공 사진·영상은 아래에서 보실 수 있습니다.","https://mkenc3-ctrl.github.io/decobright/house.html","");
+    L.push("편하신 실측 날짜를 알려 주시면 일정 잡아 드리겠습니다. 감사합니다.","");
+    L.push("🏠 시공지역 : "+(s.areaTxt||"부산 · 창원 · 경남 전지역"),"☎ 상담문의 : "+(s.phone||""));
+    if(s.kakaoCh) L.push("➡️ 카톡상담 : "+s.kakaoCh); if(s.blogUrl) L.push("📝 더 많은 시공후기 : "+s.blogUrl);
+    return L.join("\n"); };
   D.kfmt = function (o) { var s = D.settings(), L = [D.KL, (o.icon || '📋') + ' ' + s.company + ' ' + o.title, D.KL];
     (o.info || []).forEach(function (r) { if (r && r[2] !== '' && r[2] != null) L.push(r[0] + ' ' + r[1] + ' : ' + r[2]); });
     (o.secs || []).forEach(function (x) { var ls = (x[1] || []).filter(function (t) { return t != null && String(t).trim() !== ''; }); if (!ls.length) return;

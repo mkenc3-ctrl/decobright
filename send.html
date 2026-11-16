@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>손님에게 보내기 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.sc{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px;display:grid;gap:12px}
+.sc h2{margin:0;font-size:21px}
+.sc .n{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--warm);color:#fff;align-items:center;justify-content:center;font-size:17px;margin-right:6px}
+.sc label{display:grid;gap:4px;font-size:16px;font-weight:700}
+.sc label small{font-weight:400;color:var(--muted)}
+.sc input,.sc select{font:inherit;font-size:18px;height:52px;border:1px solid var(--bd);border-radius:12px;padding:0 12px;background:#fff;width:100%;box-sizing:border-box}
+.url{font-size:18px;font-weight:700;word-break:break-all;background:#FBF6EE;border:2px solid #f0cf9e;border-radius:12px;padding:12px 14px;user-select:all}
+.big{display:flex;align-items:center;justify-content:center;gap:6px;min-height:58px;border-radius:14px;font:inherit;font-size:19px;font-weight:800;text-decoration:none;border:0;cursor:pointer;width:100%}
+.big.y{background:#FEE500;color:#191919}
+.big.d{background:#1d1714;color:#f6c477}
+.big.w{background:#fff;color:var(--ink);border:1px solid var(--bd)}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+textarea.sg{font:inherit;font-size:16px;line-height:1.6;border:1px solid var(--bd);border-radius:12px;padding:12px;width:100%;box-sizing:border-box;min-height:360px;background:#fff}
+.ok{color:var(--ok);font-weight:700;margin:0;min-height:1.4em}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:720px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">📤 손님에게 보내기</h1>
+  <p class="sub" style="margin-top:0">손님 이름을 적으면 두 곳 모두 「OO 님」으로 맞춰집니다. 비워 두면 누구에게나 보낼 수 있는 내용입니다.</p>
+  <div class="sc"><label>손님 이름 <small>(선택)</small><input id="nm" maxlength="15" placeholder="예: 김민수"></label></div>
+
+  <section class="sc" aria-labelledby="h1">
+    <h2 id="h1"><span class="n">1</span>손님에게 보내는 링크</h2>
+    <p class="sub" style="margin:0">카톡·문자로 보내면 손님 휴대폰에서 e모델하우스가 열립니다. 손님은 여기서 금액을 계산하고 상담을 신청합니다.</p>
+    <div class="url" id="url"></div>
+    <div class="row2">
+      <button class="big d" type="button" id="cpU">📋 링크 주소 복사</button>
+      <button class="big y" type="button" id="kkU">💬 카톡 안내문으로 보내기</button>
+    </div>
+    <a class="big w" id="see" href="house.html" target="_blank" rel="noopener">👀 손님 화면 미리 보기</a>
+    <p class="ok" id="okU" role="status"></p>
+  </section>
+
+  <section class="sc" aria-labelledby="h2">
+    <h2 id="h2"><span class="n">2</span>숨고에 붙여넣기 문구</h2>
+    <label>먼저 보여 줄 구성<select id="pk"></select></label>
+    <textarea class="sg" id="sg" aria-label="숨고 문구"></textarea>
+    <button class="big d" type="button" id="cpS">📋 숨고 문구 복사</button>
+    <p class="ok" id="okS" role="status"></p>
+    <p class="sub" style="margin:0;font-size:14px">복사한 뒤 숨고 견적 보내기의 메시지 칸에 붙여 넣으세요. 위 칸에서 바로 고쳐도 됩니다. 숨고가 바깥 주소를 막으면 주소 줄만 지우고 보내세요.</p>
+  </section>
+</div>
+<script src="common.js"></script>
+<script src="prices-default.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, BASE = 'https://mkenc3-ctrl.github.io/decobright/house.html';
+  var name = function () { return $('nm').value.trim().replace(/\s*(고객님|님)$/, ''); };
+  var url = function () { var n = name(); return BASE + (n ? '?n=' + encodeURIComponent(n + ' 님') : ''); };
+  // 숨고 문구에 쓸 구성: 광고 상품 · 요즘 트렌드 · 내역이 있는 패키지
+  var P = DECO.pkgs().filter(function (p) { return !p.web && !p.hide && (p.lines || p.opts); });
+  P.sort(function (a, b) { var r = function (p) { return p.ad ? 2 : p.trend ? 1 : 0; }; return r(b) - r(a); });
+  $('pk').innerHTML = P.map(function (p) { return '<option value="' + DECO.esc(p.id) + '">' + (p.ad ? '📢 엘리베이터 광고 상품 · ' : p.trend ? '🔥 요즘 트렌드 · ' : '') + DECO.esc(p.name) + '</option>'; }).join('');
+  function draw() { $('url').textContent = decodeURIComponent(url()); $('see').href = url(); $('sg').value = DECO.soomgo($('pk').value, name()); }
+  function copy(t, el) { var done = function () { el.textContent = '✔ 복사했습니다. 붙여 넣기 하세요.'; setTimeout(function () { el.textContent = ''; }, 4000); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () { fb(t); done(); }); else { fb(t); done(); } }
+  function fb(t) { var a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); } catch (e) {} a.remove(); }
+  $('nm').addEventListener('input', draw); $('pk').addEventListener('change', draw);
+  $('cpU').onclick = function () { copy(url(), $('okU')); };
+  $('cpS').onclick = function () { copy($('sg').value, $('okS')); };
+  $('kkU').onclick = function () { var n = name();
+    DECO.kakao(DECO.kfmt({ icon: '🏠', title: 'e모델하우스 안내', info: [['👤', '고객', n ? n + ' 님' : '']], secs: [['이런 걸 보실 수 있어요', ['실제 시공한 집에서 불 켜 보기·빛 색 바꾸기', '엘리베이터 광고 상품 · 요즘 트렌드 시공 금액', '우리 집 예상 금액 바로 계산', '카톡·온라인으로 바로 상담 신청']]], foot: [(n ? n + ' 님, ' : '') + '아래 주소를 눌러 둘러보세요 👇', url()] }), '손님용 e모델하우스 링크'); };
+  draw();
+})();
+</script>
+</body>
+</html>
