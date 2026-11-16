@@ -9,7 +9,7 @@
 <meta property="og:title" content="데코브라이트 e모델하우스">
 <meta property="og:description" content="간접조명·실링팬 실제 시공 현장을 사진과 영상으로 둘러보세요.">
 <meta property="og:image" content="https://mkenc3-ctrl.github.io/decobright/img/m/ka-warm.jpg">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700;900&display=swap">
 <link rel="stylesheet" href="common.css">
 <link rel="manifest" href="manifest.webmanifest">
 <script>if (/[?&]c=1/.test(location.search)) { document.title = '데코브라이트 e모델하우스'; var mf = document.querySelector('link[rel=manifest]'); if (mf) mf.remove(); }</script>
@@ -203,6 +203,56 @@ body.tv .page,body.tv .cbar{display:none!important}
 @media (max-width:620px){.vgal figure:first-child{grid-row:auto}}
 .vgal figcaption{color:#fbf2e4;font-size:16px;font-weight:700;padding:10px 12px}
 .vgal small{display:block;color:#d9c9b4;font-weight:500;font-size:13px}
+/* ===== 손님에게 보내는 화면 (고급판) ===== */
+.hx,.trust,.why,.foot{display:none}
+body.cust{background:#f7f1e8}
+body.cust::before{display:none}
+body.cust .page{padding-top:10px}
+body.cust .hero{min-height:min(78vh,640px);border-radius:20px;padding:26px 22px 24px;box-shadow:0 18px 40px rgba(29,23,20,.35)}
+body.cust .hero video{opacity:.72}
+body.cust .hero::after{background:linear-gradient(180deg,rgba(18,13,10,.55) 0%,rgba(18,13,10,.05) 30%,rgba(18,13,10,.35) 55%,rgba(18,13,10,.92) 100%)}
+body.cust .hx{display:flex;position:absolute!important;top:20px;left:22px;right:22px;justify-content:space-between;align-items:center;font-size:14px;letter-spacing:.18em;color:#f3d9b0;font-weight:700}
+body.cust .hx i{font-style:normal;letter-spacing:.04em;font-weight:500;color:#e8d8c2;font-size:13px;border:1px solid rgba(240,176,90,.5);border-radius:999px;padding:3px 10px}
+body.cust .hero h1{font-family:'Noto Serif KR',serif;font-weight:900;font-size:clamp(30px,8vw,46px);line-height:1.28;letter-spacing:-.02em;margin:0 0 10px;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+body.cust .hero h1 small{display:block;font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:700;color:#f0b05a;letter-spacing:.06em;margin-bottom:8px;text-shadow:none}
+body.cust .hero p{font-size:17px;line-height:1.6;color:#efe3d2}
+.hcta{display:none}
+body.cust .hcta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+body.cust .hcta a{flex:1 1 150px;display:flex;align-items:center;justify-content:center;min-height:56px;border-radius:999px;font-size:18px;font-weight:800;text-decoration:none}
+body.cust .hcta a.g{background:linear-gradient(180deg,#f6c477,#e0952b);color:#1d1714;box-shadow:0 6px 18px rgba(224,149,43,.45)}
+body.cust .hcta a.w{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.55);backdrop-filter:blur(4px)}
+body.cust .trust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#e6d9c6;border:1px solid #e6d9c6;border-radius:16px;overflow:hidden;margin:0 0 18px}
+body.cust .trust div{background:#fffdf9;padding:14px 6px;text-align:center;font-size:14px;color:var(--ink2);line-height:1.35}
+body.cust .trust b{display:block;font-family:'Noto Serif KR',serif;font-size:21px;color:var(--acc);font-weight:900;margin-bottom:2px}
+@media (max-width:560px){body.cust .trust{grid-template-columns:repeat(2,minmax(0,1fr))}}
+body.cust h2.grp{font-family:'Noto Serif KR',serif;font-weight:900;font-size:clamp(23px,5.6vw,30px);letter-spacing:-.02em;line-height:1.35;margin:44px 0 6px;padding-top:22px;border-top:1px solid #e6d9c6;position:relative;color:#221c18}
+body.cust h2.grp::before{content:'';position:absolute;top:-2px;left:0;width:44px;height:3px;background:#e0952b}
+body.cust h2.grp#s1{margin-top:14px}
+body.cust h2.grp+p.sub{font-size:16px;color:#6d6158;margin:0 0 12px}
+body.cust .qnav{background:rgba(247,241,232,.94);backdrop-filter:blur(8px);padding:10px 0}
+body.cust .qnav a{border-color:#e6d9c6;box-shadow:0 1px 3px rgba(59,47,42,.08)}
+body.cust .guide{border:0;background:#fffdf9;box-shadow:0 4px 16px rgba(59,47,42,.08);border-radius:16px;padding:16px}
+body.cust .guide li span{background:#e0952b}
+body.cust .lbox{border-radius:0 0 18px 18px;padding:16px;box-shadow:0 12px 30px rgba(29,23,20,.25)}
+body.cust .exv,body.cust .vgal figure,body.cust .ba{border-radius:16px;box-shadow:0 10px 26px rgba(29,23,20,.2)}
+body.cust .pk button,body.cust .calc,body.cust .card.ask,body.cust .faq details,body.cust .steps li,body.cust .hsInfo{border-radius:16px;border-color:#eadfce;box-shadow:0 3px 12px rgba(59,47,42,.06)}
+body.cust .est{border-radius:16px;background:linear-gradient(135deg,#fff6e8,#fcebd2)}
+body.cust .why{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0 0}
+@media (max-width:620px){body.cust .why{grid-template-columns:minmax(0,1fr)}}
+body.cust .why div{background:#1d1714;color:#efe3d2;border-radius:16px;padding:18px 16px;font-size:16px;line-height:1.55}
+body.cust .why b{display:block;font-family:'Noto Serif KR',serif;color:#f0b05a;font-size:20px;margin:6px 0 4px}
+body.cust .why span{font-size:28px}
+body.cust .foot{display:block;margin:34px 0 0;background:#1d1714;color:#d9c9b4;border-radius:18px;padding:22px 20px;font-size:15px;line-height:1.7}
+body.cust .foot b.n{display:block;font-family:'Noto Serif KR',serif;font-size:24px;color:#f3d9b0;margin-bottom:4px}
+body.cust .foot a{color:#f0b05a;font-size:22px;font-weight:800;text-decoration:none;display:inline-block;margin:6px 0 8px}
+body.cust .foot small{display:block;color:#a8998a;font-size:13px;margin-top:8px}
+body.cust .cbar{background:transparent;border-top:0;padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px))}
+body.cust .cbar a{min-height:58px;border-radius:999px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(29,23,20,.3)}
+body.cust .cbar a.pri{background:#1d1714;border-color:#1d1714;color:#f6c477}
+body.cust .cbar a:not(.pri){background:#fff;border-color:#e6d9c6}
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
 </style>
 </head>
 <body class="app">
@@ -210,10 +260,12 @@ body.tv .page,body.tv .cbar{display:none!important}
   <div class="topnav owner"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
   <div class="hero">
     <video autoplay muted loop playsinline preload="auto" poster="img/m/kb-off.jpg" aria-hidden="true"><source src="img/m/v-on.mp4" type="video/mp4"></video>
+    <div class="hx" aria-hidden="true"><span>데코브라이트</span><i>간접조명 · 실링팬</i></div>
     <span class="hello" id="hello" hidden></span>
-    <h1><em>e</em>모델하우스</h1>
+    <h1><small class="hx2" hidden>데코브라이트 e모델하우스</small><span class="h1o"><em>e</em>모델하우스</span><span class="h1c" hidden>불 하나 켰을 뿐인데,<br>집이 달라집니다</span></h1>
     <p id="heroP">실제로 시공한 집에서 불을 켜 보고, 빛 색을 바꿔 보고, 방마다 둘러보세요. 마음에 드는 패키지와 금액도 볼 수 있습니다.</p>
   </div>
+  <div class="trust" aria-label="데코브라이트 약속"><div><b>100%</b>실제 시공<br>사진·영상</div><div><b>하루</b>대부분<br>하루면 끝</div><div><b>1년</b>시공 부위<br>무상 점검</div><div><b>실측</b>현장 확인 후<br>정확한 견적</div></div>
   <div class="own owner" style="margin:0 0 14px;border-style:solid;border-color:#f0cf9e;background:var(--warm-s)">
     <b>📢 손님에게 보여 줄 주소</b>
     <label style="display:block;font-weight:700;margin:6px 0">부를 이름 <small>(선택 · 예: 김 사장님, 해운대 OO아파트)</small><input id="hNm" maxlength="15" placeholder="비워 두면 누구나 보는 주소" style="display:block;width:100%;margin-top:4px"></label>
@@ -306,6 +358,8 @@ body.tv .page,body.tv .cbar{display:none!important}
   <div class="gal" id="gal"></div>
 
   <div id="rvS" hidden><h2 class="grp">⭐ 고객 후기 <small id="rvN" style="font-size:15px;color:var(--muted);font-weight:500"></small></h2><div id="rvL" style="display:grid;gap:10px"></div></div>
+  <h2 class="grp">데코브라이트를 고르시는 이유</h2>
+  <div class="why"><div><span>📐</span><b>집에 맞춘 설계</b>천장 높이·구조를 직접 재고, 그 집에 어울리는 빛을 제안합니다.</div><div><span>🧹</span><b>깔끔한 마무리</b>가구는 덮어 보호하고, 공사 뒤 먼지까지 치우고 갑니다.</div><div><span>🤝</span><b>끝까지 책임</b>시공 부위는 1년 동안 무상으로 점검·보수해 드립니다.</div></div>
   <h2 class="grp">시공은 이렇게 진행됩니다</h2>
   <ol class="steps">
     <li><b>상담</b><br>전화·문자로 원하는 구성을 알려 주세요.</li>
@@ -347,6 +401,7 @@ body.tv .page,body.tv .cbar{display:none!important}
   </div>
   <p class="sub" style="margin-top:14px">※ 사진과 영상은 실제 시공 현장입니다. 금액은 참고용이며 정확한 모양·금액·기간은 현장 실측 후 정해집니다.</p>
 
+  <div class="foot" id="foot"></div>
   <div id="zm" hidden><img id="zI" alt=""><button type="button" id="zX">✕ 닫기</button><button type="button" class="zn zp" id="zP" aria-label="이전 사진">‹</button><button type="button" class="zn zx" id="zN" aria-label="다음 사진">›</button><span id="zT"></span></div>
   <button type="button" id="toTop" hidden aria-label="맨 위로">▲<br>맨 위</button>
   <div class="cbar"><a class="btn2 pri" id="cTel" href="#">📞 전화 상담</a><a class="btn2" id="cSms" href="#">💬 문자 문의</a></div>
@@ -359,6 +414,17 @@ body.tv .page,body.tv .cbar{display:none!important}
 (function () {
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, W = DECO.won, S = DECO.settings(), Q = new URLSearchParams(location.search);
   var cust = Q.get('c') === '1'; if (cust) document.body.classList.add('cust');
+  // 손님 화면: 첫 화면 문구·바로 가기 버튼·회사 정보·스르륵 나타나기
+  if (cust) { (function () { var h = document.querySelector('.hero');
+    h.querySelector('.h1o').hidden = true; h.querySelector('.h1c').hidden = false; h.querySelector('.hx2').hidden = false;
+    $('heroP').textContent = '실제로 시공한 집입니다. 직접 불을 켜 보고, 빛 색을 바꿔 보고, 방마다 둘러보세요.';
+    var c = document.createElement('div'); c.className = 'hcta'; c.innerHTML = '<a class="g" href="#s1">💡 직접 불 켜 보기</a><a class="w" href="#s5">📝 무료 실측 상담</a>'; h.appendChild(c);
+    var t = String(S.phone || ''), tn = t.replace(/[^\d]/g, '');
+    $('foot').innerHTML = '<b class="n">' + E(S.company || '데코브라이트') + '</b>' + E(S.bizName || '간접조명 · 실링팬 전문') + '<br>' + (tn ? '<a href="tel:' + tn + '">📞 ' + E(t) + '</a><br>' : '') +
+      (S.addr ? '📍 ' + E(S.addr) + '<br>' : '') + (S.ceo ? '대표 ' + E(S.ceo) : '') + (S.bizno ? ' · 사업자등록번호 ' + E(S.bizno) : '') +
+      '<small>사진과 영상은 모두 실제 시공 현장입니다. 금액은 참고용이며, 정확한 금액은 현장 실측 후 알려 드립니다.</small>';
+    if ('IntersectionObserver' in window) { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -8% 0px' });
+      document.querySelectorAll('.page > h2.grp, .page > .pk, .page > .exv, .page > .vgal, .page > .why, .page > .steps, .page > .faq, .page > .calc, .page > .card, .page > .ba, .page > .gal, .page > .trust, .page > .foot').forEach(function (el) { el.classList.add('rv'); io.observe(el); }); } })(); }
 
   // ── 가격: 이 기기 가격표, 고객 링크로 열면 사장님 가격(p=)으로 덮어씀 ──
   var PK = DECO.pkgs().filter(function (p) { return p.id !== 'none' && p.f; }), IT = {}; DECO.items().forEach(function (i) { IT[i.id] = i.price || 0; });
