@@ -53,7 +53,7 @@
   D.savePriceEdits = function (o) { return wr(KP, o); };
   D.pkgs = function () { var e = D.priceEdits().pkgs || {};
     return (window.DECO_PKGS0 || []).map(function (p) { var x = e[p.id] || {}, o = {}; for (var k in p) o[k] = p[k];
-      if (x.price != null && p.id !== 'none') o.price = x.price; if (x.desc) o.desc = x.desc; if (x.name) o.name = x.name; o.hide = !!x.hide && p.id !== 'none'; return o; }); };
+      if (x.price != null && p.id !== 'none') o.price = x.price; if (x.desc) { o.desc = x.desc; o.descEdited = true; } if (x.name) o.name = x.name; o.hide = !!x.hide && p.id !== 'none'; return o; }); };
   D.items = function () { var E2 = D.priceEdits(), e = E2.items || {};
     return (window.DECO_ITEMS0 || []).map(function (i) { var x = e[i.id] || {}, o = {}; for (var k in i) o[k] = i[k];
       if (x.price != null) o.price = x.price; if (x.name) o.name = x.name; if (x.unit) o.unit = x.unit; o.hide = !!x.hide; return o; })
