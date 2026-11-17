@@ -94,7 +94,8 @@
     if (skip(t.parentNode)) return;
     var m = v.match(ONE), lead = m && M[m[1]], first = !t.previousSibling;
     var rest = v.replace(RE, '').replace(/^\s+/, first || lead ? '' : ' ').replace(/ {2,}/g, ' ');
-    if (lead) { t.nodeValue = (first ? '' : ' ') + rest.replace(/^\s+/, ''); var s = ic(lead); if (!t.nodeValue.trim() && !t.nextSibling) s.setAttribute('class', 'dic solo'); t.parentNode.insertBefore(s, t); }
+    var par = t.parentNode;
+    if (lead) { t.nodeValue = (first ? '' : ' ') + rest.replace(/^\s+/, ''); var s = ic(lead); if (!t.nodeValue.trim() && !t.nextSibling) s.setAttribute('class', 'dic solo'); if (t.parentNode === par) par.insertBefore(s, t); }
     else t.nodeValue = rest;
   }
   function walk(root) {

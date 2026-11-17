@@ -138,3 +138,22 @@ body.app .sum div{border-radius:10px}
 
 /* 달력: 일정 이름표 색을 한 톤 차분하게 */
 body.app .cal td,body.app .cal th{border-color:var(--line)!important}
+
+/* ── 화면별 다듬기 2 ── */
+/* 굵은 왼쪽·위쪽 색 띠 → 가는 선 카드 */
+body.app .pk button,body.app .hsInfo,body.app details,body.app .tr,body.app .rp,body.app .note{border:1px solid var(--line)!important;border-radius:var(--r)!important;box-shadow:var(--sh);background:#fff}
+body.app .orders .o.today,body.app .o.today{border-left-width:3px!important}
+body.app .it{border-left-width:3px!important;border-radius:6px}
+body.app .m{border-top-width:2px!important;border-radius:12px;box-shadow:var(--sh)}
+body.app details>summary{font-weight:700;letter-spacing:-.02em}
+/* 주황 테두리 안내 상자(화면 속 인라인) → 차분한 상자 */
+body.app [style*="#FFF8EC"],body.app [style*="#FFF6E5"],body.app [style*="2px solid #E0952B"]{background:#FBF9F5!important;border:1px solid var(--line)!important;border-radius:var(--r)!important}
+body.app [style*="#FCEBD2"]:not(.d){background:var(--warm-s)!important;border-color:#E9D6B6!important}
+body.app .next{background:#FBF9F5;border-color:var(--line)}
+body.app .alert,body.app .ask{border-width:1px!important;border-color:#E5CFA9!important}
+/* 사용 안내의 파란 글씨: 덜 쨍한 남색 */
+body.app details a,body.app .guide a{color:#2D5B8C;font-weight:700;text-decoration-color:rgba(45,91,140,.35)}
+/* 단계 번호 동그라미 */
+body.app .num,body.app .stepn{background:var(--pri);color:#fff}
+/* 손님 모델하우스: 반짝이는 그라데이션 단추 → 단색 */
+body.cust a.g,body.cust button.g{background:#EBCB94!important;background-image:none!important;color:#1D1B18!important;box-shadow:0 8px 20px -12px rgba(0,0,0,.5)!important;border:0!important}
