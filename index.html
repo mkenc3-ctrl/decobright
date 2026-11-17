@@ -110,7 +110,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
 .ntc>.nb>*{margin:0!important;position:relative}
 .ntc .ackd{display:none!important}
 .ntc .ack{position:absolute;top:6px;right:6px;z-index:2;font:inherit;font-size:14px;font-weight:700;background:#fff;color:#2A211C;border:1px solid #d9cbb6;border-radius:999px;padding:5px 10px;cursor:pointer}
-.ntc>.nb>*:not(.ackd){padding-right:74px!important}
+.ntc>.nb>.ackable:not(.ackd){padding-right:74px!important}
 .ntc .ntr{font:inherit;font-size:14px;background:none;border:0;color:#8a6a4e;text-decoration:underline;cursor:pointer;justify-self:start;padding:4px}
 </style>
 </head>
@@ -410,15 +410,21 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
 <script>
 // 처음 화면 알림 칸: 한 묶음으로 접기 · 칸마다 「✓ 확인」 누르면 숨김 (내용이 바뀌면 다시 보임, 자료는 지우지 않음)
 (function () {
-  var IDS = ['dueBox', 'bkBox', 'balBox', 'goalBox', 'careBox', 'pastBox', 'phBox', 'inqBox', 'asBox', 'okBox', 'upBox', 'todo', 'alert'];
+  var IDS = ['dueBox', 'bkBox', 'balBox', 'goalBox', 'careBox', 'pastBox', 'phBox', 'inqBox', 'asBox', 'okBox', 'upBox', 'todo', 'alert'], MORE = ['kEvening', 'kMorning', 'brief'];
   var first = document.getElementById(IDS[0]); if (!first) return;
+  // 앱을 열면 메뉴(카테고리)가 먼저 보이게: 큰 메뉴를 검색 칸 바로 아래로
+  var mn = document.querySelector('.page > nav.menu, .page > .menu:not(.tiles)'), sr = document.querySelector('.page > .srch'); if (mn && sr) { sr.parentNode.insertBefore(mn, sr.nextSibling);
+    // 자주 여는 화면 · 고객·일정 · 현장 작업 · 기타 카테고리도 큰 메뉴 바로 아래로
+    var fh = document.getElementById('favH'), cs = document.getElementById('cases'), after = mn, nx;
+    if (fh && cs) { var stop = cs.previousElementSibling; for (var el = fh; el && el !== stop; el = nx) { nx = el.nextElementSibling; if (el.tagName === 'SCRIPT') continue; after.parentNode.insertBefore(el, after.nextSibling); after = el; } mn = after; } }
   var rd = function (k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }, wr = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-  var dt = document.createElement('details'); dt.className = 'ntc'; dt.open = rd('deco-ntcopen', true) !== false;
+  var dt = document.createElement('details'); dt.className = 'ntc'; dt.open = rd('deco-ntcopen2', false) === true;
   dt.innerHTML = '<summary>🔔 알림·할 일 <small id="ntcN" style="font-weight:500;color:var(--muted)"></small></summary><div class="nb"></div>';
   first.parentNode.insertBefore(dt, first); var nb = dt.lastChild;
-  IDS.forEach(function (id) { var e = document.getElementById(id); if (e) nb.appendChild(e); });
+  if (mn) mn.parentNode.insertBefore(dt, mn.nextSibling);
+  IDS.concat(MORE).forEach(function (id) { var e = document.getElementById(id); if (e) nb.appendChild(e); });
   var rs = document.createElement('button'); rs.type = 'button'; rs.className = 'ntr'; rs.textContent = '숨긴 알림 다시 보기'; nb.appendChild(rs);
-  dt.addEventListener('toggle', function () { wr('deco-ntcopen', dt.open); });
+  dt.addEventListener('toggle', function () { wr('deco-ntcopen2', dt.open); });
   var ACK = rd('deco-ack', {});
   function txt(e) { var t = ''; e.childNodes.forEach(function (n) { if (!(n.classList && n.classList.contains('ack'))) t += n.textContent || ''; }); return t.replace(/\s+/g, ' ').trim(); }
   function key(e) { var t = txt(e), h = 0; for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return e.id + ':' + h; }
@@ -426,7 +432,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   function apply() { if (busy) return; busy = true; var n = 0, hid = 0;
     IDS.forEach(function (id) { var e = document.getElementById(id); if (!e) return; var t = txt(e);
       if (!t) { e.classList.remove('ackd'); return; }
-      var k = key(e), a = ACK[k]; e.classList.toggle('ackd', !!a);
+      var k = key(e), a = ACK[k]; e.classList.toggle('ackd', !!a); e.classList.add('ackable');
       if (!e.querySelector(':scope > .ack')) { var b = document.createElement('button'); b.type = 'button'; b.className = 'ack'; b.textContent = '✓ 확인'; b.title = '확인했으면 숨깁니다'; e.appendChild(b); }
       if (a) hid++; else if (!e.hidden && e.offsetParent !== null) n++; });
     document.getElementById('ntcN').textContent = n ? n + '개' : '모두 확인함';
