@@ -1,0 +1,32 @@
+{
+  "id": "deco-emodel",
+  "name": "데코브라이트 e모델하우스",
+  "short_name": "데코 e모델",
+  "description": "데코브라이트 간접조명·실링팬 실제 시공 둘러보기 · 카톡 상담",
+  "lang": "ko",
+  "start_url": "emodel.html?c=1",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1d1714",
+  "theme_color": "#2F6DB5",
+  "icons": [
+    {
+      "src": "icons/cust-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/cust-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/cust-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

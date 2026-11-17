@@ -21,7 +21,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700;900&display=swap">
 <link rel="stylesheet" href="common.css">
 <link rel="manifest" href="manifest.webmanifest">
-<script>if (/[?&]c=1/.test(location.search)) { document.title = '데코브라이트 e모델하우스'; var mf = document.querySelector('link[rel=manifest]'); if (mf) mf.remove(); }</script>
+<script>if (/[?&]c=1/.test(location.search)) { document.title = '데코브라이트 e모델하우스'; var mf = document.querySelector('link[rel=manifest]'); if (mf) mf.href = 'manifest-cust.webmanifest'; document.write('<link rel="apple-touch-icon" href="icons/cust-192.png">'); document.addEventListener('DOMContentLoaded', function () { var ic = document.querySelector('link[rel=icon]'); if (ic) { ic.href = 'icons/cust-192.png'; ic.type = 'image/png'; } }); } else document.write('<link rel="apple-touch-icon" href="icons/app-192.png">');</script>
 <link rel="icon" href="icons/icon.svg">
 <style>
 .hero{background:#1d1714;color:#fbf2e4;border-radius:14px;padding:18px 18px 14px;margin-bottom:12px;position:relative;overflow:hidden;min-height:150px;display:flex;flex-direction:column;justify-content:flex-end}
