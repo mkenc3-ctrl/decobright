@@ -177,3 +177,39 @@ body.app td a:hover{text-decoration-color:var(--acc)}
 /* 글자 링크(지우기·보기 등): 브라우저 기본 파랑 대신 차분한 색 */
 body.app :where(a:not([class]):not([style*="color"])){color:var(--acc);text-decoration-color:rgba(154,106,51,.35)}
 body.app h1.t>svg.dic{display:none}
+
+/* ════ 조명 쇼룸 양식 (첫 화면과 같은 분위기를 모든 화면에) ════ */
+:root{--paper:#F3EEE6;--acc:#8C6430;--warm:#A87B3E;--warm-s:#F4EADA;--line:#E6DED2;--line2:#EFE9E0;--bd:#D8CEBF;--pri:#1E1A16;--pri-d:#0F0D0B;--pri-s:#F1EBE2;
+  --serif:'Noto Serif KR','Nanum Myeongjo',serif;--brass:#CDA66A;--brass-d:#A87B3E;
+  --sh:0 1px 0 rgba(70,52,28,.03),0 14px 30px -22px rgba(70,52,28,.38);--sh-h:0 1px 0 rgba(70,52,28,.04),0 20px 38px -22px rgba(70,52,28,.45)}
+body.app:not(.home)::before{background:radial-gradient(900px 480px at 85% -12%,rgba(214,160,80,.14),transparent 62%),var(--paper)!important}
+body.app{background:var(--paper)}
+/* 화면 제목: 명조 큰 제목 + 위에 황동 가는 선 */
+body.app:not(.home) h1.t{font-family:var(--serif)!important;font-weight:600!important;font-size:clamp(30px,5.4vw,44px)!important;letter-spacing:-.045em!important;line-height:1.15!important;margin:18px 0 10px!important;color:#1A1612}
+body.app:not(.home) h1.t::before{content:"DECO BRIGHT";display:flex;align-items:center;gap:10px;font:600 10.5px/1 var(--ff);letter-spacing:.32em;color:var(--brass-d);margin-bottom:14px}
+body.app:not(.home) .sub{font-size:15px;color:#7E7467;max-width:46em}
+body.app .brandline{color:var(--brass-d)}
+/* 구역 이름표: 황동색 자간 넓은 글씨 + 가는 선 */
+body.app:not(.home) h2.grp,body.app:not(.home) .grp{font:600 12px/1 var(--ff)!important;letter-spacing:.22em!important;color:var(--brass-d)!important;border-bottom:0!important;margin:34px 0 14px!important;padding:0!important;display:flex;align-items:center;gap:14px}
+body.app:not(.home) h2.grp::after{content:"";flex:1;height:1px;background:var(--line)}
+body.app:not(.home) h2.grp small,body.app:not(.home) .grp small{letter-spacing:.02em;font-weight:400!important;color:#8E8476!important;font-size:13px!important}
+body.app h2.s,body.app .sec{font-family:var(--serif)!important;font-weight:600!important;font-size:20px!important;letter-spacing:-.035em!important}
+body.app h2:not(.grp):not(.s){font-family:var(--serif);font-weight:600;letter-spacing:-.035em}
+/* 카드: 흰 면 + 은은한 그림자 */
+body.app .card,body.app .c,body.app .m,body.app .rp,body.app .tr,body.app details,body.app #flt,body.app .cat button{box-shadow:var(--sh)!important}
+body.app .card{border-radius:16px!important}
+/* 단추: 주요 단추는 황동색 */
+body.app .btn2.pri,body.app .menu .main{background:linear-gradient(140deg,#D7B273,#B98A48)!important;border-color:transparent!important;color:#1A140C!important;font-weight:700!important}
+body.app .btn2.pri:hover{filter:brightness(1.05)}
+body.app .menu .main span{color:#3B2B14!important}
+body.app .cat button[aria-pressed=true]{background:#1E1A16!important;border-color:#1E1A16!important}
+body.app .cat button[aria-pressed=true]::before{background:var(--brass)}
+/* 숫자: 명조 */
+body.app .cat button b,body.app .sum b,body.app .kpi b,body.app .big b{font-family:var(--serif);font-weight:600}
+/* 맨 위 이동 단추 */
+body.app .back,body.app a.home{background:rgba(255,255,255,.8)!important;border-color:var(--line)!important}
+/* 모든 큰 제목 명조 (사진 머리글 포함) */
+body.app h1{font-family:var(--serif);font-weight:600;letter-spacing:-.04em}
+body.app .hero h1,body.app .qhero h1{font-family:var(--serif)!important;font-weight:600!important}
+/* 견적(사진) 화면 제목 명조 */
+.qhero h1{font-family:'Noto Serif KR',serif!important;font-weight:600!important;letter-spacing:-.04em}

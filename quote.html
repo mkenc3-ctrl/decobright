@@ -15,7 +15,7 @@
 /* 레이아웃: 왼쪽 큰 미리보기(밤 천장 캔버스) + 오른쪽 견적 패널, 폰에서는 위아래로 쌓임 */
 :root{
   --bg:#FBF6EE; --surface:#ffffff; --ink:#1B1E22; --muted:#5d6168; --line:#E6D9C6;
-  --night:#1b2233; --warm:#e9a23b; --warm-ink:#7a4a0e; --warm-soft:#fbefdc; --ok:#2E6A4E; --bad:#B42318;
+  --night:#1E1A16; --warm:#CDA66A; --warm-ink:#7a4a0e; --warm-soft:#fbefdc; --ok:#2E6A4E; --bad:#B42318;
   --f-display:"Noto Sans KR",sans-serif;
   --f-body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --f-num:"Noto Sans KR","Malgun Gothic",sans-serif;
@@ -47,15 +47,15 @@ canvas#view{display:block;width:100%;height:auto;cursor:default}
 .stage-row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;font-size:13px;color:#c9cdd8}
 .stage-row label.slider{display:flex;align-items:center;gap:10px;flex:1 1 220px}
 input[type=range]{flex:1;accent-color:#e9a23b}
-.seg{display:inline-flex;border:1px solid #3a4358;border-radius:10px;overflow:hidden}
+.seg{display:inline-flex;border:1px solid #4A4036;border-radius:10px;overflow:hidden}
 .seg button{font:inherit;font-size:13px;background:transparent;color:#c9cdd8;border:0;padding:8px 12px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:#e9a23b;color:#2a1a04;font-weight:600}
 .seg button:focus-visible,.btn:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
 .btn{font:inherit;font-weight:600;border-radius:10px;padding:9px 13px;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center;font-size:14px}
 .btn-warm{background:var(--warm);color:#2a1a04}
 .btn-warm:hover{filter:brightness(1.06)}
-.btn-ghost{background:transparent;color:#e4e6ec;border-color:#3a4358}
-.btn-ghost:hover{background:#252d40}
+.btn-ghost{background:transparent;color:#e4e6ec;border-color:#4A4036}
+.btn-ghost:hover{background:#2C2620}
 .btn-ghost[aria-pressed="true"]{background:#50bee6;color:#04212c;border-color:#50bee6}
 .btn-line{background:var(--surface);color:var(--ink);border-color:var(--line)}
 .btn-line:hover{border-color:var(--warm)}
@@ -64,23 +64,23 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 .drop input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .tools{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
 @media (max-width:700px){.tools{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.tool{font:inherit;text-align:left;background:#202839;color:#e4e6ec;border:1px solid #3a4358;border-radius:10px;padding:9px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tool{font:inherit;text-align:left;background:#26211C;color:#e4e6ec;border:1px solid #4A4036;border-radius:10px;padding:9px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
 .tool b{font-size:14px;font-weight:600}
 .tool span{font-size:11.5px;color:#9ea6b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tool[aria-pressed="true"]{background:#e9a23b;border-color:#e9a23b;color:#2a1a04}
 .tool[aria-pressed="true"] span{color:#5a3a0c}
 .tool:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
 .toolhint{margin:0;font-size:13px;color:#c9cdd8}
-.selbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:#202839;border-radius:10px;padding:10px;font-size:13px}
+.selbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:#26211C;border-radius:10px;padding:10px;font-size:13px}
 .selbar strong{color:#ffd99a}
 .selbar .slider{display:flex;align-items:center;gap:8px;flex:1 1 180px}
-.editbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#202839;border-radius:10px;padding:10px}
+.editbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#26211C;border-radius:10px;padding:10px}
 .editbar .hint{flex:1 1 100%;font-size:12.5px;color:#aab1c2;margin:0}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:#c9cdd8}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#dfe2ea;cursor:pointer}
 .chk input{accent-color:#50bee6}
-.ai-note{background:#252d40;color:#e8eaf0;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.55}
+.ai-note{background:#2C2620;color:#e8eaf0;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.55}
 .ai-note b{color:#ffd99a}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
 .panel h2{font-family:var(--f-display);font-size:20px;margin:0}
@@ -144,6 +144,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="design.css">
 <script src="design.js" defer></script>
 </head>
@@ -403,7 +404,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       gr=g.createLinearGradient(t0*w,0,t1*w,0); gr.addColorStop(0,"#e6e0d5"); gr.addColorStop(.5,"#f6f2ea"); gr.addColorStop(1,"#d6cec0"); poly([[t0,.315],[t1,.315],[t1,.775],[t0,.775]],gr);} };
     curtain(.235,.31); curtain(.69,.765);
     poly([[.215,.3],[.785,.3],[.775,.318],[.225,.318]],"rgba(70,62,52,.5)");
-    poly([[.07,.44],[.17,.47],[.17,.62],[.07,.64]],"#1e2126"); poly([[.04,.74],[.19,.73],[.19,.77],[.04,.79]],"#b9b0a2");
+    poly([[.07,.44],[.17,.47],[.17,.62],[.07,.64]],"#1E1A16"); poly([[.04,.74],[.19,.73],[.19,.77],[.04,.79]],"#b9b0a2");
     poly([[.84,.62],[.97,.6],[.98,.86],[.83,.84]],"#cfc6b8"); poly([[.8,.72],[.99,.70],[1,.9],[.79,.88]],"#ddd5c8");
     const cq=[[0,0],[1,0],[.775,.3],[.225,.3]].map(([x,y])=>({x,y}));
     g.strokeStyle="rgba(80,72,62,.42)"; g.lineWidth=4; g.beginPath(); insetQ(cq,.17,.2).forEach((p,i)=>i?g.lineTo(p.x*w,p.y*h):g.moveTo(p.x*w,p.y*h)); g.closePath(); g.stroke();
@@ -421,7 +422,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     g.strokeStyle="#4a4339"; g.lineWidth=18; g.strokeRect(R.x,R.y,R.w,R.h);
     g.fillStyle="#dfe9f2"; g.fillRect(R.x+200,R.y-9,R.w-400,18); g.strokeStyle="#7d8a96"; g.lineWidth=3; g.strokeRect(R.x+200,R.y-9,R.w-400,18);
     g.setLineDash([14,10]); g.strokeStyle="#8a7b66"; g.lineWidth=3; g.strokeRect(R.x+20,R.y+20,R.w-40,40); g.setLineDash([]);
-    g.fillStyle="#2a2d33"; g.fillRect(R.x+14,R.y+280,26,240);
+    g.fillStyle="#2E2822"; g.fillRect(R.x+14,R.y+280,26,240);
     g.fillStyle="#b9b0a2"; g.fillRect(R.x+40,R.y+250,70,300);
     g.fillStyle="#cfc6b8"; g.fillRect(R.x+R.w-210,R.y+230,190,340); g.fillStyle="#ddd5c8"; g.fillRect(R.x+R.w-180,R.y+250,150,300);
     g.fillStyle="#d2c8b8"; g.fillRect(R.x+R.w/2-150,R.y+R.h-30,300,30);
