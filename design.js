@@ -71,7 +71,8 @@
     target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
     broom: '<path d="m13 11 9-9M14.6 12.6c.8.8.9 2.1.2 3L10 22l-8-8 6.4-4.8c.9-.7 2.2-.6 3 .2z"/><path d="m6.8 10.4 6.8 6.8"/>',
     x: '<path d="M18 6 6 18M6 6l12 12"/>',
-    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>'
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/>'
   };
   var M = {
     '📞': 'phone', '☎': 'phone', '📵': 'phone', '💬': 'chat', '📅': 'cal', '🗓': 'cal', '📍': 'pin', '📌': 'pin', '👤': 'user', '🧑': 'user', '👥': 'users', '👪': 'users',
@@ -83,7 +84,7 @@
     '🚚': 'truck', '⏳': 'clock', '⏰': 'clock', '⏱': 'clock', '👀': 'eye', '🔎': 'search', '🔍': 'search', '♥': 'heart', '📐': 'ruler', '📏': 'ruler', '🏷': 'tag',
     '🔖': 'bookmark', '❓': 'help', '🤔': 'help', '✨': 'spark', '🌀': 'fan', '🎤': 'mic', '📊': 'chart', '📈': 'chart', '📢': 'mega', '📣': 'mega', '↔': 'swap',
     '🔁': 'swap', '🔄': 'swap', '💳': 'card', '🛟': 'lifebuoy', '🤖': 'robot', '↩': 'undo', '🔒': 'lock', '🔔': 'bell', '📇': 'list', '🖨': 'print', '⚙': 'gear',
-    '✂': 'scissors', '🚪': 'door', '🎯': 'target', '🧹': 'broom', '❌': 'x', '🙅': 'x', '👉': 'arrow', '➡': 'arrow', '🧭': 'pin', '🗺': 'pin', '📖': 'doc', '🗜': 'box', '🧱': 'box'
+    '✂': 'scissors', '🚪': 'door', '🎯': 'target', '🧹': 'broom', '❌': 'x', '🙅': 'x', '👉': 'arrow', '➡': 'arrow', '🧭': 'pin', '🗺': 'pin', '📖': 'doc', '🗜': 'box', '🧱': 'box', '🔳': 'qr', '📶': 'chart', '🔊': 'mega', '🎛': 'gear', '🧪': 'spark', '🔥': 'spark', '⏸': 'clock', '🔜': 'arrow', '◀': 'undo', '👇': 'arrow', '👋': 'hand', '🌸': 'spark', '⭕': 'check', '🥇': 'star', '🥈': 'star', '🥉': 'star'
   };
   var RE = /(\p{Extended_Pictographic}|[↔↩✔✅☑])️?‍?/gu, ONE = /^\s*(\p{Extended_Pictographic}|[↔↩✔✅☑])️?/u;
   var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1, SELECT: 1, OPTION: 1, CODE: 1, PRE: 1, NOSCRIPT: 1, svg: 1, SVG: 1, TITLE: 1 };
@@ -92,7 +93,7 @@
   function fix(t) {
     var v = t.nodeValue; if (!v || !t.parentNode || !RE.test(v)) return; RE.lastIndex = 0;
     if (skip(t.parentNode)) return;
-    var m = v.match(ONE), lead = m && M[m[1]], first = !t.previousSibling;
+    var m = v.match(ONE), lead = m && (M[m[1]] || (t.parentNode.nodeName === 'I' ? 'spark' : '')), first = !t.previousSibling;
     var rest = v.replace(RE, '').replace(/^\s+/, first || lead ? '' : ' ').replace(/ {2,}/g, ' ');
     var par = t.parentNode;
     if (lead) { t.nodeValue = (first ? '' : ' ') + rest.replace(/^\s+/, ''); var s = ic(lead); if (!t.nodeValue.trim() && !t.nextSibling) s.setAttribute('class', 'dic solo'); if (t.parentNode === par) par.insertBefore(s, t); }

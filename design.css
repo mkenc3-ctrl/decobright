@@ -157,3 +157,23 @@ body.app details a,body.app .guide a{color:#2D5B8C;font-weight:700;text-decorati
 body.app .num,body.app .stepn{background:var(--pri);color:#fff}
 /* 손님 모델하우스: 반짝이는 그라데이션 단추 → 단색 */
 body.cust a.g,body.cust button.g{background:#EBCB94!important;background-image:none!important;color:#1D1B18!important;box-shadow:0 8px 20px -12px rgba(0,0,0,.5)!important;border:0!important}
+/* 첫 화면 알림: 색색 상자 → 흰 카드 + 왼쪽 얇은 색 표시 하나 */
+body.home .ntc .syncbox{background:#fff!important;border-width:1px 1px 1px 3px!important;border-top-color:var(--line)!important;border-right-color:var(--line)!important;border-bottom-color:var(--line)!important;border-radius:10px!important;font-weight:500!important;color:var(--ink)}
+body.home .ntc .syncbox:not([style*="border-color"]){border-left-color:var(--bd)!important}
+body.home .ntc .syncbox.due{border-left-color:var(--warm)!important}
+body.home .ntc .syncbox b{font-weight:700}
+body.home .ntc .ack{border-color:var(--line)!important;color:var(--ink2)!important;font-weight:600!important}
+/* 고객 카드: 주요 단추(전화·문자·답장)와 보조 단추 구분 */
+body.app #quick{gap:8px!important}
+body.app #quick>.btn2:not(#call):not(#sms):not(#rpSel),body.app #quick #maps a{height:38px!important;min-height:38px!important;font-size:14px!important;font-weight:500!important;padding:0 12px!important;border-radius:999px!important;background:rgba(255,255,255,.75)!important;color:var(--ink2)!important}
+body.app #quick #call,body.app #quick #sms,body.app #quick #rpSel{height:48px}
+body.app #quick #call{min-width:120px}
+/* 구역 제목: 굵은 먹선 → 가는 선, 제목은 조금 작고 단단하게 */
+body.app h2.s,body.app .sec{border-bottom:1px solid var(--line)!important;padding-bottom:8px!important;font-size:18px!important;font-weight:700!important;letter-spacing:-.03em}
+body.app h2.s small,body.app h2.s span{font-weight:400}
+/* 표 안 링크: 쨍한 파랑 대신 먹색 + 은은한 밑줄 */
+body.app td a,body.app .sum a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--bd);text-underline-offset:3px}
+body.app td a:hover{text-decoration-color:var(--acc)}
+/* 글자 링크(지우기·보기 등): 브라우저 기본 파랑 대신 차분한 색 */
+body.app :where(a:not([class]):not([style*="color"])){color:var(--acc);text-decoration-color:rgba(154,106,51,.35)}
+body.app h1.t>svg.dic{display:none}

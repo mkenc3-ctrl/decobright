@@ -20,7 +20,7 @@
 .bars{display:flex;flex-direction:column;gap:6px}
 .bar{display:grid;grid-template-columns:64px 1fr 110px;gap:8px;align-items:center;font-size:14px}
 .bar .t{height:18px;background:#efe6d8;border-radius:6px;overflow:hidden;position:relative}
-.bar .t i{position:absolute;inset:0 auto 0 0;background:var(--warm,#E0952B);border-radius:6px}
+.bar .t i{position:absolute;inset:0 auto 0 0;background:var(--warm,#A87634);border-radius:6px}
 .bar .t i.q{background:#d8cbb6}
 .bar .n{text-align:right;font-variant-numeric:tabular-nums}
 .bar.cur{font-weight:800}
@@ -58,7 +58,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="kpis" id="kpis"></div>
   <h2 class="grp">최근 12개월</h2>
   <div class="card">
-    <div class="lg"><span><i style="background:#d8cbb6"></i>견적 금액</span><span><i style="background:#E0952B"></i>계약 금액</span></div>
+    <div class="lg"><span><i style="background:#d8cbb6"></i>견적 금액</span><span><i style="background:#A87634"></i>계약 금액</span></div>
     <div class="bars" id="bars"></div>
   </div>
   <h2 class="grp">이달 견적 상태</h2>
@@ -214,7 +214,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
       var qs = Q.filter(function (q) { return q.custId === c.id && DONE[q.status]; }); if (qs.length) g[s].c++; g[s].a += qs.reduce(function (t, q) { return t + amt(q); }, 0); });
     var ks = Object.keys(g).sort(function (a, b) { return g[b].n - g[a].n; });
     $('src').innerHTML = ks.length ? '<tr><th>경로</th><th style="text-align:right">고객</th><th style="text-align:right">계약</th><th style="text-align:right">계약 금액</th></tr>' + ks.map(function (s) {
-      var mx = g[ks[0]].n; return '<tr><td>' + E(s) + '<div style="height:12px;border-radius:6px;background:#E0952B;margin-top:4px;width:' + Math.max(6, Math.round(g[s].n / mx * 100)) + '%"></div><div style="height:8px;border-radius:4px;background:#2E6A4E;margin-top:2px;width:' + Math.round(g[s].c / mx * 100) + '%"></div></td><td class="n">' + g[s].n + '명</td><td class="n">' + g[s].c + '명</td><td class="n">' + W(g[s].a) + '</td></tr>'; }).join('') : '<tr><td>아직 고객이 없습니다.</td></tr>';
+      var mx = g[ks[0]].n; return '<tr><td>' + E(s) + '<div style="height:12px;border-radius:6px;background:#A87634;margin-top:4px;width:' + Math.max(6, Math.round(g[s].n / mx * 100)) + '%"></div><div style="height:8px;border-radius:4px;background:#2E6A4E;margin-top:2px;width:' + Math.round(g[s].c / mx * 100) + '%"></div></td><td class="n">' + g[s].n + '명</td><td class="n">' + g[s].c + '명</td><td class="n">' + W(g[s].a) + '</td></tr>'; }).join('') : '<tr><td>아직 고객이 없습니다.</td></tr>';
     $('imgSrc').onclick = function () { if (!ks.length) return; var tot = ks.reduce(function (t, s) { return t + g[s].n; }, 0);
       DECO.docImg({ title: '고객을 알게 된 경로', date: DECO.today(), info: [['전체 고객', tot + '명'], ['계약한 고객', ks.reduce(function (t, s) { return t + g[s].c; }, 0) + '명']],
         secs: [['경로별 (고객 · 계약 · 비율)', ks.map(function (s) { return [s + '  ' + '■'.repeat(Math.max(1, Math.round(g[s].n / tot * 20))), g[s].n + '명 · 계약 ' + g[s].c + ' · ' + Math.round(g[s].n / tot * 100) + '%']; })], ['계약 금액', ks.filter(function (s) { return g[s].a; }).map(function (s) { return [s, W(g[s].a)]; })]], notes: ['※ 고객 등록 때 고른 「알게 된 경로」 기준'] })
@@ -331,7 +331,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     $('yoy').innerHTML = rows; })();
   (function () { var nw = new Date(), mk = nw.getFullYear() + '-' + String(nw.getMonth() + 1).padStart(2, '0'), td = DECO.today(), a = 0, b = 0, na = 0, nb = 0;
     DECO.orders().forEach(function (o) { if (o.status === '보류' || String(o.workDate || '').slice(0, 7) !== mk) return; var q = o.quoteId && DECO.getQuote(o.quoteId), t = q && q.totals ? q.totals.total || 0 : 0; if (o.status === '완료' || o.workDate < td) { a += t; na++; } else { b += t; nb++; } });
-    $('fcT').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:18px;font-size:17px"><div>이달 예상 <b style="font-size:26px;color:#C4572A">' + W(a + b) + '</b></div><div>끝난 시공 ' + na + '건 · ' + W(a) + '</div><div>남은 시공 ' + nb + '건 · ' + W(b) + '</div></div><p class="sub" style="margin:6px 0 0">시공일이 잡힌 지시서만 셉니다. 계약했는데 시공일이 없으면 지시서에서 날짜를 넣어 주세요.</p>'; })();
+    $('fcT').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:18px;font-size:17px"><div>이달 예상 <b style="font-size:26px;color:#A87634">' + W(a + b) + '</b></div><div>끝난 시공 ' + na + '건 · ' + W(a) + '</div><div>남은 시공 ' + nb + '건 · ' + W(b) + '</div></div><p class="sub" style="margin:6px 0 0">시공일이 잡힌 지시서만 셉니다. 계약했는데 시공일이 없으면 지시서에서 날짜를 넣어 주세요.</p>'; })();
   (function () { var R = []; for (var i = 5; i >= 0; i--) { var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i); R.push({ k: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), m: d.getMonth() + 1, n: 0, s: 0 }); }
     DECO.list().forEach(function (q) { if (!/계약|시공|완료/.test(q.status || '')) return; var dt = new Date(q.created || q.updated), k = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0'); R.forEach(function (r) { if (r.k === k) { r.n++; r.s += q.totals ? q.totals.total || 0 : 0; } }); });
     $('avT').innerHTML = '<tr><th>달</th><th style="text-align:right">계약</th><th style="text-align:right">평균 금액</th></tr>' + R.map(function (r) { return '<tr><td>' + r.m + '월</td><td class="n">' + r.n + '건</td><td class="n">' + (r.n ? W(Math.round(r.s / r.n)) : '-') + '</td></tr>'; }).join(''); })();
@@ -345,9 +345,9 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
   (function () { var Q = DECO.list(), D2 = [], n = Q.length, c = 0;
     Q.forEach(function (q) { if (!/계약|시공|완료/.test(q.status || '')) return; c++; var t = q.sign && q.sign.at ? q.sign.at : q.pays && q.pays[0] && q.pays[0].d ? new Date(q.pays[0].d + 'T12:00').getTime() : 0; if (t && q.created && t >= q.created) D2.push((t - q.created) / 864e5); });
     var av = D2.length ? Math.round(D2.reduce(function (s, x) { return s + x; }, 0) / D2.length) : null, f = D2.filter(function (x) { return x <= 7; }).length;
-    $('ldT').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:18px;font-size:17px"><div>견적 <b style="font-size:24px">' + n + '</b>건 중 계약 <b style="font-size:24px">' + c + '</b>건 (' + (n ? Math.round(c / n * 100) : 0) + '%)</div><div>평균 <b style="font-size:24px;color:#C4572A">' + (av == null ? '-' : av + '일') + '</b> 걸림</div>' + (D2.length ? '<div>일주일 안에 계약 ' + f + '건</div>' : '') + '</div><p class="sub" style="margin:6px 0 0">평균보다 오래된 상담 견적은 「견적 목록」에서 다시 연락해 보세요.</p>'; })();
+    $('ldT').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:18px;font-size:17px"><div>견적 <b style="font-size:24px">' + n + '</b>건 중 계약 <b style="font-size:24px">' + c + '</b>건 (' + (n ? Math.round(c / n * 100) : 0) + '%)</div><div>평균 <b style="font-size:24px;color:#A87634">' + (av == null ? '-' : av + '일') + '</b> 걸림</div>' + (D2.length ? '<div>일주일 안에 계약 ' + f + '건</div>' : '') + '</div><p class="sub" style="margin:6px 0 0">평균보다 오래된 상담 견적은 「견적 목록」에서 다시 연락해 보세요.</p>'; })();
   (function () { var N = [0, 0, 0, 0, 0, 0, 0], L = '일월화수목금토'; DECO.customers().forEach(function (c) { if (c.created) N[new Date(c.created).getDay()]++; }); var mx = Math.max.apply(null, N) || 1, top = N.indexOf(mx);
-    $('wdT').innerHTML = N.map(function (v, i) { return '<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:16px"><b style="width:22px">' + L[i] + '</b><div style="flex:1;background:#F4EEE6;border-radius:6px"><div style="height:16px;border-radius:6px;background:' + (i === top ? '#C4572A' : '#D9B48A') + ';width:' + Math.round(v / mx * 100) + '%"></div></div><span style="width:40px;text-align:right">' + v + '명</span></div>'; }).join('') + '<p class="sub" style="margin:6px 0 0">' + (N[top] ? L[top] + '요일에 문의가 가장 많습니다. 그 전날 블로그·카톡 홍보를 올려 보세요.' : '') + '</p>'; })();
+    $('wdT').innerHTML = N.map(function (v, i) { return '<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:16px"><b style="width:22px">' + L[i] + '</b><div style="flex:1;background:#F4EEE6;border-radius:6px"><div style="height:16px;border-radius:6px;background:' + (i === top ? '#A87634' : '#D9B48A') + ';width:' + Math.round(v / mx * 100) + '%"></div></div><span style="width:40px;text-align:right">' + v + '명</span></div>'; }).join('') + '<p class="sub" style="margin:6px 0 0">' + (N[top] ? L[top] + '요일에 문의가 가장 많습니다. 그 전날 블로그·카톡 홍보를 올려 보세요.' : '') + '</p>'; })();
   (function () { var G = {};
     DECO.orders().forEach(function (o) { if (o.status === '보류') return; var k = DECO.apt(o.addr); if (!k) return; var r = DECO.region(o.addr), key = (r.si ? r.si + ' ' : '') + k, g = G[key] = G[key] || { n: 0, last: '' }; g.n++; if ((o.workDate || '') > g.last) g.last = o.workDate || ''; });
     var ks = Object.keys(G).sort(function (a, b) { return G[b].n - G[a].n || (G[b].last > G[a].last ? 1 : -1); }).slice(0, 15);
@@ -356,7 +356,7 @@ table.tb td.n{text-align:right;font-variant-numeric:tabular-nums}
     CS.forEach(function (c) { var r = DECO.region(c.addr), k = r.si ? r.si + (r.gu ? ' ' + r.gu : '') : '주소 없음', g = G[k] = G[k] || { n: 0, c: 0, s: 0 }, Qc = DECO.custQuotes(c).filter(function (q) { return DONE[q.status]; }); g.n++; if (Qc.length) g.c++; g.s += Qc.reduce(function (t, q) { return t + amt(q); }, 0); });
     var ks = Object.keys(G).sort(function (a, b) { return G[b].s - G[a].s || G[b].n - G[a].n; }), mx = Math.max.apply(null, ks.map(function (k) { return G[k].s; })) || 1;
     $('regT').innerHTML = '<tr><th>지역</th><th style="text-align:right">고객</th><th style="text-align:right">계약</th><th style="text-align:right">계약 금액</th><th style="width:28%"></th></tr>' + ks.map(function (k) { var g = G[k];
-      return '<tr><td><a href="customers.html">' + E(k) + '</a></td><td class="n">' + g.n + '명</td><td class="n">' + g.c + '명</td><td class="n">' + (g.s ? W(g.s) : '-') + '</td><td><div style="height:12px;border-radius:6px;background:#C4572A;width:' + Math.round(g.s / mx * 100) + '%"></div></td></tr>'; }).join(''); })();
+      return '<tr><td><a href="customers.html">' + E(k) + '</a></td><td class="n">' + g.n + '명</td><td class="n">' + g.c + '명</td><td class="n">' + (g.s ? W(g.s) : '-') + '</td><td><div style="height:12px;border-radius:6px;background:#A87634;width:' + Math.round(g.s / mx * 100) + '%"></div></td></tr>'; }).join(''); })();
   $('csvT').onclick = function () { var k = Y + '-' + String(M + 1).padStart(2, '0'), PT = DECO.partners(), r = [['구분', '날짜', '상대·항목', '내용', '공급가', '부가세', '합계', '증빙', '발행·영수증', '비고']], n = 0;
     DECO.orders().forEach(function (o) { if (!o.workDate || o.workDate.slice(0, 7) !== k || o.status === '보류') return; var q = o.quoteId ? DECO.getQuote(o.quoteId) : null, t = (q && q.totals) || {}, x = (q && q.tax) || {};
       r.push(['매출', o.workDate, o.name || (q && q.cust && q.cust.name) || '', (q && q.no ? '견적 ' + q.no + ' · ' : '') + (o.addr || ''), t.supply || 0, t.vat || 0, t.total || 0, x.k || '안 정함', x.done ? '발행함' : (x.k === '세금계산서' || x.k === '현금영수증' ? '아직' : ''), '']); n++;
