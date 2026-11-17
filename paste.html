@@ -27,6 +27,8 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
 .it textarea{min-height:80px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .msg{margin:0;font-weight:700;color:var(--ok);min-height:1.3em;font-size:17px}.msg.bad{color:#b3261e}
+.ok1{margin:0;background:#E8F5EC;border:1px solid #b9dcc4;color:#1f5d39;border-radius:12px;padding:10px 12px;font-size:17px;font-weight:800;line-height:1.45}
+.ok1 small{display:block;font-weight:500;font-size:14px;color:#2e6a4e}
 .hint{font-size:14px;color:var(--muted);margin:0}
 </style>
 </head>
@@ -47,6 +49,7 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
   </section>
   <section class="box" id="res" hidden>
     <h2>② 이렇게 저장합니다 <small style="font-weight:400;color:var(--muted);font-size:14px">(체크한 것만)</small></h2>
+    <p class="ok1" id="ok1" role="status"></p>
     <div id="items" style="display:grid;gap:10px"></div>
     <button class="big y" type="button" id="save">💾 저장하기</button>
     <p class="msg" id="msg" role="status"></p>
@@ -117,7 +120,9 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
     if (PH.length) { var Q = DECO.list(); h += '<div class="it" data-k="p"><div class="hd"><input type="checkbox" checked aria-label="사진 저장">📷 사진 ' + PH.length + '장</div>' +
       '<label>현장<select class="jb">' + opt([['', '현장 미지정']].concat(Q.map(function (q) { return [q.id, ((q.cust && q.cust.name) || '이름 없음') + ' 님' + (q.cust && q.cust.addr ? ' · ' + q.cust.addr : '')]; })), J ? J.id : '') + '</select></label>' +
       '<label>사진 종류<select class="sg">' + opt(DECO.STAGES, R.stage) + '</select></label></div>'; }
-    $('items').innerHTML = h; $('res').hidden = false; $('msg').textContent = ''; $('res').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('items').innerHTML = h; $('res').hidden = false; $('msg').textContent = '';
+    var NM = { c: '고객', e: '일정', m: '메모', p: '사진 ' + PH.length + '장' }, got = [].map.call($('items').querySelectorAll('.it'), function (x) { return NM[x.dataset.k]; });
+    $('ok1').innerHTML = got.length ? '✔ 정리되었습니다 — ' + E(got.join(' · ')) + '<small>아래 내용을 확인하고 틀린 곳은 고친 뒤 「💾 저장하기」를 누르세요.</small>' : '찾은 내용이 없습니다. 글을 조금 더 넣어 보세요.'; $('res').scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   $('items').addEventListener('change', function (e) { if (e.target.matches('.hd input')) e.target.closest('.it').classList.toggle('off', !e.target.checked); });
   $('save').onclick = function () { var done = [], cid = '', it = function (k) { var x = $('items').querySelector('.it[data-k="' + k + '"]'); return x && x.querySelector('.hd input').checked ? x : null; }, v = function (x, c) { return x.querySelector(c).value.trim(); };
@@ -130,7 +135,7 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
     $('save').disabled = true; say('저장하는 중…');
     pr.then(function () { $('save').disabled = false;
       if (!done.length) { say('체크한 것이 없습니다.', 1); return; }
-      say('✔ 저장했습니다: ' + done.join(' · ')); $('tx').value = ''; PH = []; thumbs(); $('items').innerHTML = '<p class="hint">새로 붙여 넣으면 다시 정리합니다. <a href="index.html">처음 화면으로 ›</a></p>'; });
+      say('✔ 저장했습니다: ' + done.join(' · ')); $('ok1').textContent = '✔ 저장까지 끝났습니다.'; $('tx').value = ''; PH = []; thumbs(); $('items').innerHTML = '<p class="hint">새로 붙여 넣으면 다시 정리합니다. <a href="index.html">처음 화면으로 ›</a></p>'; });
   };
   if ($('tx').value) $('go').click(); else $('tx').focus();
 })();
