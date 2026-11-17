@@ -1,0 +1,140 @@
+/* 데코브라이트 — 디자인 다듬기 (모든 화면 마지막에 불러옴)
+   방향: 조명 쇼룸처럼 차분한 종이색 바탕 · 짙은 먹색 글씨 · 황동색 강조 한 가지 · 가는 선 · 같은 굵기의 선 아이콘 */
+:root{
+  --ink:#1D1B18;--ink2:#47423B;--muted:#857E74;--line:#E8E3DA;--line2:#F1EDE6;--bd:#D9D2C6;
+  --pri:#24201C;--pri-d:#15120F;--pri-s:#F4EFE7;--paper:#F6F3EE;--acc:#9A6A33;--warm:#B8843F;--warm-s:#F5ECDD;
+  --ok:#2F6B4F;--no:#B3261E;--mut:#857E74;
+  --r:14px;--r-s:10px;
+  --sh:0 1px 0 rgba(29,27,24,.03),0 10px 28px -20px rgba(29,27,24,.35);
+  --sh-h:0 1px 0 rgba(29,27,24,.04),0 16px 34px -18px rgba(29,27,24,.42);
+  --ff:'Pretendard Variable',Pretendard,'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--ff)!important;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+button,input,select,textarea{font-family:inherit}
+body.app{background:var(--paper);color:var(--ink);letter-spacing:-.01em;line-height:1.6}
+body.app::before,body.home::before{background:var(--paper)!important}
+body.home{background:var(--paper)!important}
+::selection{background:#E9D9BF;color:var(--ink)}
+
+/* 선 아이콘 */
+svg.dic{width:1.08em;height:1.08em;vertical-align:-.17em;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-right:.32em}
+svg.dic.solo{margin-right:0}
+.pbx .pgo>svg.dic,.grid-ic>svg.dic{display:none}
+
+/* 제목·글 */
+body.app h1.t{font-weight:700;letter-spacing:-.035em;line-height:1.22;font-size:clamp(26px,4.6vw,34px);text-wrap:balance}
+body.app h2,body.app h3{letter-spacing:-.025em;text-wrap:balance}
+body.app .sub{color:var(--muted);font-size:16px}
+body.app .brandline{color:var(--acc);font-weight:600;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase}
+body.app h2.grp,body.app .grp{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.08em;margin:30px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+body.app a{text-underline-offset:3px}
+
+/* 위쪽 이동 단추 */
+body.app .back,body.app .home{height:40px;font-size:15px;font-weight:500;border:1px solid var(--line);background:rgba(255,255,255,.7);border-radius:999px;padding:0 14px;color:var(--ink2);box-shadow:none;backdrop-filter:saturate(1.2) blur(6px)}
+body.app .back:hover,body.app .home:hover{border-color:var(--bd);color:var(--ink);background:#fff}
+
+/* 카드·상자 */
+body.app .card{border:1px solid var(--line);border-top:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);background:#fff}
+body.app .empty{border:1px dashed var(--bd);border-radius:var(--r);background:rgba(255,255,255,.6)}
+
+/* 메뉴 타일: 색 띠 없이 가는 선 + 아이콘 칩 */
+body.app .menu a,body.app .menu button,body.app .tiles a,body.app .tiles button{border:1px solid var(--line)!important;border-radius:var(--r)!important;box-shadow:var(--sh);background:#fff;transition:box-shadow .18s,border-color .18s,transform .18s}
+body.app .menu a:hover,body.app .menu button:hover{background:#fff;border-color:var(--bd)!important;box-shadow:var(--sh-h);transform:translateY(-1px)}
+body.app .menu b{font-weight:700;letter-spacing:-.03em}
+body.app .menu span{color:var(--muted)}
+body.app .menu .main{background:var(--pri);border-color:var(--pri)!important;color:#fff}
+body.app .menu .main span{color:#CFC4B4}
+body.app .menu .main:hover{background:var(--pri-d)}
+body.app .tiles i{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;background:var(--warm-s);color:var(--acc);font-size:22px;margin-bottom:10px}
+body.app .tiles i svg.dic{margin:0;width:22px;height:22px;stroke-width:1.7}
+body.app .menu .main i{background:rgba(255,255,255,.1);color:#E7C793}
+
+/* 단추 */
+body.app .btn2{height:46px;border:1px solid var(--bd);border-radius:var(--r-s);font-weight:600;font-size:15.5px;color:var(--ink);background:#fff;transition:background .15s,border-color .15s,box-shadow .15s}
+body.app .btn2:hover{border-color:#BDB3A4;background:#FCFBF8}
+body.app .btn2.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+body.app .btn2.pri:hover{background:var(--pri-d)}
+body.app .btn2.no{color:var(--no);border-color:#E7C3BE;background:#fff}
+body.app .btn2:disabled{opacity:.5;cursor:not-allowed}
+body.app button:focus-visible,body.app a:focus-visible{outline:2px solid var(--warm);outline-offset:2px}
+
+/* 입력 칸 */
+body.app input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]),body.app textarea,body.app select{border:1px solid var(--bd);border-radius:var(--r-s);background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+body.app input:focus,body.app textarea:focus,body.app select:focus{outline:none;border-color:var(--warm)!important;box-shadow:0 0 0 3px rgba(184,132,63,.18)}
+body.app .fl{color:var(--ink2);font-weight:500;font-size:14.5px}
+body.app .fl b{font-weight:600}
+body.app ::placeholder{color:#AFA79B}
+body.app input[type=checkbox],body.app input[type=radio],body.app input[type=range]{accent-color:var(--pri)}
+
+/* 표 */
+body.app table{border-collapse:collapse}
+body.app th{font-weight:600;color:var(--ink2);background:#FAF8F4}
+body.app th,body.app td{border-color:var(--line)!important}
+
+/* 알림 글 */
+body.app .msg{color:var(--ok);font-weight:500}
+body.app .msg.bad{color:var(--no)}
+
+/* ── 첫 화면 ── */
+body.home .hero{border-radius:18px!important}
+body.home .hero.photo::before{background:linear-gradient(180deg,rgba(18,14,11,.05) 0%,rgba(18,14,11,.5) 55%,rgba(18,14,11,.86) 100%)}
+body.home .hero .eng{color:#E3C695;font-weight:600;letter-spacing:.2em;font-size:11px}
+body.home .hero .brandline{color:#E3C695}
+body.home .hero h1.t{font-weight:700}
+body.home .hero .area{color:#E2D8CA}
+body.home .hero .area .cv{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);font-weight:600;backdrop-filter:blur(6px)}
+/* 카톡 붙여넣기: 노란 덩어리 대신 흰 카드 + 카톡색 표시 하나 */
+body.home .pbx{background:#fff;border:1px solid var(--line);box-shadow:var(--sh);border-radius:18px;padding:16px;gap:10px}
+body.home .pbx .pgo{color:var(--ink)}
+body.home .pbx .pgo b{font-size:19px;letter-spacing:-.03em;display:flex;align-items:center;gap:8px}
+body.home .pbx .pgo b::before{content:"";width:10px;height:10px;border-radius:3px;background:#FEE500;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+body.home .pbx .pgo b svg.dic{display:none}
+body.home .pbx .pgo span{color:var(--muted)}
+body.home .pbx textarea{border:1px solid var(--bd)!important;background:#FBFAF7}
+body.home .pbx .pin button{background:var(--pri);color:#fff;font-weight:600}
+body.home .pbx .pfl{background:var(--pri-s);color:var(--ink);font-weight:600;border:1px solid var(--line)}
+body.home .pbx .pfl small{color:var(--muted)}
+body.home .pbx #aiBox{background:var(--warm-s);border-radius:var(--r-s);padding:10px 12px;font-size:15px}
+body.home .pbx #aiBox b{font-size:15px}
+body.home .syncbox{border-color:var(--line);background:#fff;font-weight:500;color:var(--ink2)}
+body.home .syncbox.on{background:#F3F7F2;border-color:#D5E3D3}
+body.home .syncbox.due{background:var(--warm-s);border-color:#E5CFA9}
+body.home .srch input{border:1px solid var(--bd);border-radius:var(--r);box-shadow:var(--sh)}
+body.home .today{background:#fff;border:1px solid var(--line);border-left:3px solid var(--warm);border-radius:var(--r-s)}
+body.home .todo{border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+body.home .todo li a b{color:var(--acc)}
+body.home .alert{border:1px solid #E5CFA9;background:#FFFCF6;border-radius:var(--r)}
+body.home .alert li b{color:var(--acc)}
+body.home .mc{border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+body.home .mc .d.t{background:var(--pri);color:#fff}
+body.home .rq{border-radius:var(--r-s)}
+body.home .ntc{border-color:var(--line);background:#fff;box-shadow:var(--sh)}
+body.home .ntc>summary::after{background:var(--pri-s);color:var(--ink2)}
+body.home .cases button{border-radius:var(--r)}
+body.home .tiles a,body.home .tiles button{padding:16px 14px}
+body.home .tiles b{font-size:17px;font-weight:700;letter-spacing:-.03em}
+@media (prefers-reduced-motion:reduce){body.app .menu a,body.app .menu button{transition:none}}
+@media print{svg.dic{display:none}body.app .card,body.app .menu a{box-shadow:none}}
+
+/* ── 카톡 단추: 노란 덩어리 대신 차분한 단추 + 카톡색 작은 표시 (손님 화면은 그대로) ── */
+body.app:not(.cust) [style*="FEE500"],body.app:not(.cust) .kk,body.app:not(.cust) .big.y{background:#fff!important;border:1px solid var(--bd)!important;color:var(--ink)!important;font-weight:600!important}
+body.app:not(.cust) [style*="FEE500"]::before,body.app:not(.cust) .kk::before,body.app:not(.cust) .big.y::before{content:"";flex:0 0 auto;display:inline-block;width:9px;height:9px;border-radius:3px;background:#FEE500;box-shadow:0 0 0 1px rgba(0,0,0,.12);margin-right:6px;vertical-align:1px}
+body.app:not(.cust) [style*="FEE500"]>svg.dic,body.app:not(.cust) .kk>svg.dic{display:none}
+body.app:not(.cust) [style*="FEE500"]:hover,body.app:not(.cust) .kk:hover{background:#FCFBF8!important;border-color:#BDB3A4!important}
+body.home .hero .area .cv::before{display:none}
+
+/* 입력 칸 이름표 안 아이콘은 빼서 줄이 흐트러지지 않게 */
+body.app .fl>svg.dic,body.app label>svg.dic:first-child{display:none}
+
+/* 고객 관리: 단계 칸의 굵은 색 띠 → 작은 색 점 */
+body.app .cat button{border:1px solid var(--line)!important;border-radius:12px!important;position:relative;padding-left:24px!important;box-shadow:var(--sh);background:#fff}
+body.app .cat button::before{content:"";position:absolute;left:11px;top:16px;width:7px;height:7px;border-radius:50%;background:var(--cc,#8A847B)}
+body.app .cat button[aria-pressed=true]{background:var(--pri)!important;border-color:var(--pri)!important;color:#fff}
+body.app .cat button[aria-pressed=true]::before{background:#E3C695}
+body.app #flt{background:#fff!important;border:1px solid var(--line)!important;border-radius:var(--r)!important;box-shadow:var(--sh)}
+body.app .c{border-radius:12px;box-shadow:var(--sh)}
+body.app .sum div{border-radius:10px}
+
+/* 달력: 일정 이름표 색을 한 톤 차분하게 */
+body.app .cal td,body.app .cal th{border-color:var(--line)!important}
