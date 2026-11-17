@@ -100,6 +100,19 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
 .syncbox.brief small{font-weight:400;color:var(--mut,#7a6d5c);margin-left:4px}
 .syncbox.on{border-color:#9cc9a4;background:#f1f8f1}
 </style>
+<style>
+.ntc{margin:0 0 14px;border:1px solid #eadfce;border-radius:16px;background:#fffdf9}
+.ntc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:54px;padding:8px 14px;font-size:18px;font-weight:800}
+.ntc>summary::-webkit-details-marker{display:none}
+.ntc>summary::after{content:'펼치기 ▾';margin-left:auto;font-size:14px;color:#b5541c;background:#fcebd2;border-radius:999px;padding:5px 10px}
+.ntc[open]>summary::after{content:'접기 ▴'}
+.ntc>.nb{padding:0 10px 10px;display:grid;gap:8px}
+.ntc>.nb>*{margin:0!important;position:relative}
+.ntc .ackd{display:none!important}
+.ntc .ack{position:absolute;top:6px;right:6px;z-index:2;font:inherit;font-size:14px;font-weight:700;background:#fff;color:#2A211C;border:1px solid #d9cbb6;border-radius:999px;padding:5px 10px;cursor:pointer}
+.ntc>.nb>*:not(.ackd){padding-right:74px!important}
+.ntc .ntr{font:inherit;font-size:14px;background:none;border:0;color:#8a6a4e;text-decoration:underline;cursor:pointer;justify-self:start;padding:4px}
+</style>
 </head>
 <body class="app home">
 <div class="page">
@@ -392,6 +405,38 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     box.hidden = false;
     box.innerHTML = R.length ? R.slice(0, 30).map(function (r) { return '<a href="' + r[3] + '"><em>' + r[0] + '</em>' + E(r[1]) + '<small>' + E(r[2]) + '</small></a>'; }).join('') + (R.length > 30 ? '<p>' + R.length + '건 중 30건만 보입니다. 더 자세히 넣어 주세요.</p>' : '') : '<p>찾는 자료가 없습니다.</p>';
   });
+})();
+</script>
+<script>
+// 처음 화면 알림 칸: 한 묶음으로 접기 · 칸마다 「✓ 확인」 누르면 숨김 (내용이 바뀌면 다시 보임, 자료는 지우지 않음)
+(function () {
+  var IDS = ['dueBox', 'bkBox', 'balBox', 'goalBox', 'careBox', 'pastBox', 'phBox', 'inqBox', 'asBox', 'okBox', 'upBox', 'todo', 'alert'];
+  var first = document.getElementById(IDS[0]); if (!first) return;
+  var rd = function (k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }, wr = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  var dt = document.createElement('details'); dt.className = 'ntc'; dt.open = rd('deco-ntcopen', true) !== false;
+  dt.innerHTML = '<summary>🔔 알림·할 일 <small id="ntcN" style="font-weight:500;color:var(--muted)"></small></summary><div class="nb"></div>';
+  first.parentNode.insertBefore(dt, first); var nb = dt.lastChild;
+  IDS.forEach(function (id) { var e = document.getElementById(id); if (e) nb.appendChild(e); });
+  var rs = document.createElement('button'); rs.type = 'button'; rs.className = 'ntr'; rs.textContent = '숨긴 알림 다시 보기'; nb.appendChild(rs);
+  dt.addEventListener('toggle', function () { wr('deco-ntcopen', dt.open); });
+  var ACK = rd('deco-ack', {});
+  function txt(e) { var t = ''; e.childNodes.forEach(function (n) { if (!(n.classList && n.classList.contains('ack'))) t += n.textContent || ''; }); return t.replace(/\s+/g, ' ').trim(); }
+  function key(e) { var t = txt(e), h = 0; for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return e.id + ':' + h; }
+  var busy = false;
+  function apply() { if (busy) return; busy = true; var n = 0, hid = 0;
+    IDS.forEach(function (id) { var e = document.getElementById(id); if (!e) return; var t = txt(e);
+      if (!t) { e.classList.remove('ackd'); return; }
+      var k = key(e), a = ACK[k]; e.classList.toggle('ackd', !!a);
+      if (!e.querySelector(':scope > .ack')) { var b = document.createElement('button'); b.type = 'button'; b.className = 'ack'; b.textContent = '✓ 확인'; b.title = '확인했으면 숨깁니다'; e.appendChild(b); }
+      if (a) hid++; else if (!e.hidden && e.offsetParent !== null) n++; });
+    document.getElementById('ntcN').textContent = n ? n + '개' : '모두 확인함';
+    rs.style.display = hid ? '' : 'none'; busy = false; }
+  nb.addEventListener('click', function (ev) { var b = ev.target.closest('.ack'); if (!b) return; ev.preventDefault(); ev.stopPropagation();
+    var e = b.parentElement; ACK[key(e)] = Date.now(); var ks = Object.keys(ACK); if (ks.length > 200) ks.sort(function (x, y) { return ACK[x] - ACK[y]; }).slice(0, ks.length - 200).forEach(function (x) { delete ACK[x]; });
+    wr('deco-ack', ACK); apply(); }, true);
+  rs.onclick = function () { ACK = {}; wr('deco-ack', ACK); apply(); };
+  new MutationObserver(function () { apply(); }).observe(nb, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'style'] });
+  apply(); setTimeout(apply, 1500);
 })();
 </script>
 </body>
