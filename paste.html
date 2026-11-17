@@ -44,8 +44,9 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
       <button class="big w" type="button" id="pst">📋 붙여넣기</button>
       <label class="big w" style="cursor:pointer">📷 사진 넣기<input type="file" id="ph" accept="image/*" multiple hidden></label>
     </div>
+    <label class="big y" style="cursor:pointer">📄 대화 파일 올리기 <small style="font-weight:500;font-size:14px">(내보내기 한 .txt)</small><input type="file" id="tf" accept=".txt,.csv,text/plain" hidden></label>
     <button class="big d" type="button" id="go">✨ 알아서 정리하기</button>
-    <p class="hint">전화번호·이름·주소·날짜·시간을 찾아 고객·일정·메모·사진으로 나눕니다. 저장 전에 고칠 수 있습니다.</p>
+    <p class="hint">카톡 채팅방 메뉴 → 「대화 내보내기」(텍스트) → 휴대폰에 저장한 파일을 「📄 대화 파일 올리기」로 고르면 됩니다.<br>전화번호·이름·주소·날짜·시간을 찾아 고객·일정·메모·사진으로 나눕니다. 저장 전에 고칠 수 있습니다.</p>
   </section>
   <section class="box" id="res" hidden>
     <h2>② 이렇게 저장합니다 <small style="font-weight:400;color:var(--muted);font-size:14px">(체크한 것만)</small></h2>
@@ -62,6 +63,9 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
 (function () {
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, PH = [];
   var dg = function (s) { return String(s || '').replace(/\D/g, ''); }, pad = function (n) { return ('0' + n).slice(-2); };
+  // 대화 내보내기 파일(.txt) 읽기
+  function readTxt(f) { if (!f) return; var rd = new FileReader(); rd.onload = function () { var t = String(rd.result || '').replace(/^\uFEFF/, ''); $('tx').value = t; $('go').click(); }; rd.onerror = function () { say('파일을 열지 못했습니다.', 1); }; rd.readAsText(f, 'utf-8'); }
+  $('tf').onchange = function () { var f = this.files[0]; this.value = ''; if (f && /\.zip$/i.test(f.name)) { say('압축(zip) 파일은 안 됩니다. 「대화 내보내기」에서 텍스트만 저장해 주세요.', 1); return; } readTxt(f); };
   try { var pre = sessionStorage.getItem('deco-paste'); if (pre) { $('tx').value = pre; sessionStorage.removeItem('deco-paste'); } } catch (e) {}
   // ── 사진: 고르기 · 붙여넣기 ──
   function addFiles(fs) { [].forEach.call(fs, function (f) { if (!/^image\//.test(f.type)) return; PH.push({ f: f, u: URL.createObjectURL(f) }); }); thumbs(); }
@@ -77,12 +81,15 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
   function say(t, bad) { $('msg').className = 'msg' + (bad ? ' bad' : ''); $('msg').textContent = t; if (bad && $('res').hidden) alert(t); }
 
   // ── 글 읽기 ──
-  function clean(t) { return String(t || '').split(/\r?\n/).filter(function (l) { return !/^-{3,}.*-{3,}$/.test(l.trim()) && !/^\d{4}년 \d{1,2}월 \d{1,2}일 \S요일$/.test(l.trim()); })
+  var HN = '';
+  function clean(t) { HN = ''; var hm = String(t || '').match(/^\s*(.+?)\s*님과 (?:카카오톡 )?대화/); if (hm) HN = hm[1].replace(/^\(?고객\)?\s*/, '').trim();
+    return String(t || '').split(/\r?\n/).filter(function (l) { return !/님과 (?:카카오톡 )?대화|저장한 날짜\s*:/.test(l) &&  !/^-{3,}.*-{3,}$/.test(l.trim()) && !/^\d{4}년 \d{1,2}월 \d{1,2}일 \S요일$/.test(l.trim()); })
     .map(function (l) { return l.replace(/^\[[^\]]{1,20}\] \[(오전|오후) \d{1,2}:\d{2}\] /, '').replace(/^\d{4}[년.]\s?\d{1,2}[월.]\s?\d{1,2}일?\.?\s*(오전|오후)?\s*\d{1,2}:\d{2},?\s*[^:]{1,20}\s:\s/, ''); }).join('\n').trim(); }
   function parse(t) {
     var r = {}, m;
-    m = t.match(/01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/); if (m) { var d = dg(m[0]); r.phone = d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4); }
-    m = t.match(/(?:이름|성함|고객명?)\s*[:：]\s*([가-힣]{2,4})/) || t.match(/([가-힣]{2,4})\s*(?:고객님|님|씨)(?![가-힣])/); if (m && !/고객|사장|기사|팀장|실장|과장|대표|선생|사모/.test(m[1])) r.name = m[1];
+    var ME = dg((DECO.settings() || {}).phone), PS = (t.match(/01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g) || []).filter(function (x) { return dg(x) !== ME; });
+    m = PS.length ? [PS[0]] : null; if (m) { var d = dg(m[0]); r.phone = d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4); }
+    m = t.match(/(?:이름|성함|고객명?)\s*[:：]\s*([가-힣]{2,4})/) || t.match(/([가-힣]{2,4})\s*(?:고객님|님|씨)(?![가-힣])/); if (m && !/고객|사장|기사|팀장|실장|과장|대표|선생|사모/.test(m[1])) r.name = m[1]; if (HN && /^[가-힣]{2,4}$/.test(HN)) r.name = HN;
     m = t.match(/(?:주소|현장|사는 곳)\s*[:：]\s*([^\n]{4,80})/) || t.match(/((?:부산|창원|김해|양산|울산|대구|서울|경남|경상남도|진해|마산|거제|통영|밀양|함안|진주)[^\n,]{0,10}(?:시|구|군|동|읍|면)[^\n]{2,60})/); if (m) r.addr = m[1].replace(/\s*(?:입니다|이에요|요)\.?$/, '').trim();
     // 날짜
     var now = new Date(), dt = null, y = now.getFullYear();
