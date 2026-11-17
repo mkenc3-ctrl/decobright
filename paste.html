@@ -82,15 +82,16 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
 
   // ── 글 읽기 ──
   var HN = '';
-  function clean(t) { HN = ''; var hm = String(t || '').match(/^\s*(.+?)\s*님과 (?:카카오톡 )?대화/); if (hm) HN = hm[1].replace(/^\(?고객\)?\s*/, '').trim();
-    return String(t || '').split(/\r?\n/).filter(function (l) { return !/님과 (?:카카오톡 )?대화|저장한 날짜\s*:/.test(l) &&  !/^-{3,}.*-{3,}$/.test(l.trim()) && !/^\d{4}년 \d{1,2}월 \d{1,2}일 \S요일$/.test(l.trim()); })
-    .map(function (l) { return l.replace(/^\[[^\]]{1,20}\] \[(오전|오후) \d{1,2}:\d{2}\] /, '').replace(/^\d{4}[년.]\s?\d{1,2}[월.]\s?\d{1,2}일?\.?\s*(오전|오후)?\s*\d{1,2}:\d{2},?\s*[^:]{1,20}\s:\s/, ''); }).join('\n').trim(); }
+  function clean(t) { HN = ''; var hm = String(t || '').match(/^\s*(.+?)\s*님과(?:의)? (?:카카오톡 )?(?:대화|상담)/); if (hm) HN = hm[1].replace(/^\(?고객\)?\s*/, '').trim();
+    return String(t || '').split(/\r?\n/).filter(function (l) { return !/님과(?:의)? (?:카카오톡 )?(?:대화|상담)|저장한 날짜\s*:/.test(l) && !/^\s*\d{4}[-.]\d{1,2}[-.]\d{1,2}\.?\s*$/.test(l) &&  !/^-{3,}.*-{3,}$/.test(l.trim()) && !/^\d{4}년 \d{1,2}월 \d{1,2}일 \S요일$/.test(l.trim()); })
+    .map(function (l) { return l.replace(/^\[[^\]]{1,20}\] \[(오전|오후) \d{1,2}:\d{2}\] /, '').replace(/^\d{4}[년.]\s?\d{1,2}[월.]\s?\d{1,2}일?\.?\s*(오전|오후)?\s*\d{1,2}:\d{2},?\s*[^:]{1,20}\s:\s/, '').replace(/^\d{4}-\d{1,2}-\d{1,2}\s+(오전|오후)?\s*\d{1,2}:\d{2}(:\d{2})?,?\s*[^:]{1,20}\s:\s/, ''); }).join('\n').trim(); }
   function parse(t) {
     var r = {}, m;
     var ME = dg((DECO.settings() || {}).phone), PS = (t.match(/01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g) || []).filter(function (x) { return dg(x) !== ME; });
     m = PS.length ? [PS[0]] : null; if (m) { var d = dg(m[0]); r.phone = d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4); }
     m = t.match(/(?:이름|성함|고객명?)\s*[:：]\s*([가-힣]{2,4})/) || t.match(/([가-힣]{2,4})\s*(?:고객님|님|씨)(?![가-힣])/); if (m && !/고객|사장|기사|팀장|실장|과장|대표|선생|사모/.test(m[1])) r.name = m[1]; if (HN && /^[가-힣]{2,4}$/.test(HN)) r.name = HN;
     m = t.match(/(?:주소|현장|사는 곳)\s*[:：]\s*([^\n]{4,80})/) || t.match(/((?:부산|창원|김해|양산|울산|대구|서울|경남|경상남도|진해|마산|거제|통영|밀양|함안|진주)[^\n,]{0,10}(?:시|구|군|동|읍|면)[^\n]{2,60})/); if (m) r.addr = m[1].replace(/\s*(?:입니다|이에요|요)\.?$/, '').trim();
+    else { var dh = t.match(/(\d{1,4})\s*동\s*(\d{2,4})\s*호/), ap = t.match(/([가-힣A-Za-z]{2,12}\s?(?:\d{1,2}차|\d{1,2}단지)?)\s*(?:아파트|광고|단지)/); if (dh) r.addr = ((ap ? ap[1].trim() + ' ' : '') + dh[1] + '동 ' + dh[2] + '호').trim(); }
     // 날짜
     var now = new Date(), dt = null, y = now.getFullYear();
     if ((m = t.match(/(20\d\d)[-./]\s?(\d{1,2})[-./]\s?(\d{1,2})/))) dt = new Date(+m[1], m[2] - 1, +m[3]);
@@ -122,7 +123,7 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
     if (R.date || R.time) h += '<div class="it" data-k="e"><div class="hd"><input type="checkbox" checked aria-label="일정 저장">📅 일정</div>' +
       '<div class="g2"><label>날짜<input type="date" class="dt" value="' + E(R.date || DECO.today()) + '"></label><label>시간<input type="time" class="tm" value="' + E(R.time || '') + '"></label></div>' +
       '<label>종류<select class="kd">' + opt(DECO.KINDS, R.kind) + '</select></label><label>내용<input type="text" class="tt" value="' + E((R.name ? R.name + ' 님 · ' : '') + first) + '"></label></div>';
-    if (T) h += '<div class="it" data-k="m"><div class="hd"><input type="checkbox"' + (R.phone || R.name || R.date ? '' : ' checked') + ' aria-label="메모 저장">📝 메모</div>' +
+    if (T) h += '<div class="it" data-k="m"><div class="hd"><input type="checkbox"' + (T.length > 150 || !(R.phone || R.name || R.date) ? ' checked' : '') + ' aria-label="메모 저장">📝 메모</div>' +
       '<label>분류<select class="ct">' + opt(['할 일', '자재', '상담', '현장', '기타'], R.cat) + '</select></label><label>내용<textarea class="bd">' + E(T) + '</textarea></label></div>';
     if (PH.length) { var Q = DECO.list(); h += '<div class="it" data-k="p"><div class="hd"><input type="checkbox" checked aria-label="사진 저장">📷 사진 ' + PH.length + '장</div>' +
       '<label>현장<select class="jb">' + opt([['', '현장 미지정']].concat(Q.map(function (q) { return [q.id, ((q.cust && q.cust.name) || '이름 없음') + ' 님' + (q.cust && q.cust.addr ? ' · ' + q.cust.addr : '')]; })), J ? J.id : '') + '</select></label>' +
@@ -134,7 +135,7 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
   $('items').addEventListener('change', function (e) { if (e.target.matches('.hd input')) e.target.closest('.it').classList.toggle('off', !e.target.checked); });
   $('save').onclick = function () { var done = [], cid = '', it = function (k) { var x = $('items').querySelector('.it[data-k="' + k + '"]'); return x && x.querySelector('.hd input').checked ? x : null; }, v = function (x, c) { return x.querySelector(c).value.trim(); };
     var x = it('c'); if (x) { var cu = { name: v(x, '.nm'), phone: v(x, '.pn'), addr: v(x, '.ad') }; cid = DECO.ensureCustomer(cu, C0 && C0.id);
-      var c = cid && DECO.getCustomer(cid); if (c) { ['name', 'phone', 'addr'].forEach(function (k) { if (cu[k]) c[k] = cu[k]; }); if (!c.source) c.source = '카톡'; c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '💬 카톡: ' + T.replace(/\s+/g, ' ').slice(0, 120) }); c.touched = Date.now(); DECO.saveCustomer(c); done.push('고객 「' + (c.name || c.phone) + '」'); } }
+      var c = cid && DECO.getCustomer(cid); if (c) { ['name', 'phone', 'addr'].forEach(function (k) { if (cu[k]) c[k] = cu[k]; }); if (!c.source) c.source = '카톡'; c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '💬 카톡 상담 내용\n' + T.slice(0, 6000) }); c.touched = Date.now(); DECO.saveCustomer(c); done.push('고객 「' + (c.name || c.phone) + '」'); } }
     x = it('e'); if (x) { var ev = DECO.saveEvent({ kind: v(x, '.kd'), date: v(x, '.dt') || DECO.today(), time: v(x, '.tm'), title: v(x, '.tt'), custId: cid || '' }); if (ev) done.push('일정 ' + ev.date.slice(5).replace('-', '/') + (ev.time ? ' ' + ev.time : '') + ' ' + ev.kind); }
     x = it('m'); if (x) { var b = v(x, '.bd'); if (b && DECO.saveMemo({ title: b.split('\n')[0].slice(0, 30), body: b, cat: v(x, '.ct') })) done.push('메모'); }
     x = it('p'); var pr = Promise.resolve(0);
