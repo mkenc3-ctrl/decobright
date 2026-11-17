@@ -135,7 +135,11 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     <a class="pgo" href="paste.html"><b>📥 카톡 붙여넣기</b><span>사진·글을 넣으면 고객·일정·메모·사진으로 알아서 정리</span></a>
     <div class="pin"><textarea id="pbt" rows="1" placeholder="여기에 바로 붙여 넣기"></textarea><button type="button" id="pbg">정리 ›</button></div>
     <label class="pfl">📄 카톡 대화 파일 올리기 <small>(대화 내보내기 .txt)</small><input type="file" id="pbf" accept=".txt,.csv,text/plain" hidden></label>
+    <a class="pgo" id="aiBox" href="paste.html#ib" hidden style="background:#fff;border-radius:10px;padding:8px 10px;font-weight:800;font-size:16px"></a>
   </section>
+  <script>(function () { function d() { var b = document.getElementById('aiBox'), L = DECO.inbox ? DECO.inbox() : [], done = L.filter(function (x) { return x.st === 'done' && !x.ack; }).length, w = L.filter(function (x) { return x.st === 'wait'; }).length;
+    b.hidden = !(done || w); b.textContent = done ? '🤖 AI 정리 끝 ' + done + '건 — 눌러서 확인 ›' : '⏳ AI 정리 대기 ' + w + '건 (오전·오후 10시)'; }
+    window.addEventListener('load', function () { d(); setInterval(d, 30000); if (window.DECO_SYNC) DECO_SYNC.on(function () { setTimeout(d, 300); }); }); })();</script>
   <script>(function () { var t = document.getElementById('pbt'); function go() { var v = t.value.trim(); try { if (v) sessionStorage.setItem('deco-paste', v); } catch (e) {} location.href = 'paste.html'; }
     t.addEventListener('paste', function () { setTimeout(function () { if (t.value.trim()) go(); }, 50); }); document.getElementById('pbg').onclick = go;
     document.getElementById('pbf').onchange = function () { var f = this.files[0]; if (!f) return; var r = new FileReader(); r.onload = function () { t.value = String(r.result || '').replace(/^\uFEFF/, ''); go(); }; r.readAsText(f, 'utf-8'); }; })();</script>

@@ -29,6 +29,9 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
 .msg{margin:0;font-weight:700;color:var(--ok);min-height:1.3em;font-size:17px}.msg.bad{color:#b3261e}
 .ok1{margin:0;background:#E8F5EC;border:1px solid #b9dcc4;color:#1f5d39;border-radius:12px;padding:10px 12px;font-size:17px;font-weight:800;line-height:1.45}
 .ok1 small{display:block;font-weight:500;font-size:14px;color:#2e6a4e}
+.ibi{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:6px;background:#FBF9FF;font-size:16px}
+.ibi .r{display:flex;gap:6px;flex-wrap:wrap}.ibi button{font:inherit;font-size:15px;font-weight:700;border:1px solid var(--bd);background:#fff;border-radius:10px;padding:6px 12px;cursor:pointer}
+.ibi .res{white-space:pre-wrap;font-size:15px;color:#2e2a3a}
 .hint{font-size:14px;color:var(--muted);margin:0}
 </style>
 </head>
@@ -46,6 +49,7 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
     </div>
     <label class="big y" style="cursor:pointer">📄 대화 파일 올리기 <small style="font-weight:500;font-size:14px">(내보내기 한 .txt)</small><input type="file" id="tf" accept=".txt,.csv,text/plain" hidden></label>
     <button class="big d" type="button" id="go">✨ 알아서 정리하기</button>
+    <button class="big w" type="button" id="ai" style="border:2px solid #6b4fa8;color:#4a3380">🤖 AI에게 맡기기 <small style="font-weight:500;font-size:14px">(오전·오후 10시에 정리)</small></button>
     <p class="hint">카톡 채팅방 메뉴 → 「대화 내보내기」(텍스트) → 휴대폰에 저장한 파일을 「📄 대화 파일 올리기」로 고르면 됩니다.<br>전화번호·이름·주소·날짜·시간을 찾아 고객·일정·메모·사진으로 나눕니다. 저장 전에 고칠 수 있습니다.</p>
   </section>
   <section class="box" id="res" hidden>
@@ -54,6 +58,12 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
     <div id="items" style="display:grid;gap:10px"></div>
     <button class="big y" type="button" id="save">💾 저장하기</button>
     <p class="msg" id="msg" role="status"></p>
+  </section>
+  <section class="box" id="ib">
+    <h2>🤖 AI 정리 대기함</h2>
+    <div id="ibl" style="display:grid;gap:8px"></div>
+    <p class="msg" id="ibm" role="status"></p>
+    <p class="hint">매일 <b>오전 10시 · 오후 10시</b>에 컴퓨터의 Claude가 이미 있는 고객·일정·메모와 겹치는 것은 빼고, 다시 올린 대화는 <b>새로 늘어난 내용만</b> 골라 나눠 넣습니다. 그 시간에 컴퓨터가 꺼져 있었으면 켤 때 물어보고 정리합니다.<br>사진은 위의 「알아서 정리하기 → 저장하기」로 바로 넣어 주세요.</p>
   </section>
 </div>
 <script src="common.js"></script>
@@ -64,7 +74,8 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
   var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, PH = [];
   var dg = function (s) { return String(s || '').replace(/\D/g, ''); }, pad = function (n) { return ('0' + n).slice(-2); };
   // 대화 내보내기 파일(.txt) 읽기
-  function readTxt(f) { if (!f) return; var rd = new FileReader(); rd.onload = function () { var t = String(rd.result || '').replace(/^\uFEFF/, ''); $('tx').value = t; $('go').click(); }; rd.onerror = function () { say('파일을 열지 못했습니다.', 1); }; rd.readAsText(f, 'utf-8'); }
+  var SRC = '붙여넣기';
+  function readTxt(f) { if (!f) return; SRC = '대화 파일'; var rd = new FileReader(); rd.onload = function () { var t = String(rd.result || '').replace(/^\uFEFF/, ''); $('tx').value = t; $('go').click(); }; rd.onerror = function () { say('파일을 열지 못했습니다.', 1); }; rd.readAsText(f, 'utf-8'); }
   $('tf').onchange = function () { var f = this.files[0]; this.value = ''; if (f && /\.zip$/i.test(f.name)) { say('압축(zip) 파일은 안 됩니다. 「대화 내보내기」에서 텍스트만 저장해 주세요.', 1); return; } readTxt(f); };
   try { var pre = sessionStorage.getItem('deco-paste'); if (pre) { $('tx').value = pre; sessionStorage.removeItem('deco-paste'); } } catch (e) {}
   // ── 사진: 고르기 · 붙여넣기 ──
@@ -145,6 +156,24 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
       if (!done.length) { say('체크한 것이 없습니다.', 1); return; }
       say('✔ 저장했습니다: ' + done.join(' · ')); $('ok1').textContent = '✔ 저장까지 끝났습니다.'; $('tx').value = ''; PH = []; thumbs(); $('items').innerHTML = '<p class="hint">새로 붙여 넣으면 다시 정리합니다. <a href="index.html">처음 화면으로 ›</a></p>'; });
   };
+  // ── AI 정리 대기함 ──
+  function when(t) { var d = new Date(t); return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function ibDraw() { var L = DECO.inbox().filter(function (x) { return x.st === 'wait' || !x.ack; }).slice(0, 12);
+    $('ibl').innerHTML = L.length ? L.map(function (x) {
+      if (x.st === 'wait') return '<div class="ibi"><div>⏳ <b>정리 기다리는 중</b> · ' + when(x.at) + ' · ' + E(x.src || '') + ' · ' + String(x.text || '').length.toLocaleString() + '자</div><div class="res">' + E(String(x.text || '').slice(0, 80)) + '…</div><div class="r"><button type="button" data-d="' + x.id + '">빼기</button></div></div>';
+      if (x.st === 'undo') return '';
+      return '<div class="ibi" style="background:#F1F8F3"><div>✔ <b>정리 끝</b> · ' + when(x.doneAt || x.at) + '</div><div class="res">' + E(x.res || '') + '</div><div class="r"><button type="button" data-k="' + x.id + '">✓ 확인</button><button type="button" data-u="' + x.id + '">↩ 되돌리기</button></div></div>';
+    }).join('') : '<p class="hint" style="margin:0">맡긴 것이 없습니다.</p>'; }
+  $('ibl').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; var id = b.dataset.d || b.dataset.k || b.dataset.u, x = DECO.inbox().filter(function (y) { return y.id === id; })[0]; if (!x) return;
+    if (b.dataset.d) { DECO.delInbox(id); $('ibm').textContent = '뺐습니다.'; }
+    else if (b.dataset.k) { x.ack = 1; DECO.saveInbox(x); }
+    else if (b.dataset.u) { if (b.dataset.sure) { DECO.undoInbox(x); $('ibm').textContent = '↩ 되돌렸습니다.'; } else { b.dataset.sure = 1; b.textContent = '정말 되돌릴까요? 한 번 더 누르세요'; return; } }
+    ibDraw(); };
+  $('ai').onclick = function () { var t = $('tx').value.trim(); if (!t) { $('ibm').textContent = '먼저 카톡 내용을 붙여 넣거나 파일을 올려 주세요.'; $('ibm').classList.add('bad'); return; }
+    $('ibm').classList.remove('bad'); if (DECO.inbox().some(function (x) { return x.st === 'wait' && x.text === t; })) { $('ibm').textContent = '이미 대기함에 같은 내용이 있습니다.'; return; }
+    DECO.inboxAdd(t, SRC); $('tx').value = ''; SRC = '붙여넣기'; $('res').hidden = true; ibDraw();
+    $('ibm').textContent = '✔ 대기함에 넣었습니다. 오전·오후 10시에 정리합니다.'; $('ib').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  ibDraw(); setInterval(ibDraw, 20000); if (window.DECO_SYNC) DECO_SYNC.on(function () { setTimeout(ibDraw, 300); });
   if ($('tx').value) $('go').click(); else $('tx').focus();
 })();
 </script>

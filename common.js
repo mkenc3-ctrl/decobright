@@ -128,6 +128,17 @@
   D.saveMemo = function (m) { var all = rd(KM, []); if (!m.id) { m.id = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); m.created = Date.now(); } m.updated = Date.now();
     var next = all.filter(function (x) { return x.id !== m.id; }); next.push(m); return wr(KM, next) ? m : null; };
   D.delMemo = function (id) { return wr(KM, rd(KM, []).filter(function (x) { return x.id !== id; })); };
+  // ---------- AI 정리 대기함 (매일 오전·오후 10시에 컴퓨터의 Claude가 정리) ----------
+  var KI = 'deco-inbox';
+  D.inbox = function () { return rd(KI, []).filter(function (x) { return x && x.id; }).sort(function (a, b) { return b.at - a.at; }); };
+  D.inboxAdd = function (text, src) { var all = rd(KI, []), x = { id: 'ib' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: Date.now(), text: String(text || '').slice(0, 150000), src: src || '붙여넣기', st: 'wait' }; all.push(x); return wr(KI, all) ? x : null; };
+  D.saveInbox = function (x) { return wr(KI, rd(KI, []).filter(function (y) { return y.id !== x.id; }).concat([x])); };
+  D.delInbox = function (id) { return wr(KI, rd(KI, []).filter(function (x) { return x.id !== id; })); };
+  // AI가 넣은 것 되돌리기 (새로 만든 고객·일정·메모, 덧붙인 상담 기록)
+  D.undoInbox = function (x) { (x.made || []).forEach(function (m) {
+      if (m.c === 'events') D.delEvent(m.id); else if (m.c === 'memos') D.delMemo(m.id); else if (m.c === 'customers' && m.isNew) D.delCustomer(m.id);
+      else if (m.c === 'clog') { var c = D.getCustomer(m.id); if (c) { c.logs = (c.logs || []).filter(function (l) { return l.id !== m.log; }); D.saveCustomer(c); } } });
+    x.st = 'undo'; x.ack = 1; D.saveInbox(x); };
 
   // ---------- 일정 (실측·상담 방문 등, 시공은 작업 지시서에서) ----------
   var KE = 'deco-events';
