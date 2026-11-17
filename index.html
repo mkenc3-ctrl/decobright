@@ -58,7 +58,8 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
 .hero.photo::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(30,22,18,.15) 0%,rgba(30,22,18,.55) 55%,rgba(30,22,18,.88) 100%)}
 .hero.photo>*:not(.bgv){position:relative;z-index:2}
 .hero .eng{font-size:12px;letter-spacing:.14em;color:#f3c98a;font-weight:700;margin-bottom:6px}
-.hero .area{margin-top:6px;font-size:14px;color:#e9dccb}
+.hero .area{margin-top:6px;font-size:14px;color:#e9dccb;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero .area .cv{position:relative;z-index:2;font-size:14px;font-weight:700;color:#191919;background:#FEE500;border-radius:999px;padding:5px 12px;text-decoration:none;white-space:nowrap}
 .grp small{font-size:13px;font-weight:500;color:var(--mut,#7a6d5c);margin-left:6px}
 .cases{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
 .cases button{flex:0 0 46%;max-width:220px;scroll-snap-align:start;border:0;padding:0;background:#2a211d;border-radius:12px;overflow:hidden;position:relative;aspect-ratio:4/5;cursor:pointer;font:inherit}
@@ -121,7 +122,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     <div class="eng">DECO BRIGHT<span class="engx"> · Premium Lighting &amp; Ceiling Fan</span></div>
     <div class="brandline" id="cname">데코브라이트</div>
     <h1 class="t">간접 조명 · 실링팬 업무</h1>
-    <div class="area">창원 · 김해 · 부산 · 경남</div>
+    <div class="area">창원 · 김해 · 부산 · 경남 <a class="cv" href="emodel.html?c=1&amp;app=1">📱 손님용 화면</a></div>
   </div>
   <a class="syncbox" id="syncBox" href="login.html">☁ 같이 쓰기 준비 중…</a>
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소로 찾기" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
@@ -215,7 +216,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     <div class="h"><span>🔔 다가오는 작업 알림</span><span><button class="btn2 pri" type="button" id="say">🔊 소리로 듣기</button> <button class="btn2" type="button" id="noti">휴대폰 알림 켜기</button></span></div>
     <ul id="alist"></ul>
   </section>
-  <section class="mc" id="mc" aria-label="이번 달 일정 (누르면 크게)">
+  <section class="mc big" id="mc" aria-label="이번 달 일정 (누르면 크게)">
     <div class="mh"><b id="mct"></b><span id="mcs">누르면 크게 보기</span></div>
     <div class="g" id="mcg"></div>
     <div class="ft"><button class="btn2" type="button" id="mcSmall">작게 접기</button><a class="btn2 pri" href="calendar.html">달력에서 일정 추가 ›</a></div>
@@ -224,7 +225,6 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   <nav class="menu" aria-label="메뉴">
     <a class="main" href="quote.html"><b>새 견적 작성</b><span>견적 → 계약 안내 문자까지</span></a>
     <a href="list.html"><b>견적 목록</b><span id="cnt">이 기기에 저장한 견적</span></a>
-    <a href="emodel.html?c=1&amp;app=1" style="border-left-color:#FEE500"><b>📱 손님용 화면</b><span>손님 휴대폰에 보이는 그대로 · 링크·숨고 문구 보내기</span></a>
   </nav>
   <h2 class="grp" id="favH" hidden>⭐ 자주 여는 화면</h2>
   <nav class="menu tiles" id="fav" aria-label="자주 여는 화면" hidden></nav>
@@ -416,6 +416,8 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   var mn = document.querySelector('.page > nav.menu, .page > .menu:not(.tiles)'), sr = document.querySelector('.page > .srch'); if (mn && sr) { sr.parentNode.insertBefore(mn, sr.nextSibling);
     // 자주 여는 화면 · 고객·일정 · 현장 작업 · 기타 카테고리도 큰 메뉴 바로 아래로
     var fh = document.getElementById('favH'), cs = document.getElementById('cases'), after = mn, nx;
+    // 시공 달력(한 달 펼침)을 큰 메뉴 바로 아래에
+    ['mc', 'today'].forEach(function (id) { var e = document.getElementById(id); if (e) { after.parentNode.insertBefore(e, after.nextSibling); after = e; } });
     if (fh && cs) { var stop = cs.previousElementSibling; for (var el = fh; el && el !== stop; el = nx) { nx = el.nextElementSibling; if (el.tagName === 'SCRIPT') continue; after.parentNode.insertBefore(el, after.nextSibling); after = el; } mn = after; } }
   var rd = function (k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }, wr = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
   var dt = document.createElement('details'); dt.className = 'ntc'; dt.open = rd('deco-ntcopen2', false) === true;
