@@ -86,6 +86,8 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
 .tiles i{font-style:normal;font-size:28px;line-height:1;margin-bottom:4px}
 .tiles b{font-size:18px}
 .tiles span{font-size:13px;line-height:1.35}
+@media (max-width:700px){.mc{padding:10px 12px}.mc .mh,.mc:not(.big) .mh{font-size:17px}.mc .mh{flex-wrap:wrap;row-gap:0}.mc .mh b{white-space:nowrap}.mc .mh span{font-size:13px}.mc .w{font-size:13px;line-height:1.6}.mc .d{font-size:17px;line-height:1.5;padding:4px 0 10px}.mc .d i s{width:6px;height:6px}.mc.big .d{min-height:58px;font-size:15px}.mc.big .d em{font-size:11px}
+.menu.mtop{margin-bottom:14px}.menu.mtop a{min-height:118px}.menu.mtop b{font-size:20px}}
 @media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tiles span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
 @media (max-width:420px){.hero .engx{display:none}}
 .todo{background:#fff;border:1px solid var(--line);border-top:4px solid var(--pri);border-radius:14px;padding:12px 14px;margin:0 0 12px}
@@ -414,10 +416,14 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   var first = document.getElementById(IDS[0]); if (!first) return;
   // 앱을 열면 메뉴(카테고리)가 먼저 보이게: 큰 메뉴를 검색 칸 바로 아래로
   var mn = document.querySelector('.page > nav.menu, .page > .menu:not(.tiles)'), sr = document.querySelector('.page > .srch'); if (mn && sr) { sr.parentNode.insertBefore(mn, sr.nextSibling);
+    // 휴대폰: 달력을 먼저, 새 견적·견적 목록은 네모 칸으로 달력 밑에 (PC는 그대로)
+    var MOB = window.matchMedia && matchMedia('(max-width: 700px)').matches;
+    if (MOB) { var at = sr; ['mc', 'today'].forEach(function (id) { var e = document.getElementById(id); if (e) { at.parentNode.insertBefore(e, at.nextSibling); at = e; } }); at.parentNode.insertBefore(mn, at.nextSibling);
+      mn.classList.add('tiles', 'mtop'); [['quote.html', '📝'], ['list.html', '📋']].forEach(function (x) { var a = mn.querySelector('a[href="' + x[0] + '"]'); if (a && !a.querySelector('i')) a.insertAdjacentHTML('afterbegin', '<i aria-hidden="true">' + x[1] + '</i>'); }); }
     // 자주 여는 화면 · 고객·일정 · 현장 작업 · 기타 카테고리도 큰 메뉴 바로 아래로
     var fh = document.getElementById('favH'), cs = document.getElementById('cases'), after = mn, nx;
     // 시공 달력(한 달 펼침)을 큰 메뉴 바로 아래에
-    ['mc', 'today'].forEach(function (id) { var e = document.getElementById(id); if (e) { after.parentNode.insertBefore(e, after.nextSibling); after = e; } });
+    if (!MOB) ['mc', 'today'].forEach(function (id) { var e = document.getElementById(id); if (e) { after.parentNode.insertBefore(e, after.nextSibling); after = e; } });
     if (fh && cs) { var stop = cs.previousElementSibling; for (var el = fh; el && el !== stop; el = nx) { nx = el.nextElementSibling; if (el.tagName === 'SCRIPT') continue; after.parentNode.insertBefore(el, after.nextSibling); after = el; } mn = after; } }
   var rd = function (k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }, wr = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
   var dt = document.createElement('details'); dt.className = 'ntc'; dt.open = rd('deco-ntcopen2', false) === true;
