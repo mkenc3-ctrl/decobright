@@ -58,6 +58,10 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
 .hero.photo::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(30,22,18,.15) 0%,rgba(30,22,18,.55) 55%,rgba(30,22,18,.88) 100%)}
 .hero.photo>*:not(.bgv){position:relative;z-index:2}
 .hero .eng{font-size:12px;letter-spacing:.14em;color:#f3c98a;font-weight:700;margin-bottom:6px}
+.pbx{background:#FEE500;border-radius:16px;padding:12px;margin-bottom:12px;display:grid;gap:8px}
+.pbx .pgo{display:grid;gap:2px;color:#191919;text-decoration:none}.pbx .pgo b{font-size:20px}.pbx .pgo span{font-size:14px;color:#3b3200}
+.pbx .pin{display:flex;gap:6px}.pbx textarea{flex:1;min-width:0;font:inherit;font-size:16px;border:0;border-radius:10px;padding:10px;resize:none;background:#fff}
+.pbx .pin button{font:inherit;font-size:16px;font-weight:800;border:0;border-radius:10px;padding:0 14px;background:#191919;color:#FEE500;cursor:pointer}
 .hero .area{margin-top:6px;font-size:14px;color:#e9dccb;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hero .area .cv{position:relative;z-index:2;font-size:14px;font-weight:700;color:#191919;background:#FEE500;border-radius:999px;padding:5px 12px;text-decoration:none;white-space:nowrap}
 .grp small{font-size:13px;font-weight:500;color:var(--mut,#7a6d5c);margin-left:6px}
@@ -126,6 +130,12 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     <h1 class="t">간접 조명 · 실링팬 업무</h1>
     <div class="area">창원 · 김해 · 부산 · 경남 <a class="cv" href="emodel.html?c=1&amp;app=1">📱 손님용 화면</a></div>
   </div>
+  <section class="pbx" aria-label="카톡 붙여넣기">
+    <a class="pgo" href="paste.html"><b>📥 카톡 붙여넣기</b><span>사진·글을 넣으면 고객·일정·메모·사진으로 알아서 정리</span></a>
+    <div class="pin"><textarea id="pbt" rows="1" placeholder="여기에 바로 붙여 넣기"></textarea><button type="button" id="pbg">정리 ›</button></div>
+  </section>
+  <script>(function () { var t = document.getElementById('pbt'); function go() { var v = t.value.trim(); try { if (v) sessionStorage.setItem('deco-paste', v); } catch (e) {} location.href = 'paste.html'; }
+    t.addEventListener('paste', function () { setTimeout(function () { if (t.value.trim()) go(); }, 50); }); document.getElementById('pbg').onclick = go; })();</script>
   <a class="syncbox" id="syncBox" href="login.html">☁ 같이 쓰기 준비 중…</a>
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소로 찾기" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
   <h2 class="grp" id="emH" style="margin-top:10px">🏠 e모델하우스 <small style="font-size:14px;font-weight:400">고객과 같이 보는 전시관</small></h2>

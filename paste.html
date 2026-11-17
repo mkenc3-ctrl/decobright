@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>카톡 붙여넣기 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px;display:grid;gap:10px}
+.box h2{margin:0;font-size:19px}
+textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9e;border-radius:12px;padding:12px;width:100%;box-sizing:border-box;min-height:180px;background:#FFFDF8}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.big{flex:1 1 150px;display:flex;align-items:center;justify-content:center;gap:6px;min-height:56px;border-radius:14px;font:inherit;font-size:18px;font-weight:800;border:0;cursor:pointer;text-decoration:none}
+.big.d{background:#1d1714;color:#f6c477}.big.y{background:#FEE500;color:#191919}.big.w{background:#fff;color:var(--ink);border:1px solid var(--bd)}
+.ths{display:flex;gap:6px;flex-wrap:wrap}
+.ths div{position:relative}.ths img{width:76px;height:76px;object-fit:cover;border-radius:10px;display:block}
+.ths button{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:0;background:#1d1714;color:#fff;font-size:15px;cursor:pointer}
+.it{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px;background:#FFFDF9}
+.it.off{opacity:.5}
+.it .hd{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:800}
+.it .hd input{width:26px;height:26px;flex:none}
+.it label{display:grid;gap:3px;font-size:14px;font-weight:700;color:var(--muted)}
+.it input[type=text],.it input[type=date],.it input[type=time],.it select,.it textarea{font:inherit;font-size:17px;color:var(--ink);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;background:#fff;width:100%;box-sizing:border-box;min-width:0}
+.it textarea{min-height:80px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.msg{margin:0;font-weight:700;color:var(--ok);min-height:1.3em;font-size:17px}.msg.bad{color:#b3261e}
+.hint{font-size:14px;color:var(--muted);margin:0}
+</style>
+</head>
+<body class="app">
+<div class="page" style="max-width:720px">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">📥 카톡 붙여넣기</h1>
+  <section class="box">
+    <h2>① 카톡 내용·사진 넣기</h2>
+    <textarea class="in" id="tx" placeholder="카톡 대화를 길게 눌러 복사한 뒤 여기에 붙여 넣으세요.&#10;예) 김민수 님 010-1234-5678 부산 동래구 온천동 래미안 101동 / 11월 20일 오후 2시 실측"></textarea>
+    <div class="ths" id="ths"></div>
+    <div class="row">
+      <button class="big w" type="button" id="pst">📋 붙여넣기</button>
+      <label class="big w" style="cursor:pointer">📷 사진 넣기<input type="file" id="ph" accept="image/*" multiple hidden></label>
+    </div>
+    <button class="big d" type="button" id="go">✨ 알아서 정리하기</button>
+    <p class="hint">전화번호·이름·주소·날짜·시간을 찾아 고객·일정·메모·사진으로 나눕니다. 저장 전에 고칠 수 있습니다.</p>
+  </section>
+  <section class="box" id="res" hidden>
+    <h2>② 이렇게 저장합니다 <small style="font-weight:400;color:var(--muted);font-size:14px">(체크한 것만)</small></h2>
+    <div id="items" style="display:grid;gap:10px"></div>
+    <button class="big y" type="button" id="save">💾 저장하기</button>
+    <p class="msg" id="msg" role="status"></p>
+  </section>
+</div>
+<script src="common.js"></script>
+<script src="prices-default.js"></script>
+<script src="sync.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, PH = [];
+  var dg = function (s) { return String(s || '').replace(/\D/g, ''); }, pad = function (n) { return ('0' + n).slice(-2); };
+  try { var pre = sessionStorage.getItem('deco-paste'); if (pre) { $('tx').value = pre; sessionStorage.removeItem('deco-paste'); } } catch (e) {}
+  // ── 사진: 고르기 · 붙여넣기 ──
+  function addFiles(fs) { [].forEach.call(fs, function (f) { if (!/^image\//.test(f.type)) return; PH.push({ f: f, u: URL.createObjectURL(f) }); }); thumbs(); }
+  function thumbs() { $('ths').innerHTML = PH.map(function (p, i) { return '<div><img src="' + p.u + '" alt="사진 ' + (i + 1) + '"><button type="button" data-i="' + i + '" aria-label="빼기">×</button></div>'; }).join(''); }
+  $('ths').onclick = function (e) { var b = e.target.closest('button'); if (b) { PH.splice(+b.dataset.i, 1); thumbs(); } };
+  $('ph').onchange = function () { addFiles(this.files); this.value = ''; };
+  document.addEventListener('paste', function (e) { var it = (e.clipboardData && e.clipboardData.files) || []; if (it.length) { addFiles(it); if (!(e.clipboardData.getData('text') || '').trim()) e.preventDefault(); } });
+  $('pst').onclick = function () {
+    if (navigator.clipboard && navigator.clipboard.read) { navigator.clipboard.read().then(function (L) { var ps = [];
+      L.forEach(function (c) { c.types.forEach(function (t) { if (/^image\//.test(t)) ps.push(c.getType(t).then(function (b) { addFiles([new File([b], 'p.png', { type: t })]); })); else if (t === 'text/plain') ps.push(c.getType(t).then(function (b) { return b.text(); }).then(function (s) { $('tx').value = ($('tx').value ? $('tx').value + '\n' : '') + s; })); }); });
+      return Promise.all(ps); }).catch(txt); } else txt();
+    function txt() { if (navigator.clipboard && navigator.clipboard.readText) navigator.clipboard.readText().then(function (s) { $('tx').value = ($('tx').value ? $('tx').value + '\n' : '') + s; }, function () { $('tx').focus(); say('칸을 길게 눌러 「붙여넣기」를 눌러 주세요.', 1); }); else $('tx').focus(); } };
+  function say(t, bad) { $('msg').className = 'msg' + (bad ? ' bad' : ''); $('msg').textContent = t; if (bad && $('res').hidden) alert(t); }
+
+  // ── 글 읽기 ──
+  function clean(t) { return String(t || '').split(/\r?\n/).filter(function (l) { return !/^-{3,}.*-{3,}$/.test(l.trim()) && !/^\d{4}년 \d{1,2}월 \d{1,2}일 \S요일$/.test(l.trim()); })
+    .map(function (l) { return l.replace(/^\[[^\]]{1,20}\] \[(오전|오후) \d{1,2}:\d{2}\] /, '').replace(/^\d{4}[년.]\s?\d{1,2}[월.]\s?\d{1,2}일?\.?\s*(오전|오후)?\s*\d{1,2}:\d{2},?\s*[^:]{1,20}\s:\s/, ''); }).join('\n').trim(); }
+  function parse(t) {
+    var r = {}, m;
+    m = t.match(/01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/); if (m) { var d = dg(m[0]); r.phone = d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4); }
+    m = t.match(/(?:이름|성함|고객명?)\s*[:：]\s*([가-힣]{2,4})/) || t.match(/([가-힣]{2,4})\s*(?:고객님|님|씨)(?![가-힣])/); if (m && !/고객|사장|기사|팀장|실장|과장|대표|선생|사모/.test(m[1])) r.name = m[1];
+    m = t.match(/(?:주소|현장|사는 곳)\s*[:：]\s*([^\n]{4,80})/) || t.match(/((?:부산|창원|김해|양산|울산|대구|서울|경남|경상남도|진해|마산|거제|통영|밀양|함안|진주)[^\n,]{0,10}(?:시|구|군|동|읍|면)[^\n]{2,60})/); if (m) r.addr = m[1].replace(/\s*(?:입니다|이에요|요)\.?$/, '').trim();
+    // 날짜
+    var now = new Date(), dt = null, y = now.getFullYear();
+    if ((m = t.match(/(20\d\d)[-./]\s?(\d{1,2})[-./]\s?(\d{1,2})/))) dt = new Date(+m[1], m[2] - 1, +m[3]);
+    else if ((m = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/)) || (m = t.match(/(?:^|[^\d:])(\d{1,2})\/(\d{1,2})(?![\d:\/])/))) { dt = new Date(y, m[1] - 1, +m[2]); if (dt < new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30)) dt.setFullYear(y + 1); }
+    else if (/모레/.test(t)) dt = new Date(y, now.getMonth(), now.getDate() + 2);
+    else if (/내일/.test(t)) dt = new Date(y, now.getMonth(), now.getDate() + 1);
+    else if (/오늘/.test(t)) dt = new Date(y, now.getMonth(), now.getDate());
+    else if ((m = t.match(/(다음\s*주|담주|이번\s*주)?\s*([월화수목금토일])요일/))) { var wd = '일월화수목금토'.indexOf(m[2]), add = (wd - now.getDay() + 7) % 7 || 7; if (m[1] && /다음|담/.test(m[1])) add = (wd - now.getDay() + 7) % 7 + 7; dt = new Date(y, now.getMonth(), now.getDate() + add); }
+    if (dt) r.date = DECO.ymd(dt);
+    // 시간
+    if ((m = t.match(/(오전|오후|아침|저녁|낮)?\s*(\d{1,2})\s*시\s*(?:(\d{1,2})\s*분|(반))?/))) { var h = +m[2], mi = m[3] ? +m[3] : m[4] ? 30 : 0; if (/오후|저녁|낮/.test(m[1] || '') && h < 12) h += 12; if (!m[1] && h >= 1 && h <= 7) h += 12; if (h < 24) r.time = pad(h) + ':' + pad(mi); }
+    else if ((m = t.match(/(?:^|[^\d])([01]?\d|2[0-3]):([0-5]\d)(?!\d)/))) r.time = pad(+m[1]) + ':' + m[2];
+    r.kind = /하자|AS|에이에스|수리|깜빡|고장|안\s?켜/.test(t) ? '하자 보수 방문' : /실측|방문\s?견적|사이즈|치수/.test(t) ? '실측 방문' : /자재|입고|배송|택배/.test(t) ? '자재 입고' : /시공|공사|작업/.test(t) ? '시공 예정' : /휴무|쉬는/.test(t) ? '휴무' : '상담';
+    r.stage = /하자|AS|수리/.test(t) ? '하자·보수' : /시공\s?후|완료|끝났|다 됐/.test(t) ? '시공 후' : /시공\s?중|작업\s?중/.test(t) ? '시공 중' : /도면|자재/.test(t) ? '자재·도면' : '시공 전';
+    r.cat = /자재|입고/.test(t) ? '자재' : /현장|시공/.test(t) ? '현장' : (r.phone || r.name) ? '상담' : '할 일';
+    return r;
+  }
+  function findCust(r) { var p = dg(r.phone); return DECO.customers().filter(function (c) { return (p.length >= 9 && dg(c.phone) === p) || (!p && r.name && c.name === r.name); })[0] || null; }
+  function findJob(r, c) { var p = dg(r.phone); return DECO.list().filter(function (q) { return (c && q.custId === c.id) || (p.length >= 9 && dg(q.cust && q.cust.phone) === p) || (r.name && q.cust && q.cust.name === r.name); })[0] || null; }
+  var R = null, T = '', C0 = null;
+  function opt(L, v) { return L.map(function (x) { var k = Array.isArray(x) ? x[0] : x, n = Array.isArray(x) ? x[1] : x; return '<option value="' + E(k) + '"' + (k === v ? ' selected' : '') + '>' + E(n) + '</option>'; }).join(''); }
+  $('go').onclick = function () {
+    T = clean($('tx').value); if (!T && !PH.length) { $('tx').focus(); say('카톡 내용이나 사진을 먼저 넣어 주세요.', 1); return; }
+    R = parse(T); C0 = findCust(R); var J = findJob(R, C0), h = '';
+    var first = (T.split('\n').filter(function (l) { return l.trim(); })[0] || '').slice(0, 40);
+    if (R.phone || R.name || R.addr || C0) h += '<div class="it" data-k="c"><div class="hd"><input type="checkbox" checked aria-label="고객 저장">👤 고객' + (C0 ? ' <small style="font-weight:500;color:var(--ok)">· 있는 고객에 덧붙임</small>' : ' <small style="font-weight:500;color:var(--muted)">· 새 고객</small>') + '</div>' +
+      '<div class="g2"><label>이름<input type="text" class="nm" value="' + E(R.name || (C0 && C0.name) || '') + '"></label><label>전화<input type="text" class="pn" inputmode="tel" value="' + E(R.phone || (C0 && C0.phone) || '') + '"></label></div>' +
+      '<label>주소<input type="text" class="ad" value="' + E(R.addr || (C0 && C0.addr) || '') + '"></label></div>';
+    if (R.date || R.time) h += '<div class="it" data-k="e"><div class="hd"><input type="checkbox" checked aria-label="일정 저장">📅 일정</div>' +
+      '<div class="g2"><label>날짜<input type="date" class="dt" value="' + E(R.date || DECO.today()) + '"></label><label>시간<input type="time" class="tm" value="' + E(R.time || '') + '"></label></div>' +
+      '<label>종류<select class="kd">' + opt(DECO.KINDS, R.kind) + '</select></label><label>내용<input type="text" class="tt" value="' + E((R.name ? R.name + ' 님 · ' : '') + first) + '"></label></div>';
+    if (T) h += '<div class="it" data-k="m"><div class="hd"><input type="checkbox"' + (R.phone || R.name || R.date ? '' : ' checked') + ' aria-label="메모 저장">📝 메모</div>' +
+      '<label>분류<select class="ct">' + opt(['할 일', '자재', '상담', '현장', '기타'], R.cat) + '</select></label><label>내용<textarea class="bd">' + E(T) + '</textarea></label></div>';
+    if (PH.length) { var Q = DECO.list(); h += '<div class="it" data-k="p"><div class="hd"><input type="checkbox" checked aria-label="사진 저장">📷 사진 ' + PH.length + '장</div>' +
+      '<label>현장<select class="jb">' + opt([['', '현장 미지정']].concat(Q.map(function (q) { return [q.id, ((q.cust && q.cust.name) || '이름 없음') + ' 님' + (q.cust && q.cust.addr ? ' · ' + q.cust.addr : '')]; })), J ? J.id : '') + '</select></label>' +
+      '<label>사진 종류<select class="sg">' + opt(DECO.STAGES, R.stage) + '</select></label></div>'; }
+    $('items').innerHTML = h; $('res').hidden = false; $('msg').textContent = ''; $('res').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  $('items').addEventListener('change', function (e) { if (e.target.matches('.hd input')) e.target.closest('.it').classList.toggle('off', !e.target.checked); });
+  $('save').onclick = function () { var done = [], cid = '', it = function (k) { var x = $('items').querySelector('.it[data-k="' + k + '"]'); return x && x.querySelector('.hd input').checked ? x : null; }, v = function (x, c) { return x.querySelector(c).value.trim(); };
+    var x = it('c'); if (x) { var cu = { name: v(x, '.nm'), phone: v(x, '.pn'), addr: v(x, '.ad') }; cid = DECO.ensureCustomer(cu, C0 && C0.id);
+      var c = cid && DECO.getCustomer(cid); if (c) { ['name', 'phone', 'addr'].forEach(function (k) { if (cu[k]) c[k] = cu[k]; }); if (!c.source) c.source = '카톡'; c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '💬 카톡: ' + T.replace(/\s+/g, ' ').slice(0, 120) }); c.touched = Date.now(); DECO.saveCustomer(c); done.push('고객 「' + (c.name || c.phone) + '」'); } }
+    x = it('e'); if (x) { var ev = DECO.saveEvent({ kind: v(x, '.kd'), date: v(x, '.dt') || DECO.today(), time: v(x, '.tm'), title: v(x, '.tt'), custId: cid || '' }); if (ev) done.push('일정 ' + ev.date.slice(5).replace('-', '/') + (ev.time ? ' ' + ev.time : '') + ' ' + ev.kind); }
+    x = it('m'); if (x) { var b = v(x, '.bd'); if (b && DECO.saveMemo({ title: b.split('\n')[0].slice(0, 30), body: b, cat: v(x, '.ct') })) done.push('메모'); }
+    x = it('p'); var pr = Promise.resolve(0);
+    if (x) { var jb = v(x, '.jb'), sg = v(x, '.sg'), n = 0; pr = PH.reduce(function (p, ph) { return p.then(function () { return DECO.shrink(ph.f).then(function (r) { return DECO.photoAdd({ job: jb, stage: sg, memo: T.slice(0, 60), blob: r.blob, w: r.w, h: r.h, taken: ph.f.lastModified || Date.now() }); }).then(function () { n++; }, function () {}); }); }, Promise.resolve()).then(function () { if (n) done.push('사진 ' + n + '장'); return n; }); }
+    $('save').disabled = true; say('저장하는 중…');
+    pr.then(function () { $('save').disabled = false;
+      if (!done.length) { say('체크한 것이 없습니다.', 1); return; }
+      say('✔ 저장했습니다: ' + done.join(' · ')); $('tx').value = ''; PH = []; thumbs(); $('items').innerHTML = '<p class="hint">새로 붙여 넣으면 다시 정리합니다. <a href="index.html">처음 화면으로 ›</a></p>'; });
+  };
+  if ($('tx').value) $('go').click(); else $('tx').focus();
+})();
+</script>
+</body>
+</html>
