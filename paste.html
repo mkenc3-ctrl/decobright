@@ -103,6 +103,9 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
     m = t.match(/(?:이름|성함|고객명?)\s*[:：]\s*([가-힣]{2,4})/) || t.match(/([가-힣]{2,4})\s*(?:고객님|님|씨)(?![가-힣])/); if (m && !/고객|사장|기사|팀장|실장|과장|대표|선생|사모/.test(m[1])) r.name = m[1]; if (HN && /^[가-힣]{2,4}$/.test(HN)) r.name = HN;
     m = t.match(/(?:주소|현장|사는 곳)\s*[:：]\s*([^\n]{4,80})/) || t.match(/((?:부산|창원|김해|양산|울산|대구|서울|경남|경상남도|진해|마산|거제|통영|밀양|함안|진주)[^\n,]{0,10}(?:시|구|군|동|읍|면)[^\n]{2,60})/); if (m) r.addr = m[1].replace(/\s*(?:입니다|이에요|요)\.?$/, '').trim();
     else { var dh = t.match(/(\d{1,4})\s*동\s*(\d{2,4})\s*호/), ap = t.match(/([가-힣A-Za-z]{2,12}\s?(?:\d{1,2}차|\d{1,2}단지)?)\s*(?:아파트|광고|단지)/); if (dh) r.addr = ((ap ? ap[1].trim() + ' ' : '') + dh[1] + '동 ' + dh[2] + '호').trim(); }
+    var dh2 = t.match(/(\d{1,4})\s*동\s*(\d{2,4})\s*호/), ap2 = t.match(/([가-힣A-Za-z0-9]{2,14}(?:\s?\d{1,2}차|\s?\d{1,2}단지)?)\s*(?:아파트|APT)/i);
+    r.apt = ap2 ? ap2[1].trim() : (r.addr ? DECO.apt(r.addr) || '' : ''); r.dongho = dh2 ? dh2[1] + '동 ' + dh2[2] + '호' : '';
+    if (!r.apt && dh2) { var bf = t.slice(Math.max(0, dh2.index - 20), dh2.index).match(/([가-힣A-Za-z]{2,12}\s?(?:\d{1,2}차)?)\s*$/); if (bf) r.apt = bf[1].trim(); }
     // 날짜
     var now = new Date(), dt = null, y = now.getFullYear();
     if ((m = t.match(/(20\d\d)[-./]\s?(\d{1,2})[-./]\s?(\d{1,2})/))) dt = new Date(+m[1], m[2] - 1, +m[3]);
@@ -130,6 +133,7 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
     var first = (T.split('\n').filter(function (l) { return l.trim(); })[0] || '').slice(0, 40);
     if (R.phone || R.name || R.addr || C0) h += '<div class="it" data-k="c"><div class="hd"><input type="checkbox" checked aria-label="고객 저장">👤 고객' + (C0 ? ' <small style="font-weight:500;color:var(--ok)">· 있는 고객에 덧붙임</small>' : ' <small style="font-weight:500;color:var(--muted)">· 새 고객</small>') + '</div>' +
       '<div class="g2"><label>이름<input type="text" class="nm" value="' + E(R.name || (C0 && C0.name) || '') + '"></label><label>전화<input type="text" class="pn" inputmode="tel" value="' + E(R.phone || (C0 && C0.phone) || '') + '"></label></div>' +
+      '<div class="g2"><label>🏢 아파트명<input type="text" class="ap" value="' + E(R.apt || (C0 && C0.apt) || '') + '"></label><label>동·호수<input type="text" class="dh" value="' + E(R.dongho || (C0 && C0.dongho) || '') + '"></label></div>' +
       '<label>주소<input type="text" class="ad" value="' + E(R.addr || (C0 && C0.addr) || '') + '"></label></div>';
     if (R.date || R.time) h += '<div class="it" data-k="e"><div class="hd"><input type="checkbox" checked aria-label="일정 저장">📅 일정</div>' +
       '<div class="g2"><label>날짜<input type="date" class="dt" value="' + E(R.date || DECO.today()) + '"></label><label>시간<input type="time" class="tm" value="' + E(R.time || '') + '"></label></div>' +
@@ -146,7 +150,7 @@ textarea.in{font:inherit;font-size:17px;line-height:1.55;border:2px solid #f0cf9
   $('items').addEventListener('change', function (e) { if (e.target.matches('.hd input')) e.target.closest('.it').classList.toggle('off', !e.target.checked); });
   $('save').onclick = function () { var done = [], cid = '', it = function (k) { var x = $('items').querySelector('.it[data-k="' + k + '"]'); return x && x.querySelector('.hd input').checked ? x : null; }, v = function (x, c) { return x.querySelector(c).value.trim(); };
     var x = it('c'); if (x) { var cu = { name: v(x, '.nm'), phone: v(x, '.pn'), addr: v(x, '.ad') }; cid = DECO.ensureCustomer(cu, C0 && C0.id);
-      var c = cid && DECO.getCustomer(cid); if (c) { ['name', 'phone', 'addr'].forEach(function (k) { if (cu[k]) c[k] = cu[k]; }); if (!c.source) c.source = '카톡'; c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '💬 카톡 상담 내용\n' + T.slice(0, 6000) }); c.touched = Date.now(); DECO.saveCustomer(c); done.push('고객 「' + (c.name || c.phone) + '」'); } }
+      var c = cid && DECO.getCustomer(cid); if (c) { ['name', 'phone', 'addr'].forEach(function (k) { if (cu[k]) c[k] = cu[k]; }); var ap = v(x, '.ap'), dh = v(x, '.dh'); if (ap) c.apt = ap; if (dh) c.dongho = dh; if (!c.source) c.source = '카톡'; c.logs = c.logs || []; c.logs.push({ id: 'l' + Date.now().toString(36), date: DECO.today(), text: '💬 카톡 상담 내용\n' + T.slice(0, 6000) }); c.touched = Date.now(); DECO.saveCustomer(c); done.push('고객 「' + (c.name || c.phone) + '」'); } }
     x = it('e'); if (x) { var ev = DECO.saveEvent({ kind: v(x, '.kd'), date: v(x, '.dt') || DECO.today(), time: v(x, '.tm'), title: v(x, '.tt'), custId: cid || '' }); if (ev) done.push('일정 ' + ev.date.slice(5).replace('-', '/') + (ev.time ? ' ' + ev.time : '') + ' ' + ev.kind); }
     x = it('m'); if (x) { var b = v(x, '.bd'); if (b && DECO.saveMemo({ title: b.split('\n')[0].slice(0, 30), body: b, cat: v(x, '.ct') })) done.push('메모'); }
     x = it('p'); var pr = Promise.resolve(0);

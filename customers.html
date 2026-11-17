@@ -132,7 +132,7 @@
   function draw() {
     var k = qs.value.trim(), kd = k.replace(/\D/g, '');
     var L = C.filter(function (x) { var c = x.c; if (fs.value === '_call') { if (!((x.st === '상담' || x.st === '실측' || x.st === '견적 전') && x.ago >= 3)) return false; } else if (fs.value === '_due') { if (!x.due) return false; } else if (fs.value && x.st !== fs.value) return false; if (!k) return true;
-      return [c.name, c.addr].join(' ').indexOf(k) >= 0 || (kd.length >= 3 && String(c.phone).replace(/\D/g, '').indexOf(kd) >= 0); });
+      return [c.name, c.addr, c.apt, c.dongho, c.work].join(' ').indexOf(k) >= 0 || (kd.length >= 3 && String(c.phone).replace(/\D/g, '').indexOf(kd) >= 0); });
     if (fs.value === '_call') L.sort(function (a, b) { return a.ago - b.ago; }); if (fs.value === '_due') L.sort(function (a, b) { return b.due - a.due; });
     catMark(); var si = $f('fSi').value, gu = $f('fGu').value, pr = period(), by = $f('fBy').value, vw = $f('fVw').value;
     var tg = $f('fTg').value; L = L.filter(function (x) { if (tg && (x.c.tags || []).indexOf(tg) < 0) return false; if (si && x.si !== si) return false; if (gu && x.gu !== gu) return false; if (pr) { var t = by === 'l' ? (x.ago < 999 ? x.ld : 0) : x.cd; if (!(t >= pr[0].getTime() && t < pr[1].getTime())) return false; } return true; });
@@ -143,7 +143,7 @@
     if (!L.length) { box.innerHTML = '<div class="empty">' + (k || fs.value || anyF() ? '찾는 고객이 없습니다.' : '아직 고객이 없습니다. 견적을 저장하거나 「+ 고객 등록」을 누르세요.') + '</div>'; return; }
     box.innerHTML = L.map(function (x) { var c = x.c, hd = ''; if (vw) { var h = hdr(x); if (h !== lastH) { lastH = h; hd = '<h2 style="font-size:19px;margin:16px 0 6px;padding:6px 10px;background:#3B2F2A;color:#fff;border-radius:8px">' + E(h) + ' <small style="font-weight:400">(' + HC[h] + '명)</small></h2>'; } }
       return hd + '<a class="c" href="customer.html?id=' + encodeURIComponent(c.id) + '"><div><h3>' + E(c.name || '이름 없음') + ' 님<span class="tag">' + E(x.st) + '</span>' + (c.tags || []).slice(0, 3).map(function (t) { return '<span class="tag" style="background:#EAF1FA;color:#2F6DB5">' + E(t) + '</span>'; }).join('') + (x.nc >= 2 ? '<span class="tag" style="background:#FFF1D6;color:#8A5A12;border-color:#E9C27A">🏅 단골 ' + x.nc + '번</span>' : '') + (x.nr ? '<span class="tag" style="background:#E8F3EC;color:#2E6A4E;border-color:#9BC7AE">🤝 소개 ' + x.nr + '명</span>' : '') + '</h3>' +
-        '<div class="m">' + E(c.phone || '전화 없음') + (c.addr ? ' · ' + E(c.addr) : '') + '</div>' +
+        '<div class="m">' + E(c.phone || '전화 없음') + (c.apt || c.dongho ? ' · 🏢 ' + E(((c.apt || '') + ' ' + (c.dongho || '')).trim()) : '') + (c.addr ? ' · ' + E(c.addr) : '') + '</div>' + (c.work || c.amt ? '<div class="m">' + E([c.work, c.amt].filter(Boolean).join(' · ')) + '</div>' : '') +
         '<div class="m">견적 ' + x.n + '건' + (c.source ? ' · ' + E(c.source) : '') + (c.logs && c.logs.length ? ' · 최근 상담 ' + E(c.logs[c.logs.length - 1].date) : '') + (x.ago < 999 ? ' · ' + (x.ago ? x.ago + '일 전 연락' : '오늘 연락') : '') + (x.due ? ' · <b style="color:#b5462f">받을 돈 ' + DECO.won(x.due) + '</b>' : '') + '</div></div>' +
         '<div class="r">' + (x.won ? '<b>' + DECO.won(x.won) + '</b><span class="m">계약 금액</span>' : '') + '</div></a>';
     }).join('');

@@ -50,7 +50,11 @@ h2.s small{font-weight:400;font-size:14px;color:var(--muted)}
     <div class="grid2">
       <label class="fl"><span class="need">이름</span><input name="name" required></label>
       <label class="fl">연락처<input name="phone" inputmode="tel" placeholder="010-0000-0000"></label>
+      <label class="fl"><b>🏢 아파트명</b><input name="apt" placeholder="예: 메트로2차"></label>
+      <label class="fl"><b>동·호수</b><input name="dongho" placeholder="예: 204동 2604호"></label>
       <label class="fl" style="grid-column:1/-1">주소<input name="addr" placeholder="예: 창원시 성산구 ○○아파트 101동 1001호"></label>
+      <label class="fl" style="grid-column:1/-1">🛠 작업 내용<textarea name="work" rows="2" placeholder="예: 거실 우물 간접등 + 다운라이트 교체, 실링팬 1대"></textarea></label>
+      <label class="fl">💰 금액<input name="amt" placeholder="예: 견적 320만 원 / 계약금 50만 원 받음"></label>
       <label class="fl">알게 된 경로<select name="source"><option value="">고르기</option></select></label>
       <label class="fl">소개해 준 분<input name="ref" list="refList" placeholder="예: 홍길동 (고객 이름)"><datalist id="refList"></datalist><small>「소개」로 오신 경우 적어 두면 감사 인사를 챙길 수 있습니다.</small></label>
       <label class="fl">평형·구조<input name="size" placeholder="예: 34평, 우물 천장"></label>
