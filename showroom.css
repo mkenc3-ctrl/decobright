@@ -169,3 +169,7 @@ body.home .menu .main span{color:#3B3310!important}
 body.home::before{background:radial-gradient(900px 500px at 85% -5%,rgba(201,162,39,.12),transparent 60%),radial-gradient(900px 600px at 0 30%,rgba(42,66,120,.10),transparent 60%),linear-gradient(180deg,#EEF1F7 0,#FFFFFF 700px)!important}
 body.home .menu .main{background:linear-gradient(140deg,#F0D77A 0%,#D2AE34 45%,#A8851A 100%)!important}
 body.home .pbx,body.home .mc,body.home .tiles,body.home .menu:not(.tiles) a:not(.main){background:linear-gradient(180deg,#FFFFFF,#F8FAFC)!important}
+/* 3톤 */
+body.home::before{background:linear-gradient(180deg,#E3E9F5 0,#FFFFFF 600px,#FFFFFF 70%,#FAF5E6 100%)!important}
+body.home .menu .main{background:linear-gradient(135deg,#F6E3A0 0%,#C9A227 50%,#8A6A12 100%)!important}
+body.home .menu .main span{color:#2A2408!important}

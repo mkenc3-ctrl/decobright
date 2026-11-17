@@ -274,3 +274,12 @@ body.app .cat button[aria-pressed=true]{background:linear-gradient(160deg,#2A427
 body.app .card,body.app .c,body.app .m,body.app .menu a:not(.main),body.app .menu button{background:linear-gradient(180deg,#FFFFFF 0%,#FAFBFD 100%)}
 body.app .menu .main,body.app #quick #call{background:linear-gradient(140deg,#F0D77A 0%,#D2AE34 45%,#A8851A 100%)!important}
 body.app h2.grp::after{background:linear-gradient(90deg,rgba(201,162,39,.6),rgba(201,162,39,0))!important}
+/* ── 3톤 그라데이션: 밤남색 → 청남색 → 금빛 ── */
+body.app:not(.home)::before,body.app:not(.home){background:linear-gradient(180deg,#E9EEF7 0,#FFFFFF 380px,#FFFFFF 70%,#FAF5E6 100%) fixed!important}
+body.app .dband::before{background:linear-gradient(115deg,#0A1226 0%,#1E3566 52%,#7A6224 100%)!important}
+body.app .dband{background:linear-gradient(115deg,#0A1226 0%,#1E3566 52%,#7A6224 100%)!important}
+body.app .btn2.pri{background:linear-gradient(135deg,#3A5BA0 0%,#14213D 55%,#0A1226 100%)!important}
+body.app .btn2.pri:hover{background:linear-gradient(135deg,#4767B0 0%,#1A2A4E 55%,#0E1830 100%)!important}
+body.app .cat button[aria-pressed=true]{background:linear-gradient(135deg,#3A5BA0 0%,#14213D 55%,#0A1226 100%)!important}
+body.app .menu .main,body.app #quick #call{background:linear-gradient(135deg,#F6E3A0 0%,#C9A227 50%,#8A6A12 100%)!important}
+body.app .dband::before{inset:0 calc(50% - 50vw)!important}
