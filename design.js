@@ -114,3 +114,17 @@
   }
   if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
 })();
+/* 남색 머리띠: 각 화면 첫머리(뒤로·제목·설명)를 감쌈 */
+(function () {
+  function band() {
+    if (!document.body || !/\bapp\b/.test(document.body.className) || /\b(home|cust)\b/.test(document.body.className)) return;
+    var pg = document.querySelector('.page'); if (!pg || pg.querySelector('.dband')) return;
+    var h = pg.querySelector(':scope > h1'); if (!h) return;
+    var nav = pg.querySelector(':scope > .topnav'), b = document.createElement('header'); b.className = 'dband noprint-band';
+    var first = nav && nav.compareDocumentPosition(h) & 4 ? nav : h;
+    pg.insertBefore(b, first);
+    var n = first; while (n) { var nx = n.nextSibling; b.appendChild(n); if (n === h) break; n = nx; }
+    var s = b.nextElementSibling; if (s && s.tagName === 'P' && /\bsub\b/.test(s.className)) b.appendChild(s);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', band); else band();
+})();

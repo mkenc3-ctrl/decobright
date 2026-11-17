@@ -213,3 +213,64 @@ body.app h1{font-family:var(--serif);font-weight:600;letter-spacing:-.04em}
 body.app .hero h1,body.app .qhero h1{font-family:var(--serif)!important;font-weight:600!important}
 /* 견적(사진) 화면 제목 명조 */
 .qhero h1{font-family:'Noto Serif KR',serif!important;font-weight:600!important;letter-spacing:-.04em}
+
+/* ════ 데코브라이트 고유 배색: 딥 네이비 + 골드 (흰 바탕) ════ */
+:root{--navy:#14213D;--navy2:#1D2D52;--gold:#C9A227;--gold-d:#9C7C14;--gold-s:#FBF5E2;
+  --paper:#FFFFFF;--ink:#14213D;--ink2:#3C4A66;--muted:#6B7385;--mut:#6B7385;--line:#E3E7EE;--line2:#EEF1F5;--bd:#CDD3DE;
+  --pri:#14213D;--pri-d:#0C1529;--pri-s:#F2F4F8;--acc:#9C7C14;--warm:#C9A227;--warm-s:#FBF5E2;--brass:#C9A227;--brass-d:#9C7C14;
+  --sh:0 1px 0 rgba(20,33,61,.04),0 12px 28px -20px rgba(20,33,61,.35);--sh-h:0 1px 0 rgba(20,33,61,.05),0 18px 36px -20px rgba(20,33,61,.45)}
+body.app,body.app:not(.home){background:#FFFFFF!important;color:var(--ink)}
+body.app:not(.home)::before{background:#FFFFFF!important}
+::selection{background:#F1E3AE;color:var(--navy)}
+/* 남색 머리띠 (뒤로·제목·설명을 감쌈 — design.js 가 만듦) */
+body.app .dband{position:relative;background:var(--navy);color:#fff;margin:-18px 0 26px;padding:18px 0 30px;box-shadow:0 0 0 100vmax var(--navy);clip-path:inset(0 -100vmax)}
+body.app .dband::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--gold),rgba(201,162,39,0) 70%);box-shadow:0 0 0 0 transparent}
+body.app .dband .back,body.app .dband a.home,body.app .dband .topnav a,body.app .dband .topnav button{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.22)!important;color:#fff!important}
+body.app .dband .back:hover,body.app .dband a.home:hover{background:rgba(255,255,255,.16)!important}
+body.app .dband h1.t,body.app .dband h1{color:#fff!important}
+body.app:not(.home) .dband h1.t::before{color:var(--gold)!important}
+body.app .dband .sub,body.app .dband p{color:#C3CADB!important}
+body.app .dband .sub b,body.app .dband p b{color:#fff}
+body.app .dband a:not(.back):not(.home):not(.btn2){color:#F1D77A}
+/* 제목·이름표·숫자 */
+body.app:not(.home) h1.t{color:var(--navy)}
+body.app:not(.home) h1.t::before{color:var(--gold-d)}
+body.app:not(.home) h2.grp,body.app:not(.home) .grp{color:var(--gold-d)!important}
+body.app h2.s,body.app .sec,body.app h2:not(.grp){color:var(--navy)}
+/* 면·카드 */
+body.app .card,body.app .c,body.app .m,body.app .rp,body.app .tr,body.app details,body.app #flt,body.app .cat button,body.app .menu a,body.app .menu button{background:#fff;border-color:var(--line)!important}
+body.app .empty{background:#F7F8FB!important;border-color:var(--bd)!important}
+body.app th{background:#F5F7FA!important;color:var(--ink2)}
+/* 단추: 주요=남색, 강조(새 견적·고객 등록 등)=금색 */
+body.app .btn2{border-color:var(--bd);color:var(--navy)}
+body.app .btn2:hover{background:#F7F8FB;border-color:#B3BBCB}
+body.app .btn2.pri{background:var(--navy)!important;color:#fff!important;border-color:var(--navy)!important}
+body.app .btn2.pri:hover{background:var(--navy2)!important;filter:none}
+body.app .menu .main{background:linear-gradient(140deg,#D8B53A,#B8921C)!important;color:var(--navy)!important}
+body.app .menu .main b{color:var(--navy)!important}
+body.app .menu .main span{color:#3B3310!important}
+body.app #quick #call{background:var(--gold)!important;border-color:var(--gold)!important;color:var(--navy)!important}
+body.app .cat button[aria-pressed=true]{background:var(--navy)!important;border-color:var(--navy)!important;color:#fff}
+body.app .cat button[aria-pressed=true]::before{background:var(--gold)}
+/* 입력 칸 */
+body.app input:focus,body.app textarea:focus,body.app select:focus{border-color:var(--navy)!important;box-shadow:0 0 0 3px rgba(20,33,61,.12)!important}
+body.app .tiles i{background:var(--gold-s)!important;color:var(--gold-d)!important}
+body.app :where(a:not([class]):not([style*="color"])){color:#2A4A8C;text-decoration-color:rgba(42,74,140,.35)}
+body.app td a{color:var(--navy)}
+body.app .dband{margin-top:-18px}
+body.app .dband>:last-child{margin-bottom:0}
+@media print{body.app .dband{background:none;box-shadow:none;clip-path:none;color:#000;padding:0;margin:0 0 10px}body.app .dband h1{color:#000!important}body.app .dband::after{display:none}}
+/* ── 그라데이션 결 (단색 대신) ── */
+body.app:not(.home)::before{background:radial-gradient(1200px 600px at 100% 0,rgba(201,162,39,.07),transparent 60%),linear-gradient(180deg,#F3F5F9 0,#FFFFFF 520px)!important}
+body.app:not(.home){background:linear-gradient(180deg,#F3F5F9 0,#FFFFFF 520px) fixed!important}
+body.app .dband{background:radial-gradient(700px 260px at 92% 0,rgba(201,162,39,.30),transparent 62%),radial-gradient(600px 300px at 0 120%,rgba(64,98,170,.45),transparent 60%),linear-gradient(135deg,#0E1830 0%,#14213D 45%,#24396A 100%);box-shadow:0 0 0 100vmax #14213D}
+body.app .dband::before{content:"";position:absolute;inset:0 -100vmax;z-index:-1;background:radial-gradient(700px 260px at calc(50% + 420px) 0,rgba(201,162,39,.28),transparent 62%),linear-gradient(135deg,#0E1830 0%,#14213D 45%,#24396A 100%)}
+body.app .dband{isolation:isolate}
+body.app .dband h1.t,body.app .dband h1{background:linear-gradient(180deg,#FFFFFF 30%,#E7D7A2 130%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+body.app .dband::after{background:linear-gradient(90deg,#8E7016,#E3C35A 30%,rgba(227,195,90,0) 85%)}
+body.app .btn2.pri{background:linear-gradient(160deg,#2A4278 0%,#14213D 60%,#0E1830 100%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 18px -10px rgba(20,33,61,.7)}
+body.app .btn2.pri:hover{background:linear-gradient(160deg,#33508F 0%,#1A2A4E 60%,#0E1830 100%)!important}
+body.app .cat button[aria-pressed=true]{background:linear-gradient(160deg,#2A4278,#14213D 70%)!important}
+body.app .card,body.app .c,body.app .m,body.app .menu a:not(.main),body.app .menu button{background:linear-gradient(180deg,#FFFFFF 0%,#FAFBFD 100%)}
+body.app .menu .main,body.app #quick #call{background:linear-gradient(140deg,#F0D77A 0%,#D2AE34 45%,#A8851A 100%)!important}
+body.app h2.grp::after{background:linear-gradient(90deg,rgba(201,162,39,.6),rgba(201,162,39,0))!important}

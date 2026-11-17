@@ -2,27 +2,27 @@
    상아색 종이 바탕 + 사진 위 따뜻한 빛. 명조 큰 제목, 황동색 가는 선, 사진 위주.
    (첫 화면 body.home 에만 적용) */
 body.home{
-  --sr-bg:#F3EEE6;--sr-s1:#FFFFFF;--sr-s2:#FAF7F2;--sr-s3:#EEE7DC;
-  --sr-hair:rgba(70,52,28,.11);--sr-hair2:rgba(70,52,28,.2);
-  --sr-tx:#1E1A16;--sr-tx2:#4D453C;--sr-mu:#857B6E;--sr-hd:#1A1612;
-  --sr-br:#A87B3E;--sr-br2:#8C6430;--sr-glow:rgba(214,160,80,.12);
+  --sr-bg:#FFFFFF;--sr-s1:#FFFFFF;--sr-s2:#F5F7FA;--sr-s3:#E9EDF3;
+  --sr-hair:rgba(20,33,61,.1);--sr-hair2:rgba(20,33,61,.2);
+  --sr-tx:#14213D;--sr-tx2:#3C4A66;--sr-mu:#6B7385;--sr-hd:#14213D;
+  --sr-br:#A8851A;--sr-br2:#8E7016;--sr-glow:rgba(201,162,39,.12);
   --sr-serif:'Noto Serif KR','Nanum Myeongjo',serif;
   background:var(--sr-bg)!important;color:var(--sr-tx);color-scheme:light;
 }
 /* 사진 위(첫머리·전시관)는 밝은 글씨 그대로 */
-body.home .hero,body.home .exh{--sr-br:#CDA66A;--sr-br2:#E9CB95;--sr-tx:#EFE8DC;--sr-tx2:#D3C9BA;--sr-mu:#A99E8F;--sr-hd:#FBF6EE;--sr-hair:rgba(226,200,155,.16);--sr-hair2:rgba(226,200,155,.3)}
-body.home::before{background:radial-gradient(900px 520px at 80% -10%,rgba(214,160,80,.16),transparent 62%),var(--sr-bg)!important}
+body.home .hero,body.home .exh{--sr-br:#C9A227;--sr-br2:#E3C35A;--sr-tx:#EEF1F7;--sr-tx2:#C3CADB;--sr-mu:#98A2B8;--sr-hd:#FFFFFF;--sr-hair:rgba(227,195,90,.18);--sr-hair2:rgba(227,195,90,.34)}
+body.home::before{background:radial-gradient(1000px 420px at 50% -6%,rgba(20,33,61,.07),transparent 70%),#FFFFFF!important}
 body.home .page{max-width:1040px;padding-top:14px}
 body.home a{color:inherit}
-body.home ::selection{background:rgba(205,166,106,.35);color:#fff}
+body.home ::selection{background:rgba(201,162,39,.35);color:#fff}
 
 /* ── 첫머리 사진 ── */
 body.home .hero.photo{min-height:min(74vh,600px)!important;border-radius:22px!important;padding:clamp(22px,4vw,44px)!important;justify-content:flex-end;box-shadow:0 40px 80px -40px rgba(0,0,0,.9),inset 0 0 0 1px var(--sr-hair)}
-body.home .hero.photo::before{background:linear-gradient(180deg,rgba(15,13,11,.25) 0%,rgba(15,13,11,0) 30%,rgba(15,13,11,.55) 62%,rgba(15,13,11,.96) 100%)!important}
+body.home .hero.photo::before{background:linear-gradient(180deg,rgba(12,21,41,.25) 0%,rgba(12,21,41,0) 30%,rgba(12,21,41,.55) 62%,rgba(12,21,41,.96) 100%)!important}
 body.home .hero .eng{display:flex;align-items:center;gap:12px;font:600 11px/1 var(--ff);letter-spacing:.32em;color:var(--sr-br2)!important;margin-bottom:18px;text-transform:uppercase}
 body.home .hero .eng i{display:block;width:44px;height:1px;background:var(--sr-br)}
-body.home .hero .eng .engx{letter-spacing:.22em;color:rgba(233,203,149,.7)}
-body.home .hero h1.t{font-family:var(--sr-serif)!important;font-weight:600!important;font-size:clamp(40px,8.6vw,76px)!important;line-height:1.08!important;letter-spacing:-.045em!important;color:#FBF6EE!important;margin:0 0 14px!important;text-shadow:0 2px 30px rgba(0,0,0,.35)}
+body.home .hero .eng .engx{letter-spacing:.22em;color:rgba(227,195,90,.75)}
+body.home .hero h1.t{font-family:var(--sr-serif)!important;font-weight:600!important;font-size:clamp(40px,8.6vw,76px)!important;line-height:1.08!important;letter-spacing:-.045em!important;color:#FFFFFF!important;margin:0 0 14px!important;text-shadow:0 2px 30px rgba(0,0,0,.35)}
 body.home .hero .brandline{font:500 15px/1.4 var(--ff)!important;letter-spacing:.02em!important;text-transform:none!important;color:var(--sr-tx2)!important}
 body.home .hero .area{margin-top:6px!important;color:var(--sr-tx2)!important;font-size:14px!important;gap:14px!important}
 body.home .hero .area .cv{background:transparent!important;border:1px solid var(--sr-hair2)!important;color:var(--sr-br2)!important;padding:6px 14px!important;font-weight:500!important;letter-spacing:.01em}
@@ -35,7 +35,7 @@ body.home .kpis>a{padding-left:18px;border-left:1px solid var(--sr-hair)}
 body.home .kpis b{font:600 clamp(26px,4.4vw,38px)/1 var(--sr-serif);color:var(--sr-br2);letter-spacing:-.02em;font-variant-numeric:lining-nums tabular-nums}
 body.home .kpis .kd b{font-size:clamp(19px,3vw,24px);color:var(--sr-hd);line-height:1.2}
 body.home .kpis span{font-size:12.5px;color:var(--sr-mu);letter-spacing:.04em}
-body.home .kpis a:hover b{color:#FBF6EE}
+body.home .kpis a:hover b{color:#FFFFFF}
 @media (max-width:560px){body.home .kpis{grid-template-columns:repeat(3,1fr)}body.home .kpis .kd{grid-column:1/-1;flex-direction:row;align-items:baseline;gap:8px;padding-bottom:4px}body.home .kpis>a:nth-child(2){padding-left:0;border-left:0}}
 
 /* ── 공통 면 ── */
@@ -72,16 +72,16 @@ body.home .sres a small,body.home .sres p{color:var(--sr-mu)!important}
 body.home .sres em{background:var(--sr-s3)!important;color:var(--sr-br2)}
 
 /* 전시관 카드 */
-body.home .exh{border-radius:20px!important;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);overflow:hidden;background:linear-gradient(120deg,rgba(15,13,11,.92) 30%,rgba(15,13,11,.55)),url(img/m/ka-warm.jpg) center/cover!important;min-height:300px}
+body.home .exh{border-radius:20px!important;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);overflow:hidden;background:linear-gradient(120deg,rgba(14,24,48,.94) 25%,rgba(36,57,106,.6)),url(img/m/ka-warm.jpg) center/cover!important;min-height:300px}
 body.home .exh-t{padding:clamp(22px,4vw,40px);display:flex;flex-direction:column;justify-content:flex-end}
 body.home .exh-k{font:600 11px/1 var(--ff);letter-spacing:.32em;color:var(--sr-br);margin:0 0 14px}
-body.home .exh h3{font:600 clamp(26px,4vw,36px)/1.2 var(--sr-serif);letter-spacing:-.04em;color:#FBF6EE;margin:0 0 12px}
+body.home .exh h3{font:600 clamp(26px,4vw,36px)/1.2 var(--sr-serif);letter-spacing:-.04em;color:#FFFFFF;margin:0 0 12px}
 body.home .exh-t p:last-child{color:var(--sr-tx2);font-size:15px;margin:0;max-width:34em}
-body.home .exh-a{display:flex;flex-direction:column;justify-content:flex-end;gap:0;padding:clamp(18px,3vw,32px);background:linear-gradient(90deg,transparent,rgba(15,13,11,.6))}
+body.home .exh-a{display:flex;flex-direction:column;justify-content:flex-end;gap:0;padding:clamp(18px,3vw,32px);background:linear-gradient(90deg,transparent,rgba(12,21,41,.6))}
 body.home .exh-a a,body.home .exh-a button{font:500 15.5px/1.3 var(--ff);color:var(--sr-tx);text-decoration:none;padding:13px 2px;border:0;border-bottom:1px solid var(--sr-hair);background:none!important;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:0!important;height:auto!important}
 body.home .exh-a a::after,body.home .exh-a button::after{content:"›";color:var(--sr-br);font-size:18px}
 body.home .exh-a a:hover,body.home .exh-a button:hover{color:var(--sr-br2)}
-body.home .exh-a .exh-main{font:600 18px/1.3 var(--sr-serif);color:#FBF6EE;border-bottom-color:var(--sr-hair2)}
+body.home .exh-a .exh-main{font:600 18px/1.3 var(--sr-serif);color:#FFFFFF;border-bottom-color:var(--sr-hair2)}
 body.home .exh-a .exh-main span{font:400 12.5px var(--ff);color:var(--sr-mu);margin-left:auto;margin-right:8px}
 body.home .exh-a .kk::before{display:inline-block;margin-right:8px}
 body.home .exh-a button.kk{border:0!important;border-bottom:1px solid var(--sr-hair)!important;color:var(--sr-tx)!important;font-weight:500!important;justify-content:flex-start}
@@ -105,7 +105,7 @@ body.home .menu:not(.tiles){gap:12px}
 body.home .menu:not(.tiles) a{border-radius:18px!important;min-height:132px!important;padding:22px!important;justify-content:flex-end}
 body.home .menu:not(.tiles) a b{font:600 22px/1.25 var(--sr-serif)!important;color:var(--sr-hd);letter-spacing:-.03em}
 body.home .menu:not(.tiles) a span{color:var(--sr-mu)!important}
-body.home .menu .main{background:linear-gradient(140deg,#D9B577,#B98A48)!important;border-color:transparent!important}
+body.home .menu .main{background:linear-gradient(140deg,#D8B53A,#B8921C)!important;border-color:transparent!important}
 body.home .menu .main b{color:#1A140C!important}
 body.home .menu .main span{color:rgba(26,20,12,.7)!important}
 body.home .menu .main:hover{filter:brightness(1.05)}
@@ -156,10 +156,16 @@ body.home .recent h2{font-size:22px!important;font-weight:600}
 body.home .rq b.m{font-family:var(--sr-serif);color:var(--sr-br2)}
 
 /* 밝은 바탕: 면에 은은한 그림자 */
-body.home .pbx,body.home .mc,body.home .ntc,body.home .tiles,body.home .menu:not(.tiles) a:not(.main),body.home .srch input,body.home .rq{box-shadow:0 1px 0 rgba(70,52,28,.03),0 14px 30px -22px rgba(70,52,28,.35)!important}
-body.home .menu .main{box-shadow:0 18px 34px -20px rgba(140,100,48,.6)!important}
+body.home .pbx,body.home .mc,body.home .ntc,body.home .tiles,body.home .menu:not(.tiles) a:not(.main),body.home .srch input,body.home .rq{box-shadow:0 1px 0 rgba(20,33,61,.03),0 14px 30px -22px rgba(20,33,61,.35)!important}
+body.home .menu .main{box-shadow:0 18px 34px -20px rgba(120,95,20,.55)!important}
 body.home .tiles i{color:var(--sr-br)!important}
-body.home .tiles a:hover,body.home .tiles button:hover{background:#FCFAF6!important}
-body.home .cases button{box-shadow:0 14px 30px -22px rgba(70,52,28,.5)!important}
+body.home .tiles a:hover,body.home .tiles button:hover{background:#F8F9FB!important}
+body.home .cases button{box-shadow:0 14px 30px -22px rgba(20,33,61,.5)!important}
 body.home .exh{box-shadow:0 30px 60px -36px rgba(40,28,14,.7)!important}
 body.home .menu .main span{color:#3B2B14!important;opacity:.85}
+body.home .menu .main,body.home .menu .main b,body.home .menu .main *{color:#14213D!important}
+body.home .menu .main span{color:#3B3310!important}
+/* 그라데이션 결 */
+body.home::before{background:radial-gradient(900px 500px at 85% -5%,rgba(201,162,39,.12),transparent 60%),radial-gradient(900px 600px at 0 30%,rgba(42,66,120,.10),transparent 60%),linear-gradient(180deg,#EEF1F7 0,#FFFFFF 700px)!important}
+body.home .menu .main{background:linear-gradient(140deg,#F0D77A 0%,#D2AE34 45%,#A8851A 100%)!important}
+body.home .pbx,body.home .mc,body.home .tiles,body.home .menu:not(.tiles) a:not(.main){background:linear-gradient(180deg,#FFFFFF,#F8FAFC)!important}
