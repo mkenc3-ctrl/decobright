@@ -131,12 +131,34 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 .qcard{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
 .qcard h3{margin:0;font-size:15px;font-weight:700;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .badge{font-size:11px;font-weight:500;color:var(--warm-ink);background:var(--warm-soft);border-radius:10px;padding:2px 8px}
+.qw{gap:8px}
+.cf>summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#F5F7FA;font-size:14px}
+.cf>summary::-webkit-details-marker{display:none}
+.cf>summary b{color:var(--ink);white-space:nowrap}
+.cf>summary span{flex:1;min-width:0;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cf>summary::after{content:"펼치기 ▾";font-size:12.5px;font-weight:600;color:#7E6410;white-space:nowrap}
+.cf[open]>summary::after{content:"접기 ▴"}
+.cf[open]>summary{margin-bottom:8px}
+.cf .cw{margin-bottom:6px}
+.cw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.cw .w2{grid-column:1/-1}
+.cd{display:grid;grid-template-columns:1.2fr .9fr 1.2fr;gap:6px;padding:7px 8px;border-radius:10px;background:#F5F7FA;border:1px solid var(--line)}
+.cd label{display:flex;flex-direction:column;gap:2px;font-size:11.5px;color:var(--muted);min-width:0}
+.cd .fld{padding:6px 7px;font-size:13px;min-width:0}
+@media (max-width:420px){.cd{grid-template-columns:1fr 1fr}.cd label:last-child{grid-column:1/-1}}
 .cust{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .cust label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
 .fld{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13.5px;background:var(--surface);color:var(--ink)}
 .fld:focus-visible{outline:2px solid var(--warm);outline-offset:1px}
 .irow{display:grid;grid-template-columns:22px minmax(0,1fr) auto;grid-template-areas:"c n a" ". p q";gap:6px 10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
 .irow:last-child{border-bottom:0}
+.cadd{display:grid;grid-template-columns:minmax(0,1fr) 110px 64px auto;gap:6px;align-items:center;padding:10px;margin:4px 0 10px;border:1px solid #E7D79B;background:#FBF5E2;border-radius:10px}
+.cadd .fld{padding:8px 9px;font-size:14px;min-width:0}
+.cadd .ct{grid-column:1/-1;font-size:12.5px;font-weight:700;color:#7E6410}
+.cadd button{font:inherit;font-size:14px;font-weight:700;padding:8px 12px;border:0;border-radius:8px;background:linear-gradient(135deg,#3A5BA0,#14213D 60%);color:#fff;cursor:pointer;white-space:nowrap}
+@media (max-width:520px){.cadd{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cadd .cn{grid-column:1/-1}}
+.irow.cu .nm small{color:#7E6410;font-weight:600}
+.irow .cdel{margin-left:6px;font:inherit;font-size:12px;padding:1px 7px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--muted);cursor:pointer}
 .irow .chk2{grid-area:c;width:16px;height:16px;accent-color:#c9831f}
 .irow .nm{grid-area:n;min-width:0}
 .irow .nm b{font-weight:600;display:block}
@@ -274,29 +296,27 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       if (/[?&](photo|inq)=/.test(location.search)) o = true;
       set(o); b.addEventListener('click', function () { set(g.classList.contains('sfold'), true); }); })();</script>
     <aside class="panel" aria-label="견적">
-      <div>
-        <div class="step">2단계 · 견적</div>
+      <div class="qcard qw" style="border-top:0;padding-top:0">
         <h2>견적 작성</h2>
-      </div>
-      <div class="qcard" style="border-top:0;padding-top:0">
-        <h3>고객 정보</h3>
-        <div class="cust">
-          <label>고객명<input class="fld" id="custName" placeholder="예: 홍길동"></label>
-          <label>연락처<input class="fld" id="custPhone" placeholder="010-0000-0000" inputmode="tel"></label>
-          <label style="grid-column:1/-1">현장주소<input class="fld" id="custAddr" placeholder="예: 창원시 성산구 ..."></label>
-          <label>담당자<input class="fld" id="custStaff" placeholder="담당 직원명"></label>
-          <div style="grid-column:1/-1;background:#FFF8EC;border:1px solid #E8C98A;border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
-            <b style="grid-column:1/-1;font-size:15px">📅 일정 <small style="font-weight:400">— 넣고 저장하면 시공 달력에 저절로 들어갑니다</small></b>
-            <label>실측 방문 날짜<input class="fld" id="visD" type="date"></label>
-            <label>방문 시간<input class="fld" id="visT" type="time"></label>
-            <label>시공 희망일<input class="fld" id="wishD" type="date"></label>
-          </div>
-          <label>진행 상태<select class="fld" id="qStatus"></select></label>
+        <details class="cf" id="cFold">
+        <summary><b>고객 정보 · 일정</b><span id="cSum">눌러서 입력</span></summary>
+        <div class="cw">
+          <input class="fld" id="custName" placeholder="고객명" aria-label="고객명">
+          <input class="fld" id="custPhone" placeholder="연락처 010-0000-0000" inputmode="tel" aria-label="연락처">
+          <input class="fld w2" id="custAddr" placeholder="현장주소 (예: 창원시 성산구 …)" aria-label="현장주소">
+          <input class="fld" id="custStaff" placeholder="담당자" aria-label="담당자">
+          <select class="fld" id="qStatus" aria-label="진행 상태"></select>
         </div>
+        <div class="cd" title="넣고 저장하면 시공 달력에 들어갑니다">
+          <label>실측일<input class="fld" id="visD" type="date"></label>
+          <label>시간<input class="fld" id="visT" type="time"></label>
+          <label>시공 희망일<input class="fld" id="wishD" type="date"></label>
+        </div>
+        </details>
       </div>
       <div class="qcard rq" id="rqCard">
         <h3>손님 요청으로 견적 만들기 <span class="badge">사진·카톡 붙여 넣기</span></h3>
-        <p class="fine" style="margin:0 0 6px">손님이 보낸 <b>품목 목록 사진(캡처)</b>이나 <b>카톡 글</b>을 넣으면 가격표 단가에 맞춰 항목·수량을 자동으로 채웁니다. 이 칸을 누르고 <b>Ctrl+V</b>로 붙여 넣어도 됩니다.</p>
+        <p class="fine" style="margin:0 0 4px">품목 사진·카톡 글을 넣으면 가격표 단가로 자동 계산 (Ctrl+V 가능)</p>
         <textarea class="fld" id="rqText" placeholder="예)&#10;거실 실링팬 설치 1&#10;주방 다운라이트 7개&#10;안방 커튼박스 간접조명"></textarea>
         <img id="rqImg" class="rqimg" alt="올린 요청 사진" hidden>
         <div class="rqa">
@@ -317,6 +337,13 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       </div>
       <div class="qcard">
         <h3>견적 계산기 <span class="badge">수량 클릭으로 조절</span></h3>
+        <div class="cadd" id="cAdd">
+          <div class="ct">가격표에 없는 항목 바로 넣기</div>
+          <input class="fld cn" id="cName" placeholder="항목명 (예: 엣지등 교체)" aria-label="직접 넣을 항목명">
+          <input class="fld" id="cPrice" type="number" min="0" step="1000" inputmode="numeric" placeholder="단가(원)" aria-label="단가">
+          <input class="fld" id="cQty" type="number" min="1" value="1" inputmode="numeric" aria-label="수량">
+          <button type="button" id="cGo">+ 넣기</button>
+        </div>
         <button class="btn btn-line" id="syncQty" type="button">사진에 붙인 조명 수만큼 수량 넣기</button>
         <div id="itemList"></div>
       </div>
@@ -725,12 +752,23 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       l.innerHTML=`<input type="radio" name="pkg" id="pk-${p.id}"><span><strong></strong><span class="pdesc"></span></span><span class="price"></span>`;
       l.querySelector("strong").textContent=p.name; l.querySelector(".pdesc").textContent=p.desc; l.querySelector(".price").textContent=p.price?won(p.price):"";
       const r=l.querySelector("input"); r.checked=pkg===p.id; r.addEventListener("change",()=>{ pkg=p.id; renderPkgs(); render(); }); tx.append(l); }); }
+  function addCustom(){ const n=$("cName").value.trim(), p=Math.max(0,parseInt($("cPrice").value)||0), q=Math.max(1,parseInt($("cQty").value)||1);
+    if(!n){ $("cName").focus(); toast("항목명을 적어 주세요.",true); return; }
+    QI.unshift({ id:"c"+Date.now().toString(36), name:n, unit:"직접 입력", price:p, qty:q, opt:"", editable:true, custom:true });
+    $("cName").value=""; $("cPrice").value=""; $("cQty").value="1"; renderItems(); totals(); toast("「"+n+"」 "+won(p*q)+" 넣었습니다."); $("cName").focus(); }
+  $("cGo").addEventListener("click",addCustom);
+  ["cName","cPrice","cQty"].forEach(id=>$(id).addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); addCustom(); } }));
+  function cSum(){ const v=id=>($(id).value||"").trim(), a=[v("custName"),v("custPhone"),v("custAddr")].filter(Boolean), d=v("visD");
+    $("cSum").textContent=a.length||d ? a.join(" · ")+(d?(a.length?" · ":"")+"실측 "+d.slice(5).replace("-","/"):"") : "눌러서 입력"; }
+  ["custName","custPhone","custAddr","visD"].forEach(id=>$(id).addEventListener("input",cSum)); setTimeout(cSum,400); window.addEventListener("load",()=>setTimeout(cSum,300));
   function renderItems(){
     const el=$("itemList"); el.innerHTML="";
     QI.forEach(it=>{ if (it.hide && !it.qty) return; const row=document.createElement("div"); row.className="irow"+(it.qty>0?"":" off");
       row.innerHTML=`<input type="checkbox" class="chk2" aria-label=""><div class="nm"><b></b><small></small></div><div class="amt"></div><div class="up"></div>
         <div class="qty"><button type="button" class="mi" aria-label="줄이기">−</button><input type="number" min="0" inputmode="numeric" aria-label="수량"><button type="button" class="pl" aria-label="늘리기">+</button></div>`;
-      row.querySelector("b").textContent=it.name; row.querySelector("small").textContent=it.unit; row.querySelector(".chk2").setAttribute("aria-label",it.name);
+      if (it.custom){ row.classList.add("cu"); }
+      row.querySelector("b").textContent=it.name; row.querySelector("small").textContent=it.unit;
+      if (it.custom){ const d=document.createElement("button"); d.type="button"; d.className="cdel"; d.textContent="빼기"; d.setAttribute("aria-label",it.name+" 빼기"); d.addEventListener("click",()=>{ QI=QI.filter(x=>x!==it); renderItems(); totals(); }); row.querySelector("small").append(d); } row.querySelector(".chk2").setAttribute("aria-label",it.name);
       const amt=row.querySelector(".amt"), q=row.querySelector(".qty input"), up=row.querySelector(".up");
       const upd=()=>{ amt.textContent=won(it.qty*it.price); q.value=it.qty; row.classList.toggle("off",it.qty===0); row.querySelector(".chk2").checked=it.qty>0; totals(); };
       if (it.editable){ up.textContent="단가 "; const pi=document.createElement("input"); pi.type="number"; pi.min="0"; pi.step="10000"; pi.value=it.price; pi.setAttribute("aria-label",it.name+" 단가");
@@ -969,7 +1007,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   // 숨고 견적 메시지용: 꾸밈 기호 없이 줄바꿈·번호만 (숨고 채팅·견적서 칸에 그대로 붙여넣기)
   $("sgCopy").addEventListener("click",()=>{ DECO.kakao(DECO.soomgo(pkg,$("custName").value),"숨고에 붙여넣기 문구"); });
   $("kakaoQuote").addEventListener("click",()=>{ doSave(); DECO.kakao(kText(),"카톡으로 견적 보내기"); });
-  $("smsQuote").addEventListener("click",()=>{ const tel=$("custPhone").value.replace(/[^\d+]/g,""); if(!tel){ toast("고객 연락처를 먼저 넣어 주세요."); $("custPhone").focus(); return; }
+  $("smsQuote").addEventListener("click",()=>{ const tel=$("custPhone").value.replace(/[^\d+]/g,""); if(!tel){ toast("고객 연락처를 먼저 넣어 주세요."); ($("cFold").open=true,$("custPhone").focus()); return; }
     doSave(); const nm=$("custName").value.trim(), s=DECO.settings(), out=qText().filter(l=>!/^(고객명|연락처|담당자):/.test(l)); out[0]="["+s.company+"] "+(nm?nm+" 님, ":"")+"요청하신 견적 보내드립니다.";
     const vl=DECO.viewLink(DECO.getQuote(curId)); if(vl) out.push("","📄 견적서 보기·진행 알려 주기: "+vl); const txt=out.join("\n"); try{ navigator.clipboard&&navigator.clipboard.writeText(txt).catch(()=>{}); }catch(e){}
     location.href="sms:"+tel+(/iPhone|iPad/.test(navigator.userAgent)?"&":"?")+"body="+encodeURIComponent(txt); });
@@ -1048,11 +1086,12 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     $("custName").value=q.cust?.name||""; $("custPhone").value=q.cust?.phone||""; $("custAddr").value=q.cust?.addr||""; $("custStaff").value=q.cust?.staff||""; $("visD").value=q.visit?.d||""; $("visT").value=q.visit?.t||""; $("wishD").value=q.wish||(q.sign&&q.sign.d1)||""; $("memoInput").value=q.memo||""; $("discount").value=q.discount||""; $("qStatus").value=q.status||"상담";
     if (PKGS.some(p=>p.id===q.pkg)) pkg=q.pkg;
     QI=QI0.map(x=>{ const s=(q.items||[]).find(i=>i.id===x.id); return {...x, qty:s?s.qty:0, opt:s?s.opt||"":"", price:(s&&x.editable)?s.price:x.price}; });
+    (q.items||[]).filter(i=>i && !QI0.some(x=>x.id===i.id)).reverse().forEach(i=>QI.unshift({ id:i.id, name:i.name||"직접 입력 항목", unit:"직접 입력", price:+i.price||0, qty:+i.qty||0, opt:i.opt||"", editable:true, custom:true }));
     etcRows=(q.etc||[]).map(r=>({id:etcId++,label:r.label,amount:r.amount}));
     if (q.kelvin){ kelvin=q.kelvin; $("segK").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(Number(b.dataset.k)===kelvin))); }
     renderPanel(); render(); }
   function doSave(){ const s=snapshot();
-    if (!s.cust.name && !s.cust.addr){ toast("고객명이나 현장주소를 하나는 넣어 주세요.",true); $("custName").focus(); return null; }
+    if (!s.cust.name && !s.cust.addr){ toast("고객명이나 현장주소를 하나는 넣어 주세요.",true); ($("cFold").open=true,$("custName").focus()); return null; }
     const r=DECO.saveQuote({...s, id:curId, custId:DECO.ensureCustomer(s.cust, curCust), img:thumb()}); if(r) curCust=r.custId; if(!r){ toast("저장하지 못했습니다. 기기 저장 공간이 부족합니다.",true); return null; }
     curId=r.id; history.replaceState(null,"","quote.html?id="+encodeURIComponent(curId)); $("qno").textContent="견적번호 "+r.no+" · 저장됨";
     toast("견적을 이 기기에 저장했습니다. (견적 목록에서 다시 열 수 있습니다)"); return r; }
