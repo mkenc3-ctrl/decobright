@@ -44,7 +44,16 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
 .pc .tg{position:absolute;top:9px;right:9px;font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;background:linear-gradient(135deg,#F6E3A0,#C9A227 55%,#8A6A12);color:var(--navy)}
 .none{grid-column:1/-1;flex-direction:row;align-items:center;gap:10px;padding:14px 14px 14px 46px;font-weight:700}
 .none .ck{top:50%;transform:translateY(-50%)}
-.it{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.it{display:flex;flex-direction:column;gap:8px}
+.ig{border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.ig>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer}
+.ig>summary::-webkit-details-marker{display:none}
+.ig>summary b{font-size:16.5px;flex:1}
+.ig>summary em{font-style:normal;font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--gold);color:var(--navy)}
+.ig>summary small{font-size:13px;color:var(--mu);white-space:nowrap}
+.ig>summary::after{content:"▾";color:var(--gold-d);font-weight:900}
+.ig[open]>summary::after{content:"▴"}
+.ig[open]>summary{border-bottom:1px solid var(--line);background:#F8F9FB}
 .ir{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
 .ir:last-child{border-bottom:0}
 .ir b{font-size:15.5px;font-weight:700}
@@ -142,10 +151,16 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
     }).join('');
     $('pk').innerHTML = h + '<button type="button" class="pc none" data-p="" aria-pressed="' + (!pick) + '"><span class="ck">✓</span>패키지 없이 항목만 고르기</button>';
   }
-  function drawIt() {
-    $('it').innerHTML = IT.map(function (i) { var n = Q[i.id] || 0, m = /미터/.test(i.unit || '');
+  var GR = [['다운라이트', ['i1', 'i2', 'i16', 'i17', 'i18']], ['간접조명 · 우물', ['i3', 'i4', 'i5', 'i24', 'i14', 'i15']], ['실링팬 · 방등 · 펜던트', ['i25', 'i21', 'i19']], ['센서 · 스위치', ['i10', 'i11', 'i12', 'i23']]], OPEN = {};
+  function row(i) { var n = Q[i.id] || 0, m = /미터/.test(i.unit || '');
       return '<div class="ir' + (n ? ' on' : '') + '"><div><b>' + DECO.esc(i.name) + '</b><div class="u">' + W(i.price) + ' · ' + DECO.esc(String(i.unit || '').replace(/\s*\(.*\)/, '')) + '</div></div>' +
-        '<div class="q"><button type="button" data-m="' + i.id + '" aria-label="' + DECO.esc(i.name) + ' 줄이기">−</button><span>' + n + (m ? 'm' : '') + '</span><button type="button" data-a="' + i.id + '" aria-label="' + DECO.esc(i.name) + ' 늘리기">+</button></div></div>'; }).join('');
+        '<div class="q"><button type="button" data-m="' + i.id + '" aria-label="' + DECO.esc(i.name) + ' 줄이기">−</button><span>' + n + (m ? 'm' : '') + '</span><button type="button" data-a="' + i.id + '" aria-label="' + DECO.esc(i.name) + ' 늘리기">+</button></div></div>'; }
+  function drawIt() {
+    var used = {}, gs = GR.map(function (g) { var L = g[1].map(function (id) { return IT.filter(function (i) { return i.id === id; })[0]; }).filter(Boolean); L.forEach(function (i) { used[i.id] = 1; }); return [g[0], L]; });
+    var rest = IT.filter(function (i) { return !used[i.id]; }); if (rest.length) gs.push(['기타', rest]);
+    $('it').innerHTML = gs.filter(function (g) { return g[1].length; }).map(function (g) { var c = g[1].filter(function (i) { return Q[i.id]; }).length;
+      return '<details class="ig" data-g="' + DECO.esc(g[0]) + '"' + (OPEN[g[0]] ? ' open' : '') + '><summary><b>' + DECO.esc(g[0]) + '</b>' + (c ? '<em>' + c + '개 고름</em>' : '<small>' + g[1].length + '가지</small>') + '</summary>' + g[1].map(row).join('') + '</details>'; }).join('');
+    [].forEach.call($('it').querySelectorAll('.ig'), function (d) { d.addEventListener('toggle', function () { OPEN[d.dataset.g] = d.open; }); });
   }
   function calc() {
     var p = PK.filter(function (x) { return x.id === pick; })[0], sup = (p ? p.price : 0), lines = [];
