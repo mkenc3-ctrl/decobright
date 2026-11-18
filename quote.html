@@ -92,6 +92,18 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 .panel h2{font-family:var(--f-display);font-size:20px;margin:0}
 .step{font-family:var(--f-num);font-size:11.5px;letter-spacing:.14em;color:var(--warm-ink);text-transform:none}
 .opts{display:flex;flex-direction:column;gap:8px}
+.pkgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:1300px){.pkgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.pkc{position:relative;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;background:var(--surface);transition:border-color .15s,box-shadow .15s}
+.pkc input{position:absolute;top:8px;left:8px;width:18px;height:18px;accent-color:#C9A227;z-index:1}
+.pkc img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#E9EDF3}
+.pkc .pb{padding:9px 10px 11px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.pkc strong{font-size:14.5px;font-weight:700;color:var(--ink)}
+.pkc .pp{font-size:17px;font-weight:700;color:#7E6410}
+.pkc ul{margin:3px 0 0;padding-left:15px;font-size:12px;line-height:1.5;color:var(--muted)}
+.pkc:has(input:checked){border:2px solid #C9A227;box-shadow:0 8px 20px -12px rgba(120,95,20,.6)}
+.pkc:has(input:checked) .pb{background:#FBF5E2}
+.pktx{margin-top:10px}
 .opt{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
 .opt:has(input:checked){border-color:var(--warm);background:var(--warm-soft)}
 .opt:has(input:disabled){opacity:.5;cursor:not-allowed}
@@ -296,7 +308,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
         <div class="opts" id="pkgs" role="radiogroup" aria-label="패키지"></div>
       </div>
       <div class="qcard">
-        <h3>추가 항목 <span class="badge">수량 클릭으로 조절</span></h3>
+        <h3>견적 계산기 <span class="badge">수량 클릭으로 조절</span></h3>
         <button class="btn btn-line" id="syncQty" type="button">사진에 붙인 조명 수만큼 수량 넣기</button>
         <div id="itemList"></div>
       </div>
@@ -307,11 +319,11 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       </div>
       <div class="qcard">
         <h3>비고 <span class="badge">견적서에 표시됩니다</span></h3>
-        <textarea class="fld" id="memoInput" data-mic rows="3" placeholder="공사 일정, 결제 조건, 특이사항 등"></textarea>
+        <textarea class="fld" id="memoInput" rows="3" placeholder="공사 일정, 결제 조건, 특이사항 등"></textarea>
       </div>
       <div class="summary" aria-live="polite">
         <div><span>패키지 금액</span><span id="sumPkg">0원</span></div>
-        <div><span>추가 항목 합계</span><span id="sumItems">0원</span></div>
+        <div><span>견적 계산기 합계</span><span id="sumItems">0원</span></div>
         <div><span>기타 합계</span><span id="sumEtc">0원</span></div>
         <div><span>할인 (빼는 금액)</span><span><input id="discount" class="fld" type="number" min="0" step="10000" placeholder="0" style="width:130px;text-align:right;padding:4px 8px" aria-label="할인 금액"></span></div>
         <div><span>공급가액 합계</span><span id="sumSupply">0원</span></div>
@@ -690,12 +702,20 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 
   // ---------- price panel ----------
   function renderPanel(){ renderPkgs(); renderItems(); renderEtc(); totals(); }
+  const PKIMG={p1:"img/pkg/p1.jpg",p2:"img/pkg/p2.jpg",p3:"img/pkg/p3.jpg",p4:"img/pkg/p4.jpg",p5:"img/pkg/p5.jpg"};
   function renderPkgs(){
     const pk=$("pkgs"); pk.innerHTML="";
-    PKGS.forEach(p=>{ if (p.hide && pkg!==p.id) return; const l=document.createElement("label"); l.className="opt"; l.htmlFor="pk-"+p.id;
+    const gr=document.createElement("div"); gr.className="pkgrid"; pk.append(gr);
+    PKGS.forEach(p=>{ if(!PKIMG[p.id] || (p.hide && pkg!==p.id)) return; const l=document.createElement("label"); l.className="pkc"; l.htmlFor="pk-"+p.id;
+      l.innerHTML=`<input type="radio" name="pkg" id="pk-${p.id}"><img alt="" loading="lazy"><span class="pb"><strong></strong><span class="pp"></span><ul></ul></span>`;
+      l.querySelector("img").src=PKIMG[p.id]; l.querySelector("img").alt=p.name+" 시공 사진"; l.querySelector("strong").textContent=p.name; l.querySelector(".pp").textContent=won(p.price);
+      String(p.desc||"").split(/\s*\/\s*/).filter(Boolean).forEach(t=>{ const li=document.createElement("li"); li.textContent=t; l.querySelector("ul").append(li); });
+      const r=l.querySelector("input"); r.checked=pkg===p.id; r.addEventListener("change",()=>{ pkg=p.id; renderPkgs(); render(); }); gr.append(l); });
+    const tx=document.createElement("div"); tx.className="opts pktx"; pk.append(tx);
+    PKGS.forEach(p=>{ if (PKIMG[p.id] || p.id==="p7" || (p.hide && pkg!==p.id)) return; const l=document.createElement("label"); l.className="opt"; l.htmlFor="pk-"+p.id;
       l.innerHTML=`<input type="radio" name="pkg" id="pk-${p.id}"><span><strong></strong><span class="pdesc"></span></span><span class="price"></span>`;
       l.querySelector("strong").textContent=p.name; l.querySelector(".pdesc").textContent=p.desc; l.querySelector(".price").textContent=p.price?won(p.price):"";
-      const r=l.querySelector("input"); r.checked=pkg===p.id; r.addEventListener("change",()=>{ pkg=p.id; renderPkgs(); render(); }); pk.append(l); }); }
+      const r=l.querySelector("input"); r.checked=pkg===p.id; r.addEventListener("change",()=>{ pkg=p.id; renderPkgs(); render(); }); tx.append(l); }); }
   function renderItems(){
     const el=$("itemList"); el.innerHTML="";
     QI.forEach(it=>{ if (it.hide && !it.qty) return; const row=document.createElement("div"); row.className="irow"+(it.qty>0?"":" off");
