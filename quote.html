@@ -104,6 +104,14 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 .pkc:has(input:checked){border:2px solid #C9A227;box-shadow:0 8px 20px -12px rgba(120,95,20,.6)}
 .pkc:has(input:checked) .pb{background:#FBF5E2}
 .pktx{margin-top:10px}
+.pkc.wide{grid-column:1/-1;order:-1}
+.pkc.wide img{aspect-ratio:16/8}
+.pkc.wide .pb{padding:12px 14px 14px}
+.pkc.wide strong{font-size:17px}
+.pkc.wide .pp{font-size:20px}
+.pkc.wide ul{columns:2;column-gap:18px}
+@media (max-width:520px){.pkc.wide ul{columns:1}}
+.pkc .tg{position:absolute;top:8px;right:8px;z-index:1;font-size:12px;font-weight:700;letter-spacing:.04em;padding:4px 10px;border-radius:999px;background:linear-gradient(135deg,#F6E3A0,#C9A227 55%,#8A6A12);color:#14213D;box-shadow:0 4px 12px -4px rgba(0,0,0,.5)}
 .opt{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
 .opt:has(input:checked){border-color:var(--warm);background:var(--warm-soft)}
 .opt:has(input:disabled){opacity:.5;cursor:not-allowed}
@@ -702,12 +710,13 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 
   // ---------- price panel ----------
   function renderPanel(){ renderPkgs(); renderItems(); renderEtc(); totals(); }
-  const PKIMG={p1:"img/pkg/p1.jpg",p2:"img/pkg/p2.jpg",p3:"img/pkg/p3.jpg",p4:"img/pkg/p4.jpg",p5:"img/pkg/p5.jpg"};
+  const PKIMG={p1:"img/pkg/p1.jpg",p2:"img/pkg/p2.jpg",p3:"img/pkg/p3.jpg",p4:"img/pkg/p4.jpg",p5:"img/pkg/p5.jpg",p8:"img/pkg/p8.jpg"};
   function renderPkgs(){
     const pk=$("pkgs"); pk.innerHTML="";
     const gr=document.createElement("div"); gr.className="pkgrid"; pk.append(gr);
     PKGS.forEach(p=>{ if(!PKIMG[p.id] || (p.hide && pkg!==p.id)) return; const l=document.createElement("label"); l.className="pkc"; l.htmlFor="pk-"+p.id;
       l.innerHTML=`<input type="radio" name="pkg" id="pk-${p.id}"><img alt="" loading="lazy"><span class="pb"><strong></strong><span class="pp"></span><ul></ul></span>`;
+      if(p.trend){ l.classList.add("wide"); const tg=document.createElement("span"); tg.className="tg"; tg.textContent="요즘 트렌드"; l.prepend(tg); }
       l.querySelector("img").src=PKIMG[p.id]; l.querySelector("img").alt=p.name+" 시공 사진"; l.querySelector("strong").textContent=p.name; l.querySelector(".pp").textContent=won(p.price);
       String(p.desc||"").split(/\s*\/\s*/).filter(Boolean).forEach(t=>{ const li=document.createElement("li"); li.textContent=t; l.querySelector("ul").append(li); });
       const r=l.querySelector("input"); r.checked=pkg===p.id; r.addEventListener("change",()=>{ pkg=p.id; renderPkgs(); render(); }); gr.append(l); });
