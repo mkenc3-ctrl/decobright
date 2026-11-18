@@ -162,7 +162,8 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     document.getElementById('pbf').onchange = function () { var f = this.files[0]; if (!f) return; var r = new FileReader(); r.onload = function () { t.value = String(r.result || '').replace(/^\uFEFF/, ''); go(); }; r.readAsText(f, 'utf-8'); }; })();</script>
   <a class="syncbox" id="syncBox" href="login.html">☁ 같이 쓰기 준비 중…</a>
   <div class="srch" role="search"><input id="q" type="search" placeholder="🔍 이름·전화·주소로 찾기" aria-label="전체 찾기" autocomplete="off"><div class="sres" id="sres" hidden></div></div>
-  <h2 class="grp" id="emH">e모델하우스 <small>고객과 같이 보는 전시관</small></h2>
+  <details class="emfold" id="emFold">
+  <summary><span class="emf-t">e모델하우스 · 시공 전후 보기</span><span class="emf-s">눌러서 펼치기</span></summary>
   <section class="exh" aria-label="e모델하우스">
     <div class="exh-t"><p class="exh-k">SHOWROOM</p><h3>불을 켜 보고,<br>빛 색을 바꿔 보고.</h3><p>실제 시공 현장에서 고객이 직접 불을 켜 보고, 패키지 금액과 우리 집 예상 금액, 실측 날짜까지 한 화면에서 봅니다.</p></div>
     <div class="exh-a">
@@ -173,6 +174,9 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
       <a href="qr.html">QR 전단</a>
     </div>
   </section>
+  </details>
+  <script>(function () { var d = document.getElementById('emFold'); try { if (localStorage.getItem('deco-emfold') === '1') d.open = true; } catch (e) {}
+    d.addEventListener('toggle', function () { try { localStorage.setItem('deco-emfold', d.open ? '1' : '0'); } catch (e) {} d.querySelector('.emf-s').textContent = d.open ? '눌러서 접기' : '눌러서 펼치기'; }); })();</script>
   <a class="syncbox due" id="dueBox" href="stats.html#pay" hidden></a>
   <a class="syncbox" id="bkBox" href="stats.html#backup" hidden></a>
   <a class="syncbox" id="balBox" href="stats.html#pay" hidden style="border-color:#2E6A4E;background:#E8F3EC;font-weight:700"></a>
