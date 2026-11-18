@@ -85,6 +85,7 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
 .grp.fold{cursor:pointer;user-select:none}
 .grp.fold::after{content:' ▾';font-size:.8em;color:var(--mut,#7a6d5c)}
 .grp.fold.shut::after{content:' ▸ 펼치기';font-size:.7em;font-weight:500}
+.grp.fold small{font-weight:500;opacity:.7}
 .sres p{margin:0;padding:10px 14px;color:var(--mut,#7a6d5c)}
 .tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .tiles a,.tiles button{border-left:1px solid var(--line);border-top:4px solid var(--warm);border-radius:14px;padding:14px 12px;gap:3px;align-items:flex-start}
@@ -269,37 +270,41 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
   </nav>
   <h2 class="grp" id="favH" hidden>⭐ 자주 여는 화면</h2>
   <nav class="menu tiles" id="fav" aria-label="자주 여는 화면" hidden></nav>
-  <h2 class="grp fold">고객·일정</h2>
+  <h2 class="grp fold">고객·일정 <small>3가지</small></h2>
   <nav class="menu tiles" aria-label="고객·일정">
     <a href="call.html"><i aria-hidden="true">📞</i><b>전화 상담 접수</b><span>통화하며 적기 → 고객·상담 기록·실측 일정 한 번에</span></a>
     <a href="customers.html"><i aria-hidden="true">👥</i><b>고객 관리</b><span id="ccnt">상담 기록·견적·시공 내역</span></a>
     <a href="calendar.html"><i aria-hidden="true">📅</i><b>시공 달력</b><span>시공·실측·상담 일정</span></a>
   </nav>
-  <h2 class="grp fold">현장 작업</h2>
+  <h2 class="grp fold">현장 작업 <small>5가지</small></h2>
   <nav class="menu tiles" aria-label="현장 작업">
-    <a href="send.html"><i aria-hidden="true">📤</i><b>손님에게 보내기</b><span>손님 링크 복사 · 숨고 붙여넣기 문구</span></a>
-    <a href="emodel.html"><i aria-hidden="true">🏠</i><b>e모델하우스</b><span>고객과 함께 시공 후 모습 미리 켜 보기·예상 금액</span></a>
     <a href="orders.html"><i aria-hidden="true">📋</i><b>작업 지시서</b><span id="ocnt">목수·전기·도배 거래처 지시·연락처, 문자 보내기</span></a>
     <a href="mats.html"><i aria-hidden="true">📦</i><b>자재 준비 목록</b><span>이번 주 시공 자재를 모아 더하고 챙긴 것 체크</span></a>
-    <a href="expense.html"><i aria-hidden="true">🧾</i><b>지출 장부</b><span>기름값·공구·식대, 이달 순이익</span></a>
     <a href="stock.html"><i aria-hidden="true">🧰</i><b>자재 재고</b><span>남은 수량, 모자라면 주문 알림</span></a>
     <a href="photos.html"><i aria-hidden="true">📷</i><b>작업 사진 보관함</b><span>현장별 시공 전·중·후 사진</span></a>
-    <a href="sns.html"><i aria-hidden="true">✍️</i><b>홍보 글 만들기</b><span>사진으로 인스타그램·블로그 글 자동 작성</span></a>
+    <a href="expense.html"><i aria-hidden="true">🧾</i><b>지출 장부</b><span>기름값·공구·식대, 이달 순이익</span></a>
   </nav>
-  <h2 class="grp fold">기타</h2>
-  <nav class="menu tiles" aria-label="기타">
-    <a href="stats.html"><i aria-hidden="true">📊</i><b>매출·계약 현황</b><span>월별 매출, 받을 돈(수금), 자료 백업·엑셀</span></a>
-    <a href="guide.html"><i aria-hidden="true">❓</i><b>사용 안내</b><span>손님 전화부터 시공 끝까지 무엇을 누르면 되는지</span></a>
-    <a href="trash.html"><i aria-hidden="true">🛟</i><b>휴지통</b><span>실수로 지운 것 30일 안에 되살리기</span></a>
-    <a href="qr.html"><i aria-hidden="true">🔳</i><b>홍보 QR 전단</b><span>게시판·차량에 붙일 A4 (e모델하우스·블로그·전화)</span></a>
+  <h2 class="grp fold">손님·홍보 <small>7가지</small></h2>
+  <nav class="menu tiles" aria-label="손님·홍보">
+    <a href="send.html"><i aria-hidden="true">📤</i><b>손님에게 보내기</b><span>손님 링크 복사 · 숨고 붙여넣기 문구</span></a>
+    <a href="emodel.html"><i aria-hidden="true">🏠</i><b>e모델하우스</b><span>고객과 함께 시공 후 모습 미리 켜 보기·예상 금액</span></a>
+    <a href="calc.html"><i aria-hidden="true">🧮</i><b>손님용 견적 계산기</b><span>손님이 패키지·항목 골라 예상 금액 보기 (링크 보내기)</span></a>
     <a href="reply.html"><i aria-hidden="true">💬</i><b>자주 쓰는 답장</b><span>가격·시공 기간·입금 안내 등 바로 보내기</span></a>
-    <a href="memo.html"><i aria-hidden="true">📝</i><b>메모장</b><span>할 일·자재·전화 내용</span></a>
+    <a href="qr.html"><i aria-hidden="true">🔳</i><b>홍보 QR 전단</b><span>게시판·차량에 붙일 A4 (e모델하우스·블로그·전화)</span></a>
+    <a href="sns.html"><i aria-hidden="true">✍️</i><b>홍보 글 만들기</b><span>사진으로 인스타그램·블로그 글 자동 작성</span></a>
     <a href="custedit.html"><i aria-hidden="true">🧾</i><b>손님 화면 금액·내역</b><span>엘리베이터 광고·요즘 트렌드·단가표 고치고 손님 화면에 올리기</span></a>
+  </nav>
+  <h2 class="grp fold">관리·설정 <small>7가지</small></h2>
+  <nav class="menu tiles" aria-label="관리·설정">
+    <a href="stats.html"><i aria-hidden="true">📊</i><b>매출·계약 현황</b><span>월별 매출, 받을 돈(수금), 자료 백업·엑셀</span></a>
     <a href="prices.html"><i aria-hidden="true">🏷️</i><b>가격표 관리</b><span>패키지·항목 단가 고치기, 새 항목 추가</span></a>
     <a href="settings.html"><i aria-hidden="true">⚙️</i><b>회사 정보 설정</b><span>상호·연락처·계좌·계약 안내 문구</span></a>
+    <a href="memo.html"><i aria-hidden="true">📝</i><b>메모장</b><span>할 일·자재·전화 내용</span></a>
+    <a href="trash.html"><i aria-hidden="true">🛟</i><b>휴지통</b><span>실수로 지운 것 30일 안에 되살리기</span></a>
+    <a href="guide.html"><i aria-hidden="true">❓</i><b>사용 안내</b><span>손님 전화부터 시공 끝까지 무엇을 누르면 되는지</span></a>
     <button type="button" id="installBtn"><i aria-hidden="true">📲</i><b>휴대폰에 설치</b><span id="instTxt">홈 화면에 아이콘 만들기</span></button>
   </nav>
-  <h2 class="grp">우리 시공 사례 <small>눌러서 크게</small></h2>
+  <h2 class="grp fold">우리 시공 사례 <small>눌러서 크게</small></h2>
   <div class="cases" id="cases"></div>
   <div class="lb" id="lb" hidden><button type="button" class="x" aria-label="닫기">✕</button><img id="lbi" alt=""><p id="lbt"></p></div>
   <section class="recent" id="recentBox" hidden>
@@ -429,10 +434,10 @@ body.home::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:no
     var top = Object.keys(v).filter(function (p) { return A[p] && v[p] >= 3; }).sort(function (a, b) { return v[b] - v[a]; }).slice(0, 4); if (!top.length) return;
     var f = document.getElementById('fav'); top.forEach(function (p) { f.appendChild(A[p].cloneNode(true)); }); f.hidden = false; document.getElementById('favH').hidden = false; })();
   // 메뉴 묶음 접기 (이 기기에 기억)
-  (function () { var S = {}; try { S = JSON.parse(localStorage.getItem('deco-fold') || '{}'); } catch (e) {}
-    [].forEach.call(document.querySelectorAll('.grp.fold'), function (h) { var n = h.nextElementSibling, k = h.textContent.trim(); h.setAttribute('role', 'button'); h.tabIndex = 0;
-      function set(c) { n.hidden = c; h.classList.toggle('shut', c); h.setAttribute('aria-expanded', String(!c)); } set(!!S[k]);
-      function tg() { S[k] = !S[k]; try { localStorage.setItem('deco-fold', JSON.stringify(S)); } catch (e) {} set(S[k]); }
+  (function () { var S = {}; try { S = JSON.parse(localStorage.getItem('deco-fold2') || '{}'); } catch (e) {}
+    [].forEach.call(document.querySelectorAll('.grp.fold'), function (h) { var n = h.nextElementSibling, k = (h.firstChild && h.firstChild.nodeValue || h.textContent).trim(); h.setAttribute('role', 'button'); h.tabIndex = 0;
+      function set(c) { n.hidden = c; h.classList.toggle('shut', c); h.setAttribute('aria-expanded', String(!c)); } set(S[k] !== false);
+      function tg() { var c = !(S[k] !== false); S[k] = c; try { localStorage.setItem('deco-fold2', JSON.stringify(S)); } catch (e) {} set(c); }
       h.addEventListener('click', tg); h.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tg(); } }); }); })();
   q.addEventListener('input', function () {
     var w = q.value.trim().toLowerCase(), d = dg(w); if (w.length < 1) { box.hidden = true; return; }
