@@ -66,6 +66,26 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
 .kk{background:#FEE500;color:#191919}
 .tel{background:linear-gradient(135deg,#3A5BA0,#14213D 60%);color:#fff}
 .toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:9;max-width:90vw;text-align:center}
+.ba{margin-top:18px;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.ba>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:linear-gradient(115deg,#0A1226 0%,#1E3566 55%,#7A6224 100%);color:#fff}
+.ba>summary::-webkit-details-marker{display:none}
+.ba>summary b{font-size:16.5px;flex:1}
+.ba>summary span{font-size:13px;font-weight:700;color:#E3C35A;white-space:nowrap}
+.ba>summary span::after{content:" 펼치기 ▾"}
+.ba[open]>summary span::after{content:" 접기 ▴"}
+.cmp{position:relative;aspect-ratio:16/9;overflow:hidden;background:#111;touch-action:pan-y;user-select:none}
+.cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.cmp .af{clip-path:inset(0 0 0 var(--x,50%))}
+.cmp .ln{position:absolute;top:0;bottom:0;left:var(--x,50%);width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 8px rgba(0,0,0,.5)}
+.cmp .ln::after{content:"◀ ▶";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:var(--navy);font-size:11px;font-weight:900;padding:7px 8px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.cmp .lb{position:absolute;top:10px;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;background:rgba(10,18,38,.75);color:#fff}
+.cmp .lb.l{left:10px}.cmp .lb.r{right:10px;background:rgba(201,162,39,.92);color:var(--navy)}
+.cmp input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.bat{display:flex;gap:6px;padding:10px 12px 4px;flex-wrap:wrap}
+.bat button{font:inherit;font-size:14px;font-weight:700;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.bat button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
+.ba .bx{margin:0;padding:6px 14px 14px;font-size:13.5px;color:var(--mu)}
+.ba .bx a{color:#2A4A8C;font-weight:700}
 @media (max-width:420px){.pc.wide ul{columns:1}.pc ul{font-size:12.5px}}
 </style>
 </head>
@@ -79,6 +99,17 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
   <h2>패키지 <small>하나만 고르세요</small></h2>
   <p class="hint">사진은 실제 시공한 집입니다.</p>
   <div class="pk" id="pk"></div>
+  <details class="ba" id="ba">
+    <summary><b>시공 전후 미리보기</b><span></span></summary>
+    <div class="cmp" id="cmp" style="--x:50%">
+      <img src="img/m/ka-off.jpg" alt="시공 전 거실" loading="lazy">
+      <img class="af" id="baA" src="img/m/ka-warm.jpg" alt="시공 후 거실 (간접조명·실링팬)" loading="lazy">
+      <span class="ln"></span><span class="lb l">시공 전</span><span class="lb r">시공 후</span>
+      <input type="range" min="0" max="100" value="50" id="baR" aria-label="시공 전후 비교 — 좌우로 밀기">
+    </div>
+    <div class="bat" role="group" aria-label="빛 색"><button type="button" data-s="img/m/ka-warm.jpg" aria-pressed="true">전구색</button><button type="button" data-s="img/m/ka-mid.jpg" aria-pressed="false">주백색</button><button type="button" data-s="img/m/ka-cool.jpg" aria-pressed="false">주광색</button></div>
+    <p class="bx">가운데 선을 좌우로 밀어 보세요. 실제 시공한 거실입니다. 더 많은 집은 <a href="emodel.html?c=1">e모델하우스</a>에서 볼 수 있습니다.</p>
+  </details>
   <h2>더 넣을 항목 <small>+ 를 눌러 수량</small></h2>
   <p class="hint">패키지 없이 항목만 골라도 됩니다.</p>
   <div class="it" id="it"></div>
@@ -136,6 +167,8 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
     var go = function () { if (S.kakaoCh) location.href = S.kakaoCh; };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { toast('고른 내용을 복사했습니다. 카톡 창에 붙여 넣어 보내 주세요.'); setTimeout(go, 1200); }, function () { prompt('아래 내용을 복사해 카톡으로 보내 주세요', txt); go(); });
     else { prompt('아래 내용을 복사해 카톡으로 보내 주세요', txt); go(); } });
+  $('baR').addEventListener('input', function () { $('cmp').style.setProperty('--x', this.value + '%'); });
+  document.querySelector('.bat').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (!b) return; $('baA').src = b.dataset.s; [].forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', x === b); }); });
   load(); drawPk(); drawIt(); calc();
   // 최신 금액 받아 오기 (사장님이 가격표에서 고친 값)
   function sb() { return new Promise(function (ok, no) { function mk() { ok(window.supabase.createClient('https://dypvqgaayumrhaiphatu.supabase.co', 'sb_publishable_5-LUZwZQ3VwBxDKDA_nJpw_ddF6QKdE', { auth: { persistSession: false } })); }
