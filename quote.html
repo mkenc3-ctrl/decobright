@@ -120,6 +120,19 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 .irow .up input{width:110px;text-align:right;padding:4px 6px;border:1px solid var(--warm);border-radius:10px;background:var(--warm-soft);font:inherit;color:var(--ink)}
 .irow select{margin-top:4px;padding:3px 6px;border:1px solid var(--warm);border-radius:10px;background:var(--warm-soft);font:inherit;font-size:12px;color:var(--ink)}
 .irow.off .nm b,.irow.off .amt{color:var(--muted);font-weight:500}
+.rq{border:2px dashed var(--warm);background:var(--warm-soft)}
+.rq textarea{min-height:96px}
+.rq .rqa{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.rq .rqa label.btn{cursor:pointer}
+.rqp{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.rqr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px}
+.rqr .o{color:var(--muted);font-size:13px}
+.rqr .m{font-weight:600}
+.rqr .w{grid-column:1/-1;font-size:12.5px;color:var(--warm-ink)}
+.rqr.no{border-color:#E7B4AE;background:#FFF6F5}
+.rqr.no .m{color:#B42318}
+.rqr.sk{opacity:.6}
+.rqimg{max-height:120px;border-radius:8px;border:1px solid var(--line);margin-top:8px}
 .qty{grid-area:q;display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .qty button{width:30px;height:30px;border:0;background:var(--warm-soft);color:var(--ink);font-size:16px;cursor:pointer}
 .qty input{width:40px;text-align:center;border:0;font:inherit;padding:4px 0;background:var(--surface);color:var(--ink)}
@@ -245,6 +258,23 @@ input[type=range]{flex:1;accent-color:#e9a23b}
             <label>시공 희망일<input class="fld" id="wishD" type="date"></label>
           </div>
           <label>진행 상태<select class="fld" id="qStatus"></select></label>
+        </div>
+      </div>
+      <div class="qcard rq" id="rqCard">
+        <h3>손님 요청으로 견적 만들기 <span class="badge">사진·카톡 붙여 넣기</span></h3>
+        <p class="fine" style="margin:0 0 6px">손님이 보낸 <b>품목 목록 사진(캡처)</b>이나 <b>카톡 글</b>을 넣으면 가격표 단가에 맞춰 항목·수량을 자동으로 채웁니다. 이 칸을 누르고 <b>Ctrl+V</b>로 붙여 넣어도 됩니다.</p>
+        <textarea class="fld" id="rqText" placeholder="예)&#10;거실 실링팬 설치 1&#10;주방 다운라이트 7개&#10;안방 커튼박스 간접조명"></textarea>
+        <img id="rqImg" class="rqimg" alt="올린 요청 사진" hidden>
+        <div class="rqa">
+          <label class="btn btn-line">사진 올리기<input type="file" id="rqFile" accept="image/*" hidden></label>
+          <button class="btn btn-warm" id="rqGo" type="button">가격표로 계산하기</button>
+          <button class="btn btn-ghost" id="rqClr" type="button" style="color:var(--ink);border-color:var(--line)">지우기</button>
+        </div>
+        <div class="fine" id="rqMsg" aria-live="polite"></div>
+        <div class="rqp" id="rqPrev"></div>
+        <div class="rqa" id="rqApplyBox" hidden>
+          <button class="btn btn-warm" id="rqApply" type="button">이대로 견적에 넣기</button>
+          <span class="fine" id="rqSum"></span>
         </div>
       </div>
       <div class="qcard">
@@ -691,6 +721,120 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     const t=TPL().find(x=>x.id===v); if(!t) return; const c=snapshot();
     restore({ ...t, cust:c.cust, status:c.status }); toast("「"+t.name+"」 구성을 불러왔습니다. 수량만 맞추세요."); });
   tplDraw();
+  // ── 손님 요청(사진·카톡) → 가격표 항목 자동 맞추기 ──
+  (function(){
+    const RULES=[
+      // [조건, 넣을 항목들[[id, 수량배수]], 안내, 비슷한단가]
+      [t=>/실링\s*팬|씰링\s*팬/.test(t)&&/설치|보강|배선|시운전/.test(t), [["i8",1],["i7",1]], "보강 + 배선 (실링팬 제품은 따로)"],
+      [t=>/실링\s*팬|씰링\s*팬|키트|비브리드|팬토닉|렉시움|\b52\b/.test(t), [["i6",1]], "실링팬 제품 — 모델 가격으로 고치세요", true],
+      [t=>/우물/.test(t)&&/목공|무\s*몰딩|몰딩|우물딩/.test(t), [["i5",1]], "무몰딩 목공 (간접조명 1줄 포함)", false, t=>/사각|직각|각/.test(t)?"직각":(/라운드|원형|둥/.test(t)?"라운드":"")],
+      [t=>/우물/.test(t)&&/간접|T5|t5/.test(t), [["i24",1]], "PVC 우물 간접등 + 1줄", false, null, "woo"],
+      [t=>/커튼\s*박스/.test(t), [["i3",1]], ""],
+      [t=>/현관/.test(t)&&/하부|간접/.test(t), [["i10",1]], "현관 하부 간접 센서등"],
+      [t=>/욕실|화장실/.test(t)&&/센서/.test(t), [["i11",1]], ""],
+      [t=>/센서/.test(t), [["i11",1]], "센서등 단가로 계산", true],
+      [t=>/COB|cob|C0B|씨오비|냉장고/.test(t), [["i18",1]], "COB 다운라이트"],
+      [t=>/마그네틱/.test(t), [["i14",1]], "미터 단위 — 수량을 미터로 고치세요", true],
+      [t=>/라인\s*조명|라인등/.test(t), [["i15",1]], "미터 단위 — 수량을 미터로 고치세요", true],
+      [t=>/펜던트/.test(t), [["i19",1]], ""],
+      [t=>/멀티/.test(t), [["i16",1]], ""],
+      [t=>/무선/.test(t)&&/스위치/.test(t), [["i23",1]], ""],
+      [t=>/스마트|원격/.test(t)&&/스위치/.test(t), [["i12",1]], ""],
+      [t=>/확산/.test(t), [["i17",1]], ""],
+      [t=>/2\s*인치/.test(t)&&/다운|매립/.test(t), [["i2",1]], ""],
+      [t=>/다운\s*라이트|매립등|매입등|다운/.test(t), [["i1",1]], "", false, t=>/[4-6]\s*인치/.test(t)],
+      [t=>/엣지|에지|방등|평판|주광색|전구색|주백색|화장대/.test(t), [["i21",1]], "고급형 방등 단가로 계산", true],
+      [t=>/복도등|등\s*교체|조명\s*교체/.test(t), [["i1",1]], "다운라이트 단가로 계산", true],
+      [t=>/콘센트|배선|전기/.test(t), [["i20",1]], "배선 작업 — 현장 단가로 고치세요", true],
+      [t=>/무몰딩/.test(t), [["i22",1]], ""],
+      [t=>/실린더/.test(t), [["i9",1]], ""]
+    ];
+    let rows=[];
+    const clean=l=>l.replace(/[|｜]/g," ").replace(/\s+/g," ").trim();
+    function parse(txt){
+      const out=[];
+      txt.split(/\n+/).map(clean).forEach(l=>{
+        if(!l || l.length<2) return;
+        if(/^(NO|번호)?\s*품명|규격\s*수|^수\s*량?$|^량$|합\s*계|부가세|^\d+$/.test(l)) return;
+        if(!/[가-힣A-Za-z]{2,}/.test(l)) return;
+        let q=1, t=l;
+        const u=t.match(/(\d+)\s*(개|구|대|곳|개소|식|EA|ea|조|세트|m|미터)(?![가-힣])/);
+        const lead=t.match(/^\d{1,2}[\s._)\-~]+/); if(lead) t=t.slice(lead[0].length);
+        const tail=t.match(/\s(\d{1,3})\s*$/);
+        if(tail){ q=+tail[1]; t=t.slice(0,tail.index).trim(); } else if(u){ q=+u[1]; }
+        if(!q) q=1; t=t.replace(/^[^가-힣A-Za-z0-9(]+/,"").replace(/^[A-Za-z]{1,2}[\s,]+(?=[가-힣])/,"");
+        // 시간·날짜 같은 카톡 머리 빼기
+        t=t.replace(/^\[[^\]]*\]\s*(\[[^\]]*\]\s*)?/,"").replace(/^(오전|오후)\s*\d+:\d+\s*/,"").trim();
+        if(t.length<2) return;
+        out.push({src:t,q});
+      });
+      return out;
+    }
+    function match(list){
+      const R=[]; let hasWoodwork=false;
+      list.forEach(x=>{ const t=x.src; let hit=null;
+        for(const r of RULES){ if(r[0](t)){ hit=r; break; } }
+        if(!hit){ R.push({src:t,q:x.q,items:[],note:"가격표에 없는 항목 — 기타로 넣습니다 (금액 직접 입력)",etc:true}); return; }
+        if(hit[5]==="woo" && hasWoodwork){ R.push({src:t,q:x.q,items:[],note:"위 우물 목공 금액에 간접조명 1줄이 들어 있어 따로 넣지 않습니다",skip:true}); return; }
+        if(hit[1][0][0]==="i5") hasWoodwork=true;
+        let approx=!!hit[3], note=hit[2]||"";
+        if(hit[1][0][0]==="i1" && typeof hit[4]==="function" && hit[4](t)){ approx=true; note="3인치 다운라이트 단가로 계산"; }
+        const opt=(hit[1][0][0]==="i5" && hit[4])?hit[4](t):"";
+        R.push({src:t,q:x.q,items:hit[1].map(([id,k])=>({id,qty:k*x.q,opt})),note,approx});
+      });
+      return R;
+    }
+    function draw(){
+      const el=$("rqPrev"); el.innerHTML=""; let sum=0;
+      rows.forEach(r=>{ const d=document.createElement("div"); d.className="rqr"+(r.etc?" no":"")+(r.skip?" sk":"");
+        const nm=r.items.map(i=>{ const it=QI.find(x=>x.id===i.id); return it?it.name+(i.opt?" ("+i.opt+")":"")+" × "+i.qty:""; }).filter(Boolean).join(" + ");
+        const amt=r.items.reduce((s,i)=>{ const it=QI.find(x=>x.id===i.id); return s+(it?it.price*i.qty:0); },0); sum+=amt;
+        d.innerHTML='<div><div class="o">'+DECO.esc(r.src)+' · '+r.q+'</div><div class="m">'+(r.etc?"기타 항목":r.skip?"넣지 않음":DECO.esc(nm))+'</div></div><div class="m" style="text-align:right">'+(r.etc||r.skip?"—":won(amt))+'</div>'+(r.note?'<div class="w">'+(r.approx?"비슷한 단가 · ":"")+DECO.esc(r.note)+'</div>':"");
+        el.append(d); });
+      $("rqApplyBox").hidden=!rows.length;
+      const n=rows.filter(r=>r.approx).length, e=rows.filter(r=>r.etc).length;
+      $("rqSum").textContent=rows.length?("항목 합계 "+won(sum)+" (공급가, 부가세 별도)"+(n?" · 비슷한 단가 "+n+"개":"")+(e?" · 기타 "+e+"개":"")):"";
+    }
+    function run(){ const L=parse($("rqText").value); rows=match(L);
+      $("rqMsg").textContent=L.length?L.length+"줄을 읽었습니다. 아래를 확인하고 「이대로 견적에 넣기」를 누르세요.":"읽을 항목이 없습니다. 한 줄에 한 항목씩 적어 주세요.";
+      draw(); }
+    $("rqGo").addEventListener("click",run);
+    $("rqClr").addEventListener("click",()=>{ $("rqText").value=""; rows=[]; $("rqImg").hidden=true; $("rqMsg").textContent=""; draw(); });
+    $("rqApply").addEventListener("click",()=>{
+      if(!rows.length) return;
+      const hasPkg=pkg!=="none";
+      if(hasPkg && !confirm("지금 고른 패키지를 「선택 안함」으로 바꾸고, 요청 항목만으로 견적을 만들까요?\n(취소하면 패키지는 그대로 두고 항목만 더합니다)")){} else pkg="none";
+      rows.forEach(r=>{ r.items.forEach(i=>{ const it=QI.find(x=>x.id===i.id); if(!it) return; it.qty+=i.qty; if(i.opt) it.opt=i.opt; });
+        if(r.etc) etcRows.push({id:etcId++,label:r.src+(r.q>1?" × "+r.q:""),amount:0}); });
+      const memo=$("memoInput"), list=rows.filter(r=>r.approx).map(r=>"· "+r.src+" — "+r.note);
+      if(list.length && !/단가 확인 필요/.test(memo.value)) memo.value=(memo.value?memo.value+"\n":"")+"[단가 확인 필요]\n"+list.join("\n");
+      renderPanel(); render&&render(); toast("요청 항목을 견적에 넣었습니다. 기타 항목 금액과 비슷한 단가를 확인하세요.");
+      rows=[]; draw(); $("rqMsg").textContent="견적에 넣었습니다."; document.getElementById("itemList").scrollIntoView({behavior:"smooth",block:"start"});
+    });
+    // 사진 → 글자 읽기 (처음 한 번 글자 읽기 도구를 내려받음)
+    let ocrLib=null;
+    function loadOcr(){ if(window.Tesseract) return Promise.resolve(); if(ocrLib) return ocrLib;
+      ocrLib=new Promise((ok,no)=>{ const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"; sc.onload=ok; sc.onerror=()=>{ ocrLib=null; no(new Error("load")); }; document.head.append(sc); }); return ocrLib; }
+    function prep(file){ return new Promise(ok=>{ const im=new Image(); im.onload=()=>{ const k=Math.min(3,Math.max(1,2400/im.width)), c=document.createElement("canvas"); c.width=Math.round(im.width*k); c.height=Math.round(im.height*k);
+        const g=c.getContext("2d"); g.imageSmoothingQuality="high"; g.drawImage(im,0,0,c.width,c.height); const d=g.getImageData(0,0,c.width,c.height), p=d.data;
+        for(let i=0;i<p.length;i+=4){ const y=.299*p[i]+.587*p[i+1]+.114*p[i+2], v=y>165?255:(y<90?0:Math.round((y-90)*255/75)); p[i]=p[i+1]=p[i+2]=v; }
+        g.putImageData(d,0,0); c.toBlob(b=>ok(b||file),"image/png"); }; im.onerror=()=>ok(file); im.src=URL.createObjectURL(file); }); }
+    async function readImg(file){
+      $("rqImg").src=URL.createObjectURL(file); $("rqImg").hidden=false;
+      $("rqMsg").textContent="사진에서 글자를 읽는 중입니다… (처음 한 번은 20~30초 걸립니다)";
+      try{ await loadOcr(); const w=await Tesseract.createWorker("kor+eng");
+        const { data } = await w.recognize(await prep(file)); await w.terminate();
+        const txt=(data.text||"").replace(/[ \t]+\n/g,"\n").trim();
+        if(!txt){ $("rqMsg").textContent="글자를 읽지 못했습니다. 더 선명한 캡처를 올리거나 글로 적어 주세요."; return; }
+        $("rqText").value=($("rqText").value.trim()?$("rqText").value.trim()+"\n":"")+txt; run();
+        $("rqMsg").textContent+=" 사진에서 읽은 글자가 틀린 곳이 있으면 위 칸에서 고친 뒤 「가격표로 계산하기」를 다시 누르세요.";
+      }catch(e){ $("rqMsg").textContent="사진 글자 읽기에 실패했습니다 (인터넷 연결 확인). 글로 적어 넣어 주세요."; }
+    }
+    $("rqFile").addEventListener("change",e=>{ const f=e.target.files[0]; e.target.value=""; if(f) readImg(f); });
+    $("rqCard").addEventListener("paste",e=>{ const it=[...(e.clipboardData&&e.clipboardData.items||[])].find(i=>/^image\//.test(i.type)); if(it){ e.preventDefault(); readImg(it.getAsFile()); } });
+    $("rqCard").addEventListener("dragover",e=>e.preventDefault());
+    $("rqCard").addEventListener("drop",e=>{ const f=[...(e.dataTransfer.files||[])].find(f=>/^image\//.test(f.type)); if(f){ e.preventDefault(); readImg(f); } });
+  })();
   $("resetQ").addEventListener("click",()=>{ QI=QI0.map(x=>({...x,qty:0,opt:""})); etcRows=[]; pkg="p3"; ["custName","custPhone","custAddr","custStaff","memoInput","discount","visD","visT","wishD"].forEach(id=>$(id).value=""); $("qStatus").value="상담"; renderPanel(); render(); curId=null; curCust=""; history.replaceState(null,"","quote.html"); $("qno").textContent=""; toast("견적을 초기화했습니다. 저장하면 새 견적으로 저장됩니다."); });
   $("syncQty").addEventListener("click",()=>{ const f=P().f, cnt=k=>items.filter(i=>i.type===k).length, set=(id,n)=>{ QI.find(x=>x.id===id).qty=Math.max(0,n); };
     if (!items.length){ toast("사진에 붙인 조명이 없습니다. 위에서 조명을 먼저 붙여 주세요.",true); return; }
