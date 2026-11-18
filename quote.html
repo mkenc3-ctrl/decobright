@@ -384,6 +384,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
           <button class="btn btn-warm" id="imgQuote" type="button" style="background:#FEE500;border-color:#FEE500;color:#191919">🖼 견적서 그림으로 카톡</button>
           <button class="btn btn-warm" id="kakaoQuote" type="button" style="background:#FEE500;border-color:#FEE500;color:#191919">💬 카톡으로 견적 보내기</button>
           <button class="btn btn-warm" id="houseLink" type="button" style="background:#1d1714;border-color:#1d1714;color:#f6c477">🏠 손님용 e모델하우스 링크 보내기</button>
+          <button class="btn btn-warm" id="calcLink" type="button" style="background:linear-gradient(135deg,#3A5BA0,#14213D 60%);border-color:#14213D;color:#fff">손님용 견적 계산기 보내기</button>
           <button class="btn btn-warm" id="sgCopy" type="button" style="background:#fff;border:2px solid #3B2F2A;color:#3B2F2A">📋 숨고에 붙여넣기 문구</button>
         </div>
         <div class="row">
@@ -1004,6 +1005,8 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   $("houseLink").addEventListener("click",()=>{ const nm=$("custName").value.trim().replace(/\s*(고객님|님)$/,""), s=DECO.settings();
     const u="https://mkenc3-ctrl.github.io/decobright/house.html"+(nm?"?n="+encodeURIComponent(nm+" 님"):"");
     DECO.kakao(DECO.kfmt({ icon:"🏠", title:"e모델하우스 안내", info:[["👤","고객",nm?nm+" 님":""]], secs:[["이런 걸 보실 수 있어요",["실제 시공한 집에서 불 켜 보기·빛 색 바꾸기","방마다 시공 사진·영상 둘러보기","패키지별 금액과 우리 집 예상 금액 계산","실측 가능한 날 골라 상담 신청"]]], foot:[(nm?nm+" 님, ":"")+"아래 주소를 눌러 둘러보세요 👇",u] }),"손님용 e모델하우스 링크"); });
+  $("calcLink").addEventListener("click",()=>{ const nm=$("custName").value.trim().replace(/\s*(고객님|님)$/,""), u="https://mkenc3-ctrl.github.io/decobright/calc.html";
+    DECO.kakao(DECO.kfmt({ icon:"🧮", title:"견적 계산기 안내", info:[["👤","고객",nm?nm+" 님":""]], secs:[["이렇게 쓰세요",["패키지 사진을 보고 하나 고르기","더 넣을 항목은 + 로 수량 넣기","우리 집 예상 금액이 바로 나옵니다","「고른 내용 카톡으로 보내기」를 누르면 상담 연결"]]], foot:[(nm?nm+" 님, ":"")+"아래 주소를 눌러 계산해 보세요 👇",u] }),"손님용 견적 계산기 링크"); });
   // 숨고 견적 메시지용: 꾸밈 기호 없이 줄바꿈·번호만 (숨고 채팅·견적서 칸에 그대로 붙여넣기)
   $("sgCopy").addEventListener("click",()=>{ DECO.kakao(DECO.soomgo(pkg,$("custName").value),"숨고에 붙여넣기 문구"); });
   $("kakaoQuote").addEventListener("click",()=>{ doSave(); DECO.kakao(kText(),"카톡으로 견적 보내기"); });
