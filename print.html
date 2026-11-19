@@ -62,7 +62,7 @@ th{background:#f1eee7;font-weight:500;white-space:nowrap}
   var E = DECO.esc, W = DECO.won, s = DECO.settings(), P = new URLSearchParams(location.search), id = P.get('id');
   var q = id ? DECO.getQuote(id) : null;
   if (!q && P.get('sample')) q = { no: 'DB-예시-01', updated: Date.now(), cust: { name: '홍길동', phone: '010-0000-0000', addr: '창원시 성산구 ○○아파트 101동 1001호', staff: s.staff },
-    pkg: 'p3', pkgName: '거실 실링팬 패키지', pkgPrice: 1650000, pkgDesc: '실링팬 / 우물 다운라이트 12개 / 우물등박스 T5 간접등 / 거실 커튼박스 T5 간접등 / 현관 간접 센서등 / TV·쇼파 다운라이트 6개 (도배 별도)',
+    pkg: 'p3', pkgName: '거실 실링팬 패키지', pkgPrice: 1650000, pkgDesc: '실링팬 / 우물등박스 T5 간접등 / 거실 커튼박스 T5 간접등 / 현관 간접 센서등 / TV·쇼파 다운라이트 6개 (도배 별도)',
     items: [{ name: '다운라이트 3인치', unit: '개당', price: 30000, qty: 4 }], etc: [{ label: '야간작업 추가비', amount: 100000 }], memo: '공사 하루, 계약금 30%', kelvin: 2700,
     totals: { supply: 1870000, vat: 187000, total: 2057000 } };
   var sh = document.getElementById('sheet');

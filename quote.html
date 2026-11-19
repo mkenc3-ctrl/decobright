@@ -471,7 +471,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
     if (cove) list.push(mk("cove",{pts:cove.map(p=>({...p})), lines: Math.max(1, f.cove || 1)}));
     if (curtain) list.push(mk("curtain",{a:{...curtain[0]}, b:{...curtain[1]}}));
     if (f.fan || opt.fan) list.push(mk("fan",{x:fanAt.x, y:fanAt.y}));
-    const inN = f.inN || 8, r = insetQ(q,.08,.1), longN = Math.round(inN*.33), shortN = Math.max(0, Math.round((inN-2*longN)/2));
+    const inN = f.inN != null ? f.inN : 8, r = insetQ(q,.08,.1), longN = Math.round(inN*.33), shortN = Math.max(0, Math.round((inN-2*longN)/2));
     const edge=(a,b,n)=>{ for(let i=0;i<n;i++){ const p=L(r[a],r[b],(i+.5)/n); list.push(mk("down",{x:p.x,y:p.y})); } };
     edge(0,1,longN); edge(3,2,longN); edge(0,3,shortN); edge(1,2,inN-2*longN-shortN);
     const tvN = f.tvN || 6, per = Math.ceil(tvN/2);
