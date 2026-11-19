@@ -39,6 +39,7 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
 .pc[aria-pressed=true] .b{background:var(--gold-s)}
 .pc[aria-pressed=true] .ck{background:var(--gold);border-color:var(--gold);color:var(--navy)}
 .pc.wide{grid-column:1/-1}
+.pv{display:inline-block;font-style:normal;font-size:11.5px;font-weight:800;color:#8C6A1F;border:1px solid #B8963E;padding:0 5px 1px;margin-left:6px;vertical-align:2px;white-space:nowrap;border-radius:3px;line-height:1.5}
 .adc{border:1px solid var(--line);border-radius:14px;background:linear-gradient(160deg,#FFFFFF 0%,#FFFFFF 60%,#FBF5E2 100%);padding:14px 14px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .adc h4{margin:0 0 4px;font-size:15.5px;color:#14213D;padding-bottom:8px;border-bottom:1px solid var(--line)}
 .adc dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:5px 8px;font-size:13px;line-height:1.4}
@@ -143,7 +144,7 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
   var $ = function (id) { return document.getElementById(id); }, W = DECO.won, S = DECO.settings();
   // 사장님이 고친 금액(손님 화면용으로 올린 값)이 있으면 그것으로 계산
   try { var PE = JSON.parse(localStorage.getItem('deco-pubpk') || 'null'); if (PE && PE.ed) DECO.priceEdits = function () { return PE.ed; }; } catch (e) {}
-  var IMG = { p8: 'img/pkg/p8.jpg', p1: 'img/pkg/p1.jpg', p2: 'img/pkg/p2.jpg', p3: 'img/pkg/p3.jpg', p4: 'img/pkg/p4.jpg', p5: 'img/pkg/p5.jpg' };
+  var IMG = { p8: 'img/pkg/p3.jpg', p1: 'img/pkg/p1.jpg', p2: 'img/pkg/p2.jpg', p3: 'img/pkg/p8.jpg', p4: 'img/pkg/p4.jpg', p5: 'img/pkg/p5.jpg' };
   var ORDER = ['p8', 'p1', 'p2', 'p3', 'p4', 'p5'];
   var PK = [], IT = [], pick = '', Q = {};
   function load() {
@@ -156,7 +157,7 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
     var h = PK.map(function (p) {
       var nb = /\(도배 별도\)/.test(p.desc || ''), li = String(p.desc || '').replace(/\s*\(도배 별도\)/, '').split(/\s*\/\s*/).filter(Boolean).map(function (t) { return '<li>' + DECO.esc(t) + '</li>'; }).join('');
       return '<button type="button" class="pc' + (p.trend ? ' wide' : '') + '" data-p="' + p.id + '" aria-pressed="' + (pick === p.id) + '"><span class="ck">✓</span>' + (p.trend ? '<span class="tg">요즘 트렌드</span>' : '') +
-        '<img src="' + IMG[p.id] + '" alt="' + DECO.esc(p.name) + ' 시공 사진" loading="lazy"><span class="b"><strong>' + DECO.esc(p.name) + '</strong><span class="pr">' + W(p.price) + '</span><ul>' + li + '</ul>' + (nb ? '<small style="display:block;margin-top:6px;font-size:.9em;color:#8A8F9C;font-weight:500">※ 도배는 별도입니다</small>' : '') + '</span></button>';
+        '<img src="' + IMG[p.id] + '" alt="' + DECO.esc(p.name) + ' 시공 사진" loading="lazy"><span class="b"><strong>' + DECO.esc(p.name) + (/^p[1-5]$/.test(p.id) ? '<em class="pv">PVC몰드</em>' : '') + '</strong><span class="pr">' + W(p.price) + '</span><ul>' + li + '</ul>' + (nb ? '<small style="display:block;margin-top:6px;font-size:.9em;color:#8A8F9C;font-weight:500">※ 도배는 별도입니다</small>' : '') + '</span></button>';
     }).join('');
     $('pk').innerHTML = h + addonCard() + '<button type="button" class="pc none" data-p="" aria-pressed="' + (!pick) + '"><span class="ck">✓</span>패키지 없이 항목만 고르기</button>';
   }
