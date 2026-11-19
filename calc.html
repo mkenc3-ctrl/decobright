@@ -62,7 +62,7 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
 .ig>summary::after{content:"▾";color:var(--gold-d);font-weight:900}
 .ig[open]>summary::after{content:"▴"}
 .ig[open]>summary{border-bottom:1px solid var(--line);background:#F8F9FB}
-.ir{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.ir{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
 .ir:last-child{border-bottom:0}
 .ir b{font-size:15.5px;font-weight:700}
 .ir .u{font-size:13px;color:var(--mu)}
@@ -71,6 +71,10 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
 .q button{width:40px;height:40px;border:0;background:#F1F3F7;font-size:20px;font-weight:700;color:var(--navy);cursor:pointer}
 .q span{min-width:38px;text-align:center;font-weight:800;font-size:16px}
 .ir.on .q button{background:#F3E6B5}
+.ir .x{width:34px;height:34px;border:1px solid var(--line);border-radius:50%;background:#fff;color:#8A8F9C;font-size:17px;font-weight:700;line-height:1;cursor:pointer;padding:0}
+.ir .x:hover{color:#B3261E;border-color:#E3B4B0}
+.rs{margin-top:8px;width:100%;font:inherit;font-size:14.5px;font-weight:700;padding:11px;border:1px dashed var(--line);border-radius:12px;background:#fff;color:var(--navy);cursor:pointer}
+.ith{font-size:13px;color:var(--mu);margin:0 0 8px}
 .note{margin:18px 2px 0;font-size:13px;color:var(--mu);line-height:1.6}
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);box-shadow:0 -12px 30px -18px rgba(20,33,61,.5);padding:10px max(14px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
 .bar .in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
@@ -161,15 +165,18 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
     }).join('');
     $('pk').innerHTML = h + addonCard() + '<button type="button" class="pc none" data-p="" aria-pressed="' + (!pick) + '"><span class="ck">✓</span>패키지 없이 항목만 고르기</button>';
   }
-  var GR = [['다운라이트', ['i1', 'i2', 'i16', 'i17', 'i18']], ['간접조명 · 우물', ['i3', 'i4', 'i5', 'i24', 'i14', 'i15']], ['실링팬 · 방등 · 펜던트', ['i25', 'i21', 'i19']], ['센서 · 스위치', ['i10', 'i11', 'i12', 'i23']]], OPEN = {};
+  var GR = [['다운라이트', ['i1', 'i2', 'i16', 'i17', 'i18']], ['간접조명 · 우물', ['i3', 'i4', 'i5', 'i24', 'i14', 'i15']], ['실링팬 · 방등 · 펜던트', ['i25', 'i21', 'i19']], ['센서 · 스위치', ['i10', 'i11', 'i12', 'i23']]], OPEN = {}, HID = {};
   function row(i) { var n = Q[i.id] || 0, m = /미터/.test(i.unit || '');
       return '<div class="ir' + (n ? ' on' : '') + '"><div><b>' + DECO.esc(i.name) + '</b><div class="u">' + W(i.price) + ' · ' + DECO.esc(String(i.unit || '').replace(/\s*\(.*\)/, '')) + '</div></div>' +
-        '<div class="q"><button type="button" data-m="' + i.id + '" aria-label="' + DECO.esc(i.name) + ' 줄이기">−</button><span>' + n + (m ? 'm' : '') + '</span><button type="button" data-a="' + i.id + '" aria-label="' + DECO.esc(i.name) + ' 늘리기">+</button></div></div>'; }
+        '<div class="q"><button type="button" data-m="' + i.id + '" aria-label="' + DECO.esc(i.name) + ' 줄이기">−</button><span>' + n + (m ? 'm' : '') + '</span><button type="button" data-a="' + i.id + '" aria-label="' + DECO.esc(i.name) + ' 늘리기">+</button></div>' +
+        '<button type="button" class="x" data-x="' + i.id + '" aria-label="' + DECO.esc(i.name) + ' 목록에서 빼기" title="목록에서 빼기">✕</button></div>'; }
   function drawIt() {
     var used = {}, gs = GR.map(function (g) { var L = g[1].map(function (id) { return IT.filter(function (i) { return i.id === id; })[0]; }).filter(Boolean); L.forEach(function (i) { used[i.id] = 1; }); return [g[0], L]; });
     var rest = IT.filter(function (i) { return !used[i.id]; }); if (rest.length) gs.push(['기타', rest]);
-    $('it').innerHTML = gs.filter(function (g) { return g[1].length; }).map(function (g) { var c = g[1].filter(function (i) { return Q[i.id]; }).length;
-      return '<details class="ig" data-g="' + DECO.esc(g[0]) + '"' + (OPEN[g[0]] ? ' open' : '') + '><summary><b>' + DECO.esc(g[0]) + '</b>' + (c ? '<em>' + c + '개 고름</em>' : '<small>' + g[1].length + '가지</small>') + '</summary>' + g[1].map(row).join('') + '</details>'; }).join('');
+    gs = gs.map(function (g) { return [g[0], g[1].filter(function (i) { return !HID[i.id]; })]; });
+    var nh = Object.keys(HID).length;
+    $('it').innerHTML = '<p class="ith">필요 없는 항목은 오른쪽 ✕ 를 누르면 목록에서 빠집니다.</p>' + gs.filter(function (g) { return g[1].length; }).map(function (g) { var c = g[1].filter(function (i) { return Q[i.id]; }).length;
+      return '<details class="ig" data-g="' + DECO.esc(g[0]) + '"' + (OPEN[g[0]] !== false ? ' open' : '') + '><summary><b>' + DECO.esc(g[0]) + '</b>' + (c ? '<em>' + c + '개 고름</em>' : '<small>' + g[1].length + '가지</small>') + '</summary>' + g[1].map(row).join('') + '</details>'; }).join('') + (nh ? '<button type="button" class="rs" data-r="1">뺀 항목 ' + nh + '개 다시 보기</button>' : '');
     [].forEach.call($('it').querySelectorAll('.ig'), function (d) { d.addEventListener('toggle', function () { OPEN[d.dataset.g] = d.open; }); });
   }
   function calc() {
@@ -184,8 +191,8 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
   }
   function toast(t) { var e = $('toast'); e.textContent = t; e.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { e.hidden = true; }, 2600); }
   $('pk').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b) return; pick = (b.dataset.p && pick !== b.dataset.p) ? b.dataset.p : ''; drawPk(); calc(); });
-  $('it').addEventListener('click', function (e) { var a = e.target.closest('[data-a]'), m = e.target.closest('[data-m]');
-    if (a) Q[a.dataset.a] = (Q[a.dataset.a] || 0) + 1; else if (m) Q[m.dataset.m] = Math.max(0, (Q[m.dataset.m] || 0) - 1); else return; drawIt(); calc(); });
+  $('it').addEventListener('click', function (e) { var a = e.target.closest('[data-a]'), m = e.target.closest('[data-m]'), x = e.target.closest('[data-x]');
+    if (x) { HID[x.dataset.x] = 1; delete Q[x.dataset.x]; } else if (e.target.closest('[data-r]')) HID = {}; else if (a) Q[a.dataset.a] = (Q[a.dataset.a] || 0) + 1; else if (m) Q[m.dataset.m] = Math.max(0, (Q[m.dataset.m] || 0) - 1); else return; drawIt(); calc(); });
   var tn = String(S.phone || '').replace(/[^\d]/g, ''); if (tn) $('tel').href = 'tel:' + tn; else $('tel').hidden = true;
   $('kk').addEventListener('click', function () { var r = calc();
     var txt = ['[데코브라이트 견적 계산기]', r.lines.length ? r.lines.join('\n') : '(고른 항목 없음)', '예상 합계 ' + W(r.tot) + ' (부가세 포함)', '', '이 내용으로 상담 받고 싶습니다.', '현장 주소:', '희망 날짜:'].join('\n');
