@@ -145,9 +145,9 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
   }
   function drawPk() {
     var h = PK.map(function (p) {
-      var li = String(p.desc || '').split(/\s*\/\s*/).filter(Boolean).map(function (t) { return '<li>' + DECO.esc(t) + '</li>'; }).join('');
+      var nb = /\(도배 별도\)/.test(p.desc || ''), li = String(p.desc || '').replace(/\s*\(도배 별도\)/, '').split(/\s*\/\s*/).filter(Boolean).map(function (t) { return '<li>' + DECO.esc(t) + '</li>'; }).join('');
       return '<button type="button" class="pc' + (p.trend ? ' wide' : '') + '" data-p="' + p.id + '" aria-pressed="' + (pick === p.id) + '"><span class="ck">✓</span>' + (p.trend ? '<span class="tg">요즘 트렌드</span>' : '') +
-        '<img src="' + IMG[p.id] + '" alt="' + DECO.esc(p.name) + ' 시공 사진" loading="lazy"><span class="b"><strong>' + DECO.esc(p.name) + '</strong><span class="pr">' + W(p.price) + '</span><ul>' + li + '</ul></span></button>';
+        '<img src="' + IMG[p.id] + '" alt="' + DECO.esc(p.name) + ' 시공 사진" loading="lazy"><span class="b"><strong>' + DECO.esc(p.name) + '</strong><span class="pr">' + W(p.price) + '</span><ul>' + li + '</ul>' + (nb ? '<small style="display:block;margin-top:6px;font-size:.9em;color:#8A8F9C;font-weight:500">※ 도배는 별도입니다</small>' : '') + '</span></button>';
     }).join('');
     $('pk').innerHTML = h + '<button type="button" class="pc none" data-p="" aria-pressed="' + (!pick) + '"><span class="ck">✓</span>패키지 없이 항목만 고르기</button>';
   }
