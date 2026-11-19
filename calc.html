@@ -44,6 +44,7 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
 .adc dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:5px 8px;font-size:13px;line-height:1.4}
 .adc dt{color:#3A4256;min-width:0}.adc dd{margin:0;font-weight:800;color:#14213D;white-space:nowrap;text-align:right}
 .adc .an{margin-top:6px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px;color:#7E6410;font-weight:700;line-height:1.45}
+@media (max-width:520px){.adc{padding:10px 10px 10px}.adc h4{font-size:14.5px}.adc dl{grid-template-columns:1fr;gap:0;font-size:12.5px}.adc dd{text-align:left;margin-bottom:6px;color:#7E6410}.adc .an{font-size:12.5px}}
 
 .pc.wide img{aspect-ratio:16/8}
 .pc.wide ul{columns:2;column-gap:18px}
@@ -150,7 +151,7 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
     var HIDE = { i7: 1, i8: 1, i9: 1, i13: 1, i20: 1, i22: 1 }; IT = DECO.items().filter(function (i) { return !i.hide && !i.editable && i.price > 0 && !HIDE[i.id]; });
   }
   function addonCard(){ var A=window.DECO_ADDONS; if(!A) return ''; var e=function(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
-    return '<div class="adc" aria-label="추가 상품"><h4>추가 상품</h4><dl>'+A.rows.map(function(r){return '<dt>'+e(r[0])+'</dt><dd>'+e(r[1])+'</dd>';}).join('')+'</dl>'+(A.note?'<div class="an">'+A.note.map(e).join('<br>')+'</div>':'')+'</div>'; }
+    return '<div class="adc" aria-label="추가 상품"><h4>추가 상품</h4><dl>'+A.rows.map(function(r){return '<dt>'+e(r[0])+'</dt><dd>'+e(r[1])+'</dd>';}).join('')+'</dl>'+(A.note?'<div class="an">'+A.note.map(function(t,i){return i?'<small style="display:block;margin-top:2px;font-weight:500">'+e(t)+'</small>':e(t);}).join('')+'</div>':'')+'</div>'; }
   function drawPk() {
     var h = PK.map(function (p) {
       var nb = /\(도배 별도\)/.test(p.desc || ''), li = String(p.desc || '').replace(/\s*\(도배 별도\)/, '').split(/\s*\/\s*/).filter(Boolean).map(function (t) { return '<li>' + DECO.esc(t) + '</li>'; }).join('');
