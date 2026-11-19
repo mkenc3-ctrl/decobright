@@ -2,10 +2,10 @@
   window.DECO_PKGS0 = [
     {id:"none", name:"선택 안함", price:0, desc:"패키지 없이 개별 항목으로만 견적", f:{inN:0,tvN:0,cove:0,curtain:false,fan:false}},
     {id:"p1", name:"우물 패키지", price:790000, desc:"우물 한방라운드", f:{inN:0,tvN:0,cove:0,curtain:false,fan:false}},
-    {id:"p2", name:"거실 간접등 패키지", price:1100000, desc:"TV·쇼파 다운라이트 6개 / 거실 커튼박스 T5 간접등 / 우물등박스 T5 간접등", f:{inN:0,tvN:6,cove:1,curtain:true,fan:false}},
-    {id:"p3", name:"거실 실링팬 패키지", price:1650000, desc:"실링팬 / 우물등박스 T5 간접등 / 거실 커튼박스 T5 간접등 / 현관 간접 센서등 / TV·쇼파 다운라이트 6개 (도배 별도)", f:{inN:0,tvN:6,cove:1,curtain:true,fan:true}},
-    {id:"p4", name:"풀 패키지", price:1900000, desc:"실링팬 / 우물등박스 T5 간접등(두줄) / 거실 커튼박스 T5 간접등 / TV·쇼파 다운라이트 6개 / 화장실 2곳 센서등 / 현관 센서등 (도배 별도)", f:{inN:0,tvN:6,cove:2,curtain:true,fan:true}},
-    {id:"p5", name:"VIP 패키지", price:2350000, desc:"실링팬 / 우물등박스 T5 간접등(두줄) / 거실 커튼박스 T5 간접등 / TV·쇼파 다운라이트 6개 / 냉장고장 다운라이트 2개 / 화장실 2곳 센서등 / 현관 간접 센서등 / 안방·작은방 2곳 커튼박스 T5 간접등 (도배 별도)", f:{inN:0,tvN:6,cove:2,curtain:true,fan:true}}
+    {id:"p2", name:"거실 간접등 패키지", price:1100000, desc:"TV·쇼파 다운라이트 6개 / 거실 커튼박스 T5 간접등 / 우물등박스(PVC몰드) T5 간접등", f:{inN:0,tvN:6,cove:1,curtain:true,fan:false}},
+    {id:"p3", name:"거실 실링팬 패키지", price:1650000, desc:"실링팬 / 우물등박스(PVC몰드) T5 간접등 / 거실 커튼박스 T5 간접등 / 현관 간접 센서등 / TV·쇼파 다운라이트 6개 (도배 별도)", f:{inN:0,tvN:6,cove:1,curtain:true,fan:true}},
+    {id:"p4", name:"풀 패키지", price:1900000, desc:"실링팬 / 우물등박스(PVC몰드) T5 간접등(두줄) / 거실 커튼박스 T5 간접등 / TV·쇼파 다운라이트 6개 / 화장실 2곳 센서등 / 현관 센서등 (도배 별도)", f:{inN:0,tvN:6,cove:2,curtain:true,fan:true}},
+    {id:"p5", name:"VIP 패키지", price:2350000, desc:"실링팬 / 우물등박스(PVC몰드) T5 간접등(두줄) / 거실 커튼박스 T5 간접등 / TV·쇼파 다운라이트 6개 / 냉장고장 다운라이트 2개 / 화장실 2곳 센서등 / 현관 간접 센서등 / 안방·작은방 2곳 커튼박스 T5 간접등 (도배 별도)", f:{inN:0,tvN:6,cove:2,curtain:true,fan:true}}
 ,
     {id:"p6", name:"세부 항목 단가표", price:0, web:true,
       desc:"요즘 많이 하는 시공의 세부 항목 — 원하는 것만 골라 계산",
@@ -27,7 +27,7 @@
     {id:"i1", name:"다운라이트 3인치", price:30000, unit:"개당"},
     {id:"i2", name:"다운라이트 2인치(호른)", price:40000, unit:"개당"},
     {id:"i3", name:"커튼박스 T5 간접등", price:100000, unit:"개소"},
-    {id:"i4", name:"우물등박스 간접등 두줄", price:250000, unit:"식"},
+    {id:"i4", name:"우물등박스(PVC몰드) 간접등 두줄", price:250000, unit:"식"},
     {id:"i5", name:"우물 무몰딩 목공", price:1050000, unit:"식 (PVC 대체)", options:["라운드","직각"]},
     {id:"i6", name:"실링팬", price:320000, unit:"대 (모델별 단가 다름 — 직접 수정)", editable:true},
     {id:"i7", name:"배선비용", price:50000, unit:"실링팬 1대당"},
