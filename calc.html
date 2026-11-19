@@ -39,6 +39,12 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
 .pc[aria-pressed=true] .b{background:var(--gold-s)}
 .pc[aria-pressed=true] .ck{background:var(--gold);border-color:var(--gold);color:var(--navy)}
 .pc.wide{grid-column:1/-1}
+.adc{border:1px solid var(--line);border-radius:14px;background:linear-gradient(160deg,#FFFFFF 0%,#FFFFFF 60%,#FBF5E2 100%);padding:14px 14px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.adc h4{margin:0 0 4px;font-size:15.5px;color:#14213D;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.adc dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:5px 8px;font-size:13px;line-height:1.4}
+.adc dt{color:#3A4256;min-width:0}.adc dd{margin:0;font-weight:800;color:#14213D;white-space:nowrap;text-align:right}
+.adc .an{margin-top:6px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px;color:#7E6410;font-weight:700;line-height:1.45}
+
 .pc.wide img{aspect-ratio:16/8}
 .pc.wide ul{columns:2;column-gap:18px}
 .pc .tg{position:absolute;top:9px;right:9px;font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;background:linear-gradient(135deg,#F6E3A0,#C9A227 55%,#8A6A12);color:var(--navy)}
@@ -143,13 +149,15 @@ h2 small{font-size:13px;font-weight:500;color:var(--mu)}
     var all = DECO.pkgs(); PK = ORDER.map(function (id) { return all.filter(function (p) { return p.id === id && !p.hide; })[0]; }).filter(Boolean);
     var HIDE = { i7: 1, i8: 1, i9: 1, i13: 1, i20: 1, i22: 1 }; IT = DECO.items().filter(function (i) { return !i.hide && !i.editable && i.price > 0 && !HIDE[i.id]; });
   }
+  function addonCard(){ var A=window.DECO_ADDONS; if(!A) return ''; var e=function(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+    return '<div class="adc" aria-label="추가 상품"><h4>추가 상품</h4><dl>'+A.rows.map(function(r){return '<dt>'+e(r[0])+'</dt><dd>'+e(r[1])+'</dd>';}).join('')+'</dl>'+(A.note?'<div class="an">'+A.note.map(e).join('<br>')+'</div>':'')+'</div>'; }
   function drawPk() {
     var h = PK.map(function (p) {
       var nb = /\(도배 별도\)/.test(p.desc || ''), li = String(p.desc || '').replace(/\s*\(도배 별도\)/, '').split(/\s*\/\s*/).filter(Boolean).map(function (t) { return '<li>' + DECO.esc(t) + '</li>'; }).join('');
       return '<button type="button" class="pc' + (p.trend ? ' wide' : '') + '" data-p="' + p.id + '" aria-pressed="' + (pick === p.id) + '"><span class="ck">✓</span>' + (p.trend ? '<span class="tg">요즘 트렌드</span>' : '') +
         '<img src="' + IMG[p.id] + '" alt="' + DECO.esc(p.name) + ' 시공 사진" loading="lazy"><span class="b"><strong>' + DECO.esc(p.name) + '</strong><span class="pr">' + W(p.price) + '</span><ul>' + li + '</ul>' + (nb ? '<small style="display:block;margin-top:6px;font-size:.9em;color:#8A8F9C;font-weight:500">※ 도배는 별도입니다</small>' : '') + '</span></button>';
     }).join('');
-    $('pk').innerHTML = h + '<button type="button" class="pc none" data-p="" aria-pressed="' + (!pick) + '"><span class="ck">✓</span>패키지 없이 항목만 고르기</button>';
+    $('pk').innerHTML = h + addonCard() + '<button type="button" class="pc none" data-p="" aria-pressed="' + (!pick) + '"><span class="ck">✓</span>패키지 없이 항목만 고르기</button>';
   }
   var GR = [['다운라이트', ['i1', 'i2', 'i16', 'i17', 'i18']], ['간접조명 · 우물', ['i3', 'i4', 'i5', 'i24', 'i14', 'i15']], ['실링팬 · 방등 · 펜던트', ['i25', 'i21', 'i19']], ['센서 · 스위치', ['i10', 'i11', 'i12', 'i23']]], OPEN = {};
   function row(i) { var n = Q[i.id] || 0, m = /미터/.test(i.unit || '');

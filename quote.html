@@ -104,6 +104,12 @@ input[type=range]{flex:1;accent-color:#e9a23b}
 .pkc:has(input:checked){border:2px solid #C9A227;box-shadow:0 8px 20px -12px rgba(120,95,20,.6)}
 .pkc:has(input:checked) .pb{background:#FBF5E2}
 .pktx{margin-top:10px}
+.adc{border:1px solid var(--line);border-radius:14px;background:linear-gradient(160deg,#FFFFFF 0%,#FFFFFF 60%,#FBF5E2 100%);padding:14px 14px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.adc h4{margin:0 0 4px;font-size:15.5px;color:#14213D;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.adc dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:5px 8px;font-size:13px;line-height:1.4}
+.adc dt{color:#3A4256;min-width:0}.adc dd{margin:0;font-weight:800;color:#14213D;white-space:nowrap;text-align:right}
+.adc .an{margin-top:6px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px;color:#7E6410;font-weight:700;line-height:1.45}
+
 .pkc.wide{grid-column:1/-1;order:-1}
 .pkc.wide img{aspect-ratio:16/8}
 .pkc.wide .pb{padding:12px 14px 14px}
@@ -739,6 +745,8 @@ input[type=range]{flex:1;accent-color:#e9a23b}
   // ---------- price panel ----------
   function renderPanel(){ renderPkgs(); renderItems(); renderEtc(); totals(); }
   const PKIMG={p1:"img/pkg/p1.jpg",p2:"img/pkg/p2.jpg",p3:"img/pkg/p3.jpg",p4:"img/pkg/p4.jpg",p5:"img/pkg/p5.jpg",p8:"img/pkg/p8.jpg"};
+  function addonCard(){ var A=window.DECO_ADDONS; if(!A) return ''; var e=function(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+    return '<div class="adc" aria-label="추가 상품"><h4>추가 상품</h4><dl>'+A.rows.map(function(r){return '<dt>'+e(r[0])+'</dt><dd>'+e(r[1])+'</dd>';}).join('')+'</dl>'+(A.note?'<div class="an">'+A.note.map(e).join('<br>')+'</div>':'')+'</div>'; }
   function renderPkgs(){
     const pk=$("pkgs"); pk.innerHTML="";
     const gr=document.createElement("div"); gr.className="pkgrid"; pk.append(gr);
@@ -749,6 +757,7 @@ input[type=range]{flex:1;accent-color:#e9a23b}
       const nb=/\(도배 별도\)/.test(p.desc||""); String(p.desc||"").replace(/\s*\(도배 별도\)/,"").split(/\s*\/\s*/).filter(Boolean).forEach(t=>{ const li=document.createElement("li"); li.textContent=t; l.querySelector("ul").append(li); });
       if(nb){ const n=document.createElement("small"); n.style.cssText="display:block;margin-top:6px;font-size:.9em;color:#8A8F9C;font-weight:500"; n.textContent="※ 도배는 별도입니다"; l.querySelector(".pb").append(n); }
       const r=l.querySelector("input"); r.checked=pkg===p.id; r.addEventListener("change",()=>{ pkg=p.id; renderPkgs(); render(); }); gr.append(l); });
+    gr.insertAdjacentHTML("beforeend", addonCard());
     const tx=document.createElement("div"); tx.className="opts pktx"; pk.append(tx);
     PKGS.forEach(p=>{ if (PKIMG[p.id] || p.id==="p7" || (p.hide && pkg!==p.id)) return; const l=document.createElement("label"); l.className="opt"; l.htmlFor="pk-"+p.id;
       l.innerHTML=`<input type="radio" name="pkg" id="pk-${p.id}"><span><strong></strong><span class="pdesc"></span></span><span class="price"></span>`;
