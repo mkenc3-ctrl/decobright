@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>챗봇 질문·답 고치기 · 데코브라이트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<style>
+.steps{margin:4px 0 0;padding-left:22px;font-size:16px;line-height:1.7}
+.L{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+.qa{background:#fff;border:1px solid var(--line);border-left:5px solid var(--warm);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.qa.off{opacity:.55;border-left-color:#B9BEC9}
+.qa.new{border-left-color:#2A4A8C}
+.qa .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.qa .hd b{font-size:13px;font-weight:800;padding:2px 8px;border-radius:999px;background:#FBF5E2;color:#7E6410}
+.qa .hd b.au{background:#E8EEF8;color:#2A4A8C}
+.qa .hd b.ch{background:#FDECEC;color:#A12A22}
+.qa .hd label{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700}
+.qa .hd input{width:22px;height:22px}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700;color:var(--ink2)}
+.fl em{font-style:normal;font-weight:500;color:var(--muted);font-size:13px}
+.fl input,.fl textarea{font:inherit;font-size:17px;font-weight:500;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;width:100%;color:var(--ink)}
+.fl input.q{font-weight:800}
+.fl textarea{min-height:96px;line-height:1.55}
+.r{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar{position:sticky;bottom:0;z-index:5;background:rgba(255,255,255,.97);border-top:1px solid var(--line);padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+.bar .pri{flex:1;min-width:220px}
+.tip{font-size:14px;color:var(--muted);margin:0}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="design.css">
+<script src="design.js" defer></script>
+</head>
+<body class="app">
+<div class="page">
+  <div class="topnav"><button type="button" class="back" onclick="DECO.goBack()">← 뒤로</button><a class="home" href="index.html">처음 화면</a></div>
+  <h1 class="t">챗봇 질문·답 고치기</h1>
+  <p class="sub">손님용 견적 계산기와 e모델하우스의 「💬 궁금한 점 묻기」 챗봇에 나오는 질문과 답입니다.</p>
+  <section class="card">
+    <ol class="steps">
+      <li><b>질문</b>은 손님이 누르는 단추 글자입니다.</li>
+      <li><b>찾는 낱말</b>은 손님이 직접 글을 쓸 때 이 답을 찾는 말입니다. 쉼표(,)로 나눠 적습니다.</li>
+      <li><b>답</b>을 고친 뒤 맨 아래 <b>「저장하고 손님 화면에 올리기」</b>를 누르면 손님 휴대폰에도 바뀝니다.</li>
+    </ol>
+    <p class="tip" style="margin-top:8px">답 안에 <b>**굵게**</b> 처럼 별 두 개로 감싸면 굵은 글씨가 됩니다. <b>{지역} {전화} {회사}</b> 는 회사 정보 설정 값으로 바뀝니다.</p>
+  </section>
+  <div class="r" style="margin-top:12px"><button class="btn2 pri" type="button" id="nw">+ 새 질문 넣기</button><a class="btn2" href="calc.html" target="_blank" rel="noopener">손님 화면에서 보기 ›</a></div>
+  <div class="L" id="list"></div>
+  <div class="bar"><button class="btn2 pri" type="button" id="sv">저장하고 손님 화면에 올리기</button><button class="btn2" type="button" id="rs">모두 처음 상태로</button></div>
+  <p class="msg" id="msg" role="status"></p>
+</div>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script src="prices-default.js"></script>
+<script src="chatbot.js" data-noui></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, E = DECO.esc, T0 = window.DECO_BOT0 || [], AUTO = window.DECO_BOT_AUTO || {};
+  function rd() { try { return JSON.parse(localStorage.getItem('deco-pub') || '[]').filter(function (x) { return x && x.id; }); } catch (e) { return []; } }
+  function cur() { var b = rd().filter(function (x) { return x.id === 'bot'; })[0]; return b && b.ed ? b.ed : { items: {}, extra: [] }; }
+  var ED = JSON.parse(JSON.stringify(cur())); ED.items = ED.items || {}; ED.extra = ED.extra || [];
+  function say(t, bad) { $('msg').className = 'msg' + (bad ? ' bad' : ''); $('msg').textContent = t; }
+  function kw(s) { return String(s || '').split(/[,，、\n]/).map(function (x) { return x.trim(); }).filter(Boolean); }
+  function card(x, o, isNew) { var au = x.auto && !(o.a != null && o.a !== ''), ch = !isNew && (o.q || o.a || (o.k && o.k.length));
+    return '<div class="qa' + (o.hide ? ' off' : '') + (isNew ? ' new' : '') + '" data-id="' + E(x.id) + '" data-new="' + (isNew ? 1 : '') + '">' +
+      '<div class="hd">' + (isNew ? '<b>새로 넣은 질문</b>' : au ? '<b class="au">자동 답</b>' : '<b>기본 질문</b>') + (ch ? '<b class="ch">고침</b>' : '') +
+      '<label><input type="checkbox" class="hide"' + (o.hide ? ' checked' : '') + '>손님에게 숨기기</label></div>' +
+      '<label class="fl">질문 <em>(단추 글자)</em><input class="q" maxlength="40" value="' + E(o.q || x.q || '') + '"></label>' +
+      '<label class="fl">찾는 낱말 <em>(쉼표로 나눔)</em><input class="k" value="' + E((o.k && o.k.length ? o.k : x.k || []).join(', ')) + '"></label>' +
+      '<label class="fl">답' + (x.auto ? ' <em>— 비워 두면 자동: ' + E((AUTO[x.auto] || {}).d || '') + '</em>' : '') + '<textarea class="a" maxlength="1200" placeholder="' + (x.auto ? '비워 두면 자동으로 답합니다' : '손님에게 보여 줄 답') + '">' + E(o.a != null && o.a !== '' ? o.a : (x.auto ? '' : x.a || '')) + '</textarea></label>' +
+      '<div class="r">' + (isNew ? '<button class="btn2 no" type="button" data-del="1">이 질문 지우기</button>' : (ch ? '<button class="btn2" type="button" data-def="1">이 질문만 처음 상태로</button>' : '')) + '</div></div>'; }
+  function draw() { $('list').innerHTML = T0.map(function (x) { return card(x, ED.items[x.id] || {}, false); }).join('') + ED.extra.map(function (x) { return card(x, x, true); }).join(''); }
+  // 화면 → ED (기본값과 같으면 저장하지 않음)
+  function read() { var items = {}, extra = [];
+    [].forEach.call($('list').querySelectorAll('.qa'), function (c) { var id = c.dataset.id, q = c.querySelector('.q').value.trim(), k = kw(c.querySelector('.k').value), a = c.querySelector('.a').value.replace(/\s+$/, ''), hide = c.querySelector('.hide').checked;
+      if (c.dataset.new) { extra.push({ id: id, q: q, k: k, a: a, hide: hide }); return; }
+      var x = T0.filter(function (t) { return t.id === id; })[0]; if (!x) return; var o = {};
+      if (q && q !== x.q) o.q = q; if (k.join(',') !== (x.k || []).join(',')) o.k = k; if (a.trim() && a !== (x.a || '')) o.a = a; if (hide) o.hide = true;
+      if (Object.keys(o).length) items[id] = o; });
+    return { items: items, extra: extra }; }
+  $('list').addEventListener('change', function (e) { if (e.target.classList.contains('hide')) e.target.closest('.qa').classList.toggle('off', e.target.checked); });
+  $('list').addEventListener('click', function (e) { var c = e.target.closest('.qa'); if (!c) return;
+    if (e.target.closest('[data-def]')) { ED = read(); delete ED.items[c.dataset.id]; draw(); say('처음 상태로 돌렸습니다. 저장해야 손님 화면에도 바뀝니다.'); }
+    if (e.target.closest('[data-del]')) { if (!confirm('이 질문을 지울까요?')) return; ED = read(); ED.extra = ED.extra.filter(function (x) { return x.id !== c.dataset.id; }); draw(); say('지웠습니다. 저장해야 손님 화면에도 바뀝니다.'); } });
+  $('nw').addEventListener('click', function () { ED = read(); ED.extra.push({ id: 'x' + Date.now().toString(36), q: '', k: [], a: '' }); draw();
+    var L = $('list').querySelectorAll('.qa.new'), c = L[L.length - 1]; c.scrollIntoView({ behavior: 'smooth', block: 'center' }); c.querySelector('.q').focus(); });
+  $('rs').addEventListener('click', function () { if (!confirm('고친 내용과 새로 넣은 질문을 모두 지우고 처음 상태로 돌릴까요? (저장해야 손님 화면에도 바뀝니다)')) return; ED = { items: {}, extra: [] }; draw(); say('처음 상태로 돌렸습니다. 「저장하고 손님 화면에 올리기」를 눌러야 반영됩니다.'); });
+  $('sv').addEventListener('click', function () { var ed = read(), bad = ed.extra.filter(function (x) { return !x.q || !x.a.trim(); });
+    if (bad.length) return say('새로 넣은 질문에 「질문」과 「답」을 모두 적어 주세요.', true);
+    var all = ed.extra.map(function (x) { return x.q + ' ' + x.a; }).concat(Object.keys(ed.items).map(function (k) { return (ed.items[k].q || '') + ' ' + (ed.items[k].a || ''); })).join(' ');
+    if (/\d{6}\s*-?\s*[1-4]\d{6}/.test(all)) return say('주민등록번호 모양의 글이 있어 올리지 않았습니다.', true);
+    if (/01[016789][\s.-]?\d{3,4}[\s.-]?\d{4}/.test(all.replace(/010[\s.-]?5854[\s.-]?2143/g, '')) && !confirm('답에 휴대폰 번호가 들어 있습니다. 손님에게 그대로 보여도 될까요?')) return;
+    var it = { id: 'bot', ed: ed, at: Date.now() }, arr = rd().filter(function (x) { return x.id !== 'bot'; }).concat([it]);
+    try { localStorage.setItem('deco-pub', JSON.stringify(arr)); window.DECO_SYNC && DECO_SYNC.changed && DECO_SYNC.changed('deco-pub', arr); } catch (e) { return say('저장하지 못했습니다.', true); }
+    ED = JSON.parse(JSON.stringify(ed)); draw(); say('저장했습니다. 인터넷이 연결되어 있으면 손님 화면에도 곧 바뀝니다.'); });
+  draw();
+})();
+</script>
+</body>
+</html>
