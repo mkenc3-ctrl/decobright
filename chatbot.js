@@ -101,12 +101,15 @@
     '.cb-c button{font:inherit;font-size:14.5px;font-weight:700;padding:8px 12px;border-radius:999px;border:1px solid #D9C27A;background:#FBF5E2;color:#5C4A10;cursor:pointer}',
     '.cb-f{display:flex;gap:6px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid #E1E5EE}',
     '.cb-f input{flex:1;min-width:0;font:inherit;font-size:16px;padding:11px 12px;border:1px solid #D5DAE4;border-radius:10px}',
+    '.cb-b.wait{color:#6B7183}.cb-b.wait::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:cbd 1.2s steps(4) infinite}',
+    '@keyframes cbd{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}',
+    '.cb-b .ain{display:block;margin-top:6px;font-size:12.5px;color:#8A8F9C}',
     '.cb-f button{font:inherit;font-size:15px;font-weight:800;padding:0 16px;border:0;border-radius:10px;background:#14213D;color:#fff;cursor:pointer}'
   ].join('\n');
   document.head.appendChild(css);
-  var fab = document.createElement('button'); fab.type = 'button'; fab.className = 'cb-fab'; fab.innerHTML = '<span aria-hidden="true">💬</span>궁금한 점 묻기';
-  var box = document.createElement('section'); box.className = 'cb'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', CO + ' 상담 도우미');
-  box.innerHTML = '<div class="cb-h"><b>' + esc(CO) + ' 상담 도우미<small>자주 묻는 질문에 바로 답해 드려요</small></b><button type="button" class="cb-x" aria-label="닫기">✕</button></div>' +
+  var fab = document.createElement('button'); fab.type = 'button'; fab.className = 'cb-fab'; fab.innerHTML = '<span aria-hidden="true">💬</span>AI 챗봇';
+  var box = document.createElement('section'); box.className = 'cb'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', CO + ' AI 챗봇');
+  box.innerHTML = '<div class="cb-h"><b>' + esc(CO) + ' AI 챗봇<small class="cb-st">자주 묻는 질문에 바로 답해 드려요</small></b><button type="button" class="cb-x" aria-label="닫기">✕</button></div>' +
     '<div class="cb-m" aria-live="polite"></div><div class="cb-c" role="group" aria-label="자주 묻는 질문"></div>' +
     '<form class="cb-f"><input type="text" placeholder="예: 도배도 해 주나요?" aria-label="질문 쓰기" maxlength="200"><button type="submit">묻기</button></form>';
   document.body.appendChild(fab); document.body.appendChild(box);
@@ -115,15 +118,37 @@
   function chips() { C.innerHTML = T.filter(function (x) { return !asked[x.id] || x.id === 'talk'; }).map(function (x) { return '<button type="button" data-q="' + esc(x.id) + '">' + esc(x.q) + '</button>'; }).join(''); }
   function answer(x, shown) { say(esc(shown || x.q), 'me'); asked[x.id] = 1; setTimeout(function () { say(ans(x)); chips(); }, 250); }
   function open() { box.hidden = false; fab.hidden = true;
-    if (!started) { started = true; say('안녕하세요, <b>' + esc(CO) + '</b>입니다 😊<br>궁금한 것을 아래에서 누르거나 직접 써 주세요.'); chips(); }
+    if (!started) { started = true; say('안녕하세요, <b>' + esc(CO) + '</b> AI 챗봇입니다 😊<br>궁금한 것을 아래에서 누르거나 직접 써 주세요.<br><small>직접 쓴 질문은 답을 드리기 위해 하루 동안 저장됩니다. 이름·전화번호 같은 개인 정보는 쓰지 말아 주세요.</small>'); chips(); }
     setTimeout(function () { M.scrollTop = M.scrollHeight; }, 0); }
   fab.addEventListener('click', open);
   box.querySelector('.cb-x').addEventListener('click', function () { box.hidden = true; fab.hidden = false; fab.focus(); });
   C.addEventListener('click', function (e) { var b = e.target.closest('[data-q]'); if (!b) return; var x = T.filter(function (t) { return t.id === b.dataset.q; })[0]; if (x) answer(x); });
   box.querySelector('form').addEventListener('submit', function (e) { e.preventDefault(); var t = I.value.trim(); if (!t) return; I.value = '';
     if (/\d{6}\s*-?\s*[1-4]\d{6}/.test(t)) { say('주민등록번호 같은 개인 정보는 여기에 쓰지 말아 주세요.'); return; }
+    if (AION && NAI < 10) return aiAsk(t);
     var x = find(t); if (x) answer(x, t);
     else { say(esc(t), 'me'); setTimeout(function () { say(talk('그 질문은 사장님이 직접 답해 드리는 게 정확합니다. 카톡이나 전화로 물어봐 주세요.')); }, 250); } });
+
+  // ── AI 답변 (사장님 컴퓨터가 켜져 있을 때만: 컴퓨터가 30초마다 「켜짐」 신호를 남김) ──
+  var SB = 'https://dypvqgaayumrhaiphatu.supabase.co/rest/v1/records', SK = 'sb_publishable_5-LUZwZQ3VwBxDKDA_nJpw_ddF6QKdE',
+    SH = { apikey: SK, Authorization: 'Bearer ' + SK, 'Content-Type': 'application/json' }, AION = false, NAI = 0;
+  function chkAlive() { if (!window.fetch) return;
+    fetch(SB + '?select=data&coll=eq.botq&id=eq.alive', { headers: SH }).then(function (r) { return r.ok ? r.json() : []; }).then(function (j) {
+      var at = j && j[0] && j[0].data && j[0].data.at; AION = !!at && Math.abs(Date.now() - at) < 90e3;
+      var st = box.querySelector('.cb-st'); if (st) st.textContent = AION ? '지금은 AI가 바로 답해 드려요' : '자주 묻는 질문에 바로 답해 드려요';
+      I.placeholder = AION ? '무엇이든 물어보세요 (예: 30평 거실 얼마예요?)' : '예: 도배도 해 주나요?'; }).catch(function () {}); }
+  chkAlive(); fab.addEventListener('click', chkAlive);
+  function aiAsk(t) { say(esc(t), 'me'); NAI++;
+    var b = document.createElement('div'); b.className = 'cb-b bot wait'; b.textContent = '답을 찾고 있어요 (10초쯤 걸려요)'; M.appendChild(b); M.scrollTop = M.scrollHeight;
+    var id = 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), t0 = Date.now(), done = false;
+    function fin(html) { if (done) return; done = true; b.className = 'cb-b bot'; b.innerHTML = html; M.scrollTop = M.scrollHeight; chips(); }
+    function fallback() { var x = find(t); fin(x ? ans(x) : talk('그 질문은 사장님이 직접 답해 드리는 게 정확합니다. 카톡이나 전화로 물어봐 주세요.')); }
+    fetch(SB + '?on_conflict=coll,id', { method: 'POST', headers: Object.assign({ Prefer: 'resolution=merge-duplicates,return=minimal' }, SH), body: JSON.stringify([{ coll: 'botq', id: id, data: { q: t.slice(0, 300), at: t0, st: 'wait', pg: location.pathname.split('/').pop() } }]) })
+      .then(function (r) { if (!r.ok) throw 0; poll(); }).catch(fallback);
+    function poll() { if (done) return; if (Date.now() - t0 > 40e3) { AION = false; return fallback(); }
+      setTimeout(function () { fetch(SB + '?select=data&coll=eq.botq&id=eq.' + id, { headers: SH }).then(function (r) { return r.ok ? r.json() : []; }).then(function (j) {
+        var d = j && j[0] && j[0].data; if (d && d.st === 'done' && d.a) fin(txt(d.a) + '<span class="ain">AI 답변이라 틀릴 수 있어요. 정확한 금액·일정은 실측 후 안내해 드립니다.</span>');
+        else if (d && /fail|late|busy/.test(d.st)) fallback(); else poll(); }).catch(poll); }, 2000); } }
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !box.hidden) box.querySelector('.cb-x').click(); });
 
   // 서버에 올린 최신 질문·답 받기 (손님 기기). 사장님 기기에 저장된 것이 있으면 그걸 씀
